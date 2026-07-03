@@ -19,10 +19,9 @@ variable "create_ec2" {
   default     = false
 }
 
-# Existing EC2 instance to attach the volume to (if not creating EC2 in this module)
 variable "ec2_instance_id" {
   type        = string
-  description = "EC2 instance ID (e.g. i-0abc123def456)"
+  description = "Existing EC2 instance ID. Leave empty when creating a new instance."
   default     = ""
 }
 
@@ -51,20 +50,51 @@ variable "mount_path" {
   default = "/opt/jasper-reports"
 }
 
-# Required only when ec2_instance_id is empty (new EC2 in ec2.tf)
+variable "mount_owner" {
+  type        = string
+  description = "POSIX user:group for the Jasper mount directory"
+  default     = "ec2-user:ec2-user"
+}
+
+variable "instance_type" {
+  type        = string
+  description = "EC2 instance type when creating a new instance"
+  default     = "t3.medium"
+}
+
+variable "vpc_id" {
+  type        = string
+  description = "VPC ID (required when creating a new EC2 instance)"
+  default     = ""
+}
+
 variable "subnet_id" {
   type    = string
   default = ""
 }
 
 variable "security_group_id" {
-  type    = string
-  default = ""
+  type        = string
+  description = "Existing security group ID. Leave empty to let Terraform create one."
+  default     = ""
 }
 
 variable "key_name" {
-  type    = string
-  default = ""
+  type        = string
+  description = "EC2 key pair name (required for new instance)"
+  default     = ""
+}
+
+variable "associate_public_ip" {
+  type        = bool
+  description = "Associate a public IP when creating EC2 in a public subnet"
+  default     = true
+}
+
+variable "allowed_ssh_cidr_blocks" {
+  type        = list(string)
+  description = "CIDR blocks allowed SSH access when Terraform creates the security group"
+  default     = ["0.0.0.0/0"]
 }
 
 variable "tags" {
