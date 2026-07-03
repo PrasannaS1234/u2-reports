@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="AssortmentFormatIN1_sub" pageWidth="260" pageHeight="840" columnWidth="260" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="61fcc04f-329c-4f00-b3f6-941874fefd1c">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="schema" class="java.lang.String">
+		<defaultValueExpression><![CDATA["public"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="toDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA["01/01/2020"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dateFormat" class="java.lang.String">
+		<defaultValueExpression><![CDATA["DD/MM/YYYY"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="loginCompanyId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="departmentId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="binId" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+	tx.stock_code,
+	sum(tx.qty1) qty1,
+	sum(tx.qty2) qty2
+from (
+select
+coalesce(nullif(concat(j.jew_type,j.jew_no,bag.bag_type,bag.bag_no),''), coalesce(l.custom_no, l.lot_code))  grp,
+c.company_name,
+f.factory_name,
+d.department_name,
+l.lot_code,
+coalesce(l.custom_no, l.lot_code) stock_code,
+b.bin_name,
+concat(j.jew_type,j.jew_no) job_no,
+bag.bag_id,
+concat(bag.bag_type,bag.bag_no) bag_no,
+t.qty1,
+t.qty2
+from
+(
+	select row_number() over (order by 1) sno, tx.*,
+coalesce(case when row_number() over (partition by tx.bag_id order by 1) = 1 then (round(bg.bag_qty,0)) else 0 end,0) bag_qty
+from (
+select
+	t.company_id,
+	t.factory_id,
+	t.department_id,
+	t.employee_id,
+	t.lot_id,
+	t.bin_id,
+	t.stone_size,
+	t.job_id,
+	t.bag_id,
+	t.sales_order_id,
+	sum(t.in_out_flag * t.qty1) qty1,
+	sum(t.in_out_flag * t.qty2) qty2
+from
+	tbl_mfg_lot_stock_trans t
+where
+	t.is_deleted = 0
+	and t.inv_dt <= to_date($P{toDate}, $P{dateFormat})
+	and t.department_id in ($P!{departmentId})
+	and t.bin_id in ($P!{binId})
+group by
+	t.company_id,
+	t.factory_id,
+	t.department_id,
+	t.employee_id,
+	t.lot_id,
+	t.bin_id,
+	t.stone_size,
+	t.job_id,
+	t.sales_order_id,
+	t.bag_id
+having
+	sum(t.in_out_flag * t.qty1) <> 0
+)tx
+
+LEFT JOIN tbl_mfg_bag bg on tx.bag_id = bg.bag_id
+) t
+inner join tbl_company c on t.company_id = c.company_id
+inner join tbl_factory f on t.factory_id = f.factory_id
+inner join tbl_department d on t.department_id = d.department_id
+inner join tbl_employee e on t.employee_id = e.employee_id
+inner join tbl_lot l on t.lot_id = l.lot_id
+inner join tbl_commodity comm on l.commodity_id = comm.commodity_id
+inner join tbl_bin b on t.bin_id = b.bin_id
+and b.bin_type not in ('RECUT_ISSUE','BROKEN_BIN','NET_LOSS_BIN','DUST_BIN','RECUT_LOSS_BIN',
+					   'GROSS_LOSS_BIN','REFINING_BIN','LOSS_BIN','GROSS_LOSS_BIN_OLD')
+left join tbl_jewellery j on t.job_id = j.jew_id
+left join tbl_mfg_bag bag on t.bag_id = bag.bag_id
+left join tbl_sku s on bag.sku_id = s.sku_id
+where 1 = 1
+and
+(qty1 > 0)
+and t.company_id in ($P!{loginCompanyId})
+order by
+t.factory_id,
+t.department_id,
+t.job_id,
+t.bag_id,
+coalesce(l.custom_no, l.lot_code),
+t.lot_id,
+t.stone_size
+)tx
+where
+	tx.bag_id not in (select bag_id from tbl_mfg_factory_invoice_det where is_deleted = 0)
+group by
+tx.stock_code
+order by
+tx.stock_code]]>
+	</queryString>
+	<field name="stock_code" class="java.lang.String"/>
+	<field name="qty1" class="java.math.BigDecimal"/>
+	<field name="qty2" class="java.math.BigDecimal"/>
+	<detail>
+		<band height="20" splitType="Prevent">
+			<textField>
+				<reportElement x="0" y="0" width="100" height="20" uuid="7f03447b-e819-4d6b-b1d0-6f604732a15e"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{stock_code}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="100" y="0" width="80" height="20" uuid="8a0cf6ab-5cc5-481f-bac7-92948c4a0219"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qty1}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="180" y="0" width="80" height="20" uuid="7a22f889-ce5f-4aa2-8dcf-f096138c3ea9"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qty2}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

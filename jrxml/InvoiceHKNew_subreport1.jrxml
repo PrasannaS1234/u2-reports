@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="InvoiceHKNew_subreport1" pageWidth="200" pageHeight="802" columnWidth="200" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="4270799d-28bf-48e5-acba-6ee90d038520">
+	<property name="ireport.zoom" value="2.853116706110003"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="invId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+        sum(total_metal_wt) as net_wt,
+        max(metal_kt)       as metal_kt,
+        jew_type,
+CASE
+            WHEN lower(metal_kt) = '18k' THEN '18KY'
+            WHEN lower(metal_kt) = '14k' THEN '14KY'
+            WHEN lower(metal_kt) = '22k' THEN '22KY'
+            WHEN lower(metal_kt) = '24k' THEN '24KY'
+            WHEN metal_kt = '950' THEN 'PT950'
+            ELSE metal_kt
+        END metal_lot,
+   'GM' as uom
+    from tbl_invoice_hk_summary
+    where is_deleted = 0
+	and inv_id in ($P!{invId})
+    group by  metal_lot, jew_type]]>
+	</queryString>
+	<field name="net_wt" class="java.math.BigDecimal"/>
+	<field name="metal_kt" class="java.lang.String"/>
+	<field name="jew_type" class="java.lang.String"/>
+	<field name="metal_lot" class="java.lang.String"/>
+	<field name="uom" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="16" splitType="Stretch">
+			<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="100" y="0" width="60" height="16" isPrintWhenDetailOverflows="true" uuid="a3c58c2c-96db-4d02-bab3-ecf56804176f"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{net_wt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="160" y="0" width="40" height="16" isPrintWhenDetailOverflows="true" uuid="b3041ac3-eac7-48ed-9099-204f40820096"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{uom}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="50" height="16" isPrintWhenDetailOverflows="true" uuid="c851363a-96d5-4063-aa2b-4d321e400a3c"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{metal_lot}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="50" y="0" width="50" height="16" isPrintWhenDetailOverflows="true" uuid="0badaa79-ee11-4f27-877b-5df7b43c7391"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{jew_type}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

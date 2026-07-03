@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="LedgerStatement_subreport1" language="groovy" pageWidth="234" pageHeight="200" columnWidth="234" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="53cd819f-302d-4030-ab74-6d4842b0f969">
+	<property name="ireport.zoom" value="2.3579476910000023"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="postingId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="accountId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="fromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="toDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+ac.account_name,
+case when d.dr_cr = 'D' then d.amount end as debit_amt,
+case when d.dr_cr = 'C' then d.amount end as credit_amt
+from tbl_account_posting_main m
+inner join tbl_account_posting_det d on d.posting_id = m.posting_id and d.is_deleted = 0
+inner join tbl_account ac on ac.account_id = d.account_id
+where
+m.company_id = 10
+and m.is_deleted = 0
+and m.posting_id = 670
+and ac.account_id != 50]]>
+	</queryString>
+	<field name="account_name" class="java.lang.String"/>
+	<field name="debit_amt" class="java.math.BigDecimal"/>
+	<field name="credit_amt" class="java.math.BigDecimal"/>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="109" height="20" uuid="5bb8b4aa-f078-41f9-bf2d-d9dc3f739386"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{account_name}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="109" y="0" width="66" height="20" uuid="ff09158e-d36e-4567-96a2-66e3cd600f27"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{debit_amt}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="175" y="0" width="59" height="20" uuid="af99b991-7823-42bb-86ce-77c2ae48ecb6"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{credit_amt}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

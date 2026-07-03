@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="FGSalesInvoiceFormat2_Component1" pageWidth="80" pageHeight="802" columnWidth="80" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="8c0ba134-d53c-4fd9-9b69-697c5774b334">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="i_jew_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[WITH v_component AS (
+    SELECT
+        row_number() OVER (ORDER BY tcom.sort_seq ASC) AS row_id,
+		CASE
+            WHEN COALESCE(tcom.metal_type, 'DIAMOND') IN ('GOLD', 'SILVER', 'PLATINUM') THEN COALESCE(tlot.lot_code, tcom.commodity_name)
+            ELSE COALESCE(tcom.tag_print_code, tcom.commodity_name)
+        END tag_code,
+		ROUND(SUM(jc.consumed_qty2), 0) pcs,
+		ROUND(SUM(jc.consumed_qty1), 3) wt,
+		max(CASE
+            WHEN COALESCE(tcom.metal_type, 'DIAMOND') IN ('GOLD', 'SILVER', 'PLATINUM') THEN 'GMS'
+            ELSE 'CTS'
+        END) uom
+    FROM
+        tbl_jewellery_component jc
+    LEFT JOIN tbl_lot tlot ON jc.lot_id = tlot.lot_id
+    LEFT JOIN tbl_commodity tcom ON jc.commodity_id = tcom.commodity_id
+    LEFT JOIN tbl_commodity_group tcg ON tcom.commodity_group_id = tcg.commodity_group_id
+    WHERE
+        jc.jew_id = $P!{i_jew_id}
+        AND jc.is_deleted = 0
+        AND jc.commodity_id <> 27
+    GROUP BY
+        CASE
+            WHEN COALESCE(tcom.metal_type, 'DIAMOND') IN ('GOLD', 'SILVER', 'PLATINUM') THEN COALESCE(tlot.lot_code, tcom.commodity_name)
+            ELSE COALESCE(tcom.tag_print_code, tcom.commodity_name)
+        END,
+        tcom.sort_seq
+    ORDER BY
+        tcom.sort_seq
+)
+SELECT
+    row_id,
+	concat((case when uom = 'CTS' then pcs else null end),tag_code,'-',wt,uom) AS description
+FROM
+    v_component v
+WHERE
+    MOD(v.row_id, 2) = 1]]>
+	</queryString>
+	<field name="row_id" class="java.lang.Long"/>
+	<field name="description" class="java.lang.String"/>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="80" height="20" uuid="6af1457b-eeff-48a0-81b5-e6197d991e14"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{description}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

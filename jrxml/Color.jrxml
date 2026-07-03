@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Shape" pageWidth="600" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="560" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="c77f7cdd-f3a0-446c-9002-ab96fc3ebcf4">
+	<property name="ireport.zoom" value="1.6076916075000045"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="schema" class="java.lang.String">
+		<defaultValueExpression><![CDATA["public"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ReportPrintDateTime" class="java.lang.String"/>
+	<parameter name="ReportPrintedBy" class="java.lang.String"/>
+	<parameter name="fromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA["01/02/2022"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="toDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA["01/02/2022"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dateFormat" class="java.lang.String">
+		<defaultValueExpression><![CDATA["DD/MM/YYYY"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="departmentId" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'-1'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="companyName" class="java.lang.String">
+		<defaultValueExpression><![CDATA["''"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="companyId" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'-1'"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+	tcomp.company_name,
+	e.color_name,
+	trim(concat(ur.first_name,' ',ur.last_name)) created,
+	to_char(e.created_dt,'dd/mm/yyyy hh12:mi:ss') created_dt,
+	case
+		when e.is_deleted = 1 then 'Deleted'
+		when e.is_locked = 0 then 'Active' else 'Inactive' end status
+from tbl_color e
+inner join tbl_company tcomp on e.company_id = tcomp.company_id
+left join tbl_user ur on e.created_by = ur.user_id
+where
+	 (cast(e.company_id as text) in ($P!{companyId}) or '-1' in ($P!{companyId}))
+order by
+	tcomp.company_id,
+	e.color_id]]>
+	</queryString>
+	<field name="company_name" class="java.lang.String"/>
+	<field name="color_name" class="java.lang.String"/>
+	<field name="created" class="java.lang.String"/>
+	<field name="created_dt" class="java.lang.String"/>
+	<field name="status" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="68" splitType="Stretch">
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="16" width="243" height="16" forecolor="#FF66FF" backcolor="#FFFFFF" uuid="81bdf8ac-409a-4614-b4b8-f8d26810156a"/>
+				<box>
+					<pen lineColor="#000000"/>
+					<topPen lineColor="#000000"/>
+					<leftPen lineColor="#000000"/>
+					<bottomPen lineColor="#000000"/>
+					<rightPen lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Color Master]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="243" y="32" width="99" height="16" forecolor="#999999" uuid="20d17136-516e-4f4d-a577-23daaf94327d"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Printed On :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="342" y="32" width="187" height="16" forecolor="#999999" uuid="d486193b-5b5b-4d06-b606-1651d3f25c09"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{ReportPrintDateTime}.replace( "'", "" )]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="342" y="16" width="187" height="16" forecolor="#999999" uuid="77f6bf65-77d5-4ac1-926c-484dd3b577ef"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{ReportPrintedBy}.replace( "'", "" )]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="243" y="16" width="99" height="16" forecolor="#999999" uuid="96952bb8-9be8-4c0c-bab0-344d2f9b2782"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Printed By :]]></text>
+			</staticText>
+			<textField>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="0" y="0" width="243" height="16" forecolor="#0033FF" uuid="225d5cd6-92b0-4ec5-be7d-091fd8f027e2"/>
+				<box>
+					<pen lineColor="#000000"/>
+					<topPen lineColor="#000000"/>
+					<leftPen lineColor="#000000"/>
+					<bottomPen lineColor="#000000"/>
+					<rightPen lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{companyName}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="243" y="0" width="99" height="16" forecolor="#999999" uuid="a7d4146f-c007-4e64-b48f-73ee2b41c54a"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Report Code :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="342" y="0" width="187" height="16" forecolor="#999999" uuid="0346f24a-b48e-49ac-8a3d-d329011f7709"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[EMP-01]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="0" y="48" width="93" height="20" uuid="2aff6700-4274-49a2-9558-4d9bb823ae13"/>
+				<box leftPadding="4" rightPadding="4">
+					<pen lineWidth="0.5" lineStyle="Double"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Company]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="93" y="48" width="150" height="20" uuid="660c0dcb-77e8-44f9-9eda-d17edefc3f57"/>
+				<box leftPadding="4" rightPadding="4">
+					<pen lineWidth="0.5" lineStyle="Double"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Color]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="460" y="48" width="69" height="20" uuid="f76a95a7-3d06-4e81-b693-b225d6cf941a"/>
+				<box leftPadding="4" rightPadding="4">
+					<pen lineWidth="0.5" lineStyle="Double"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Status]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="243" y="48" width="99" height="20" uuid="f5d56777-a122-4477-8078-37c9c111e410"/>
+				<box leftPadding="4" rightPadding="4">
+					<pen lineWidth="0.5" lineStyle="Double"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Created User]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="342" y="48" width="118" height="20" uuid="e3d18709-1691-485e-8d72-9dedb6fbcf88"/>
+				<box leftPadding="4" rightPadding="4">
+					<pen lineWidth="0.5" lineStyle="Double"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Created Date / Time]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="20">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="93" height="20" isPrintWhenDetailOverflows="true" uuid="8e7a5778-1227-46c2-8cd5-f590829e17aa"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{company_name}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="93" y="0" width="150" height="20" isPrintWhenDetailOverflows="true" uuid="2083efa4-c9ad-48ad-9eff-97a6417ca8b0"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{color_name}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="460" y="0" width="69" height="20" isPrintWhenDetailOverflows="true" uuid="7f44ec93-4c45-44cb-ae05-14ed391f9853"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{status}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="243" y="0" width="99" height="20" isPrintWhenDetailOverflows="true" uuid="93454577-6632-4064-abe0-9f569cb734ff"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{created}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="342" y="0" width="118" height="20" isPrintWhenDetailOverflows="true" uuid="e98a0776-8557-4e9f-a4e8-bf9cd46a6834"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{created_dt}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

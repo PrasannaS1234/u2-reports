@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="JobWorkDetailsRTSub2" pageWidth="719" pageHeight="842" columnWidth="719" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="41f0b751-4f50-47aa-a424-779d8d66a782">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="i_inv_det_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[with w_result_set as (
+	select
+	   lot.lot_code,
+		mlot.lot_code master_lot,
+       cm.commodity_name,
+       shp.shape_name,
+       socm.mm_size,
+       socm.consumed_qty1 qty1,
+       socm.consumed_qty2 qty2,
+	   socm.pp_rate rate,
+	   socm.consumed_qty1 * socm.pp_rate amount
+  from tbl_factory_invoice_main som
+ inner join tbl_factory_invoice_det sod on som.inv_id = sod.inv_id
+   and sod.is_deleted = 0
+ inner join tbl_factory_invoice_component socm on sod.inv_det_id = socm.inv_det_id
+   and socm.is_deleted = 0
+ inner join tbl_lot lot on socm.lot_id = lot.lot_id
+ left join tbl_lot mlot on lot.master_lot_id = mlot.lot_id
+ inner join tbl_commodity cm on lot.commodity_id = cm.commodity_id
+ left join tbl_shape shp on socm.shape_id = shp.shape_id
+ where
+      som.is_deleted = 0
+	  and lot.lot_type = 'STONE'
+	  and upper(cm.metal_type) = 'DIAMOND'
+      and sod.inv_det_id = $P!{i_inv_det_id}
+)
+select
+rr.*
+from
+  w_result_set rr
+UNION ALL
+SELECT
+	NULL AS lot_code,
+	NULL AS master_lot,
+    NULL AS commodity_name,
+    NULL AS shape_name,
+    NULL AS mm_size,
+    NULL AS qty1,
+    NULL AS qty2,
+	NULL AS rate,
+	NULL AS amount
+FROM generate_series(1, 5-(select count(*) from w_result_set))]]>
+	</queryString>
+	<field name="lot_code" class="java.lang.String"/>
+	<field name="master_lot" class="java.lang.String"/>
+	<field name="commodity_name" class="java.lang.String"/>
+	<field name="shape_name" class="java.lang.String"/>
+	<field name="mm_size" class="java.lang.String"/>
+	<field name="qty1" class="java.math.BigDecimal"/>
+	<field name="qty2" class="java.math.BigDecimal"/>
+	<field name="rate" class="java.math.BigDecimal"/>
+	<field name="amount" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="18" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="226" y="0" width="113" height="18" uuid="776c1ac7-ae4a-4a00-b9f6-6f2c5290e7f0"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{commodity_name}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="339" y="0" width="100" height="18" uuid="6a5ce9dd-f316-425d-8fcf-8c7400ecf7f0"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{shape_name}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+				<reportElement x="549" y="0" width="50" height="18" uuid="480bc164-c1f6-48a5-afd9-5ee79fd03e06"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qty1}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="499" y="0" width="50" height="18" uuid="12f18f90-b360-468b-84cc-857ee4ea8040"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qty2}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="113" height="18" uuid="e44aef4c-27f0-477a-863f-336749feedd5"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lot_code}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="113" y="0" width="113" height="18" uuid="8be7d6d0-99fe-468f-a784-6da342f96175"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{master_lot}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+				<reportElement x="599" y="0" width="50" height="18" uuid="8d41ca83-42a9-46a1-8886-90414ee54713"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{rate}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+				<reportElement x="649" y="0" width="70" height="18" uuid="768dc408-b548-4a8d-97bd-154d29daf356"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{amount}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="439" y="0" width="60" height="18" uuid="aedf7cab-35a4-4efd-a4f0-66c5317a043c"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{mm_size}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

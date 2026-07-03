@@ -1,0 +1,704 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Jobsheet" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="570" leftMargin="15" rightMargin="10" topMargin="10" bottomMargin="10" uuid="994b5161-1c97-4377-8335-10ca4d4a4a3a">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="1.5000000000000013"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<parameter name="PM_SUB_REPORT_PATH" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="i_inv_id" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA["7700"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dateFormat" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new String("dd-Mon-yyyy")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="tenant" class="java.lang.String">
+		<defaultValueExpression><![CDATA["''"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\GITHUB\\jew-trade-service\\src\\main\\resources\\jrxml\\"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+	jt.jew_id,
+	tcomp.company_name,
+	concat(tcomp.street,', ',tcomp.area,', ',tcomp.state,', ',st.state_name,', ',tcountry.country_name) comp_address,
+	COALESCE(tcomp.phone_number,'') phone_number,
+	COALESCE(tcomp.fax_no,'') fax_no,
+	COALESCE(tcomp.email,'') email,
+	concat(jt.jew_type,jt.jew_no) job_no,
+	tcus.customer_name,
+	to_char(so.delivery_date,'dd/MM/yyyy') del_dt,
+	concat(so.sales_order_type,'-',so.sales_order_no) so_no,
+	sku.sku_no style_no,
+	pt.product_type_name,
+	sod.customer_jew_no cus_job_no,
+	sod.customer_order_no cus_order_no,
+	tfac.factory_name fac_name,
+	ps.product_size,
+	round(jt.qty,0) qty,
+	jt.uom,
+	null	quality,
+	null	gemstone,
+	sod.stamping_remarks,
+	null	special_finish,
+	sod.prod_remarks,
+	null	barcode,
+	null	qrcode,
+	concat('/home/ubuntu/tekfilo/jewtrade/uploads/',$P{tenant},'comp',jt.company_id,'/sku/',jt.sku_id,sku.image_url)	image_url,
+	jt.metal_weight,
+	tlot.lot_code,
+	sps.sp_name,
+	fnd.fnd_name,
+	dq.dia_qlity,
+	cq.cs_qlity
+from
+	tbl_jewellery jt
+	inner join tbl_company tcomp on jt.company_id = tcomp.company_id
+	left join tbl_product_size ps on jt.product_size_id = ps.size_id
+	left join tbl_state st on tcomp.state = st.state_code
+	left join tbl_country tcountry on tcomp.country_id = tcountry.country_id
+	left join tbl_sales_order_main so on jt.sales_order_id = so.sales_order_id
+	left join tbl_sales_order_det sod on jt.sales_order_det_id = sod.sales_order_det_id
+		and jt.sales_order_id = sod.sales_order_id
+		and so.sales_order_id = sod.sales_order_id
+	left join tbl_customer tcus on so.customer_id = tcus.customer_id
+	left join tbl_sku sku on jt.sku_id = sku.sku_id
+	left join tbl_product_type pt on jt.product_type_id = pt.product_type_id
+	left join tbl_factory tfac on jt.factory_id = tfac.factory_id
+	left join tbl_lot tlot on sod.metal_id = tlot.lot_id
+	left join
+		(
+select
+	sp.sales_order_id,
+	sp.sales_order_det_id,
+	string_agg(f.name,',') as sp_name
+ from tbl_sales_order_special_finish sp
+inner join tbl_special_finish f on sp.special_finish_id = f.special_finish_id
+where sp.is_deleted = 0
+group by
+	sp.sales_order_id,
+	sp.sales_order_det_id
+		)sps on jt.sales_order_id = sps.sales_order_id and jt.sales_order_det_id = sps.sales_order_det_id
+	left join (
+select
+	spf.sales_order_id,
+	spf.sales_order_det_id,
+	string_agg(spf.finding_name,',') as fnd_name
+ from tbl_sales_order_finding spf
+where spf.is_deleted = 0
+group by
+	spf.sales_order_id,
+	spf.sales_order_det_id
+		) fnd on jt.sales_order_id = fnd.sales_order_id and jt.sales_order_det_id = fnd.sales_order_det_id
+	left join (
+select
+	sc.sales_order_id,
+	sc.sales_order_det_id,
+	string_agg(clr.clarity_name,',') as dia_qlity
+ from tbl_sales_order_component sc
+ inner join tbl_commodity tcom on sc.commodity_id = tcom.commodity_id
+ inner join tbl_commodity_group cg on tcom.commodity_group_id = cg.commodity_group_id
+ 	and cg.commodity_group_type not in ('COLORSTONE','METAL','OTHERS')
+  left join tbl_clarity clr on sc.clarity_id = clr.clarity_id
+where sc.is_deleted = 0
+group by
+	sc.sales_order_id,
+	sc.sales_order_det_id
+		) dq on jt.sales_order_id = dq.sales_order_id and jt.sales_order_det_id = dq.sales_order_det_id
+	left join (
+select
+	sc.sales_order_id,
+	sc.sales_order_det_id,
+	string_agg(clr.clarity_name,',') as cs_qlity
+ from tbl_sales_order_component sc
+ inner join tbl_commodity tcom on sc.commodity_id = tcom.commodity_id
+ inner join tbl_commodity_group cg on tcom.commodity_group_id = cg.commodity_group_id
+ 	and cg.commodity_group_type  in ('COLORSTONE')
+  left join tbl_clarity clr on sc.clarity_id = clr.clarity_id
+where sc.is_deleted = 0
+group by
+	sc.sales_order_id,
+	sc.sales_order_det_id
+		) cq on jt.sales_order_id = cq.sales_order_id and jt.sales_order_det_id = cq.sales_order_det_id
+where
+	jt.is_deleted = 0
+	and jt.jew_id in ($P!{i_inv_id})]]>
+	</queryString>
+	<field name="jew_id" class="java.lang.Integer"/>
+	<field name="company_name" class="java.lang.String"/>
+	<field name="comp_address" class="java.lang.String"/>
+	<field name="phone_number" class="java.lang.String"/>
+	<field name="fax_no" class="java.lang.String"/>
+	<field name="email" class="java.lang.String"/>
+	<field name="job_no" class="java.lang.String"/>
+	<field name="customer_name" class="java.lang.String"/>
+	<field name="del_dt" class="java.lang.String"/>
+	<field name="so_no" class="java.lang.String"/>
+	<field name="style_no" class="java.lang.String"/>
+	<field name="product_type_name" class="java.lang.String"/>
+	<field name="cus_job_no" class="java.lang.String"/>
+	<field name="cus_order_no" class="java.lang.String"/>
+	<field name="fac_name" class="java.lang.String"/>
+	<field name="product_size" class="java.lang.String"/>
+	<field name="qty" class="java.math.BigDecimal"/>
+	<field name="uom" class="java.lang.String"/>
+	<field name="quality" class="java.lang.String"/>
+	<field name="gemstone" class="java.lang.String"/>
+	<field name="stamping_remarks" class="java.lang.String"/>
+	<field name="special_finish" class="java.lang.String"/>
+	<field name="prod_remarks" class="java.lang.String"/>
+	<field name="barcode" class="java.lang.String"/>
+	<field name="qrcode" class="java.lang.String"/>
+	<field name="image_url" class="java.lang.String"/>
+	<field name="metal_weight" class="java.math.BigDecimal"/>
+	<field name="lot_code" class="java.lang.String"/>
+	<field name="sp_name" class="java.lang.String"/>
+	<field name="fnd_name" class="java.lang.String"/>
+	<field name="dia_qlity" class="java.lang.String"/>
+	<field name="cs_qlity" class="java.lang.String"/>
+	<group name="job_no" isStartNewPage="true" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{jew_id}]]></groupExpression>
+		<groupHeader>
+			<band height="283">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="0" y="69" width="157" height="22" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="4ef9c001-a522-4845-ac6d-bd8e139aa9ee"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial" size="14" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{job_no}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="0" y="91" width="98" height="15" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="a92c35b8-b23d-4d6b-aa27-18992c9f2459"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA["SO No"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="98" y="91" width="60" height="15" isPrintWhenDetailOverflows="true" uuid="010e112f-7b24-47fc-8b8d-9af55c00aaed"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{so_no}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-21" x="0" y="248" width="570" height="13" uuid="d4ba1d63-c42e-4527-a22e-c19f2bc17a49"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-8" stretchType="RelativeToTallestObject" x="0" y="28" width="570" height="26" isPrintWhenDetailOverflows="true" uuid="83757d88-be6f-4970-b8be-617dd79c5132"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{comp_address} + "Tel: "+$F{phone_number}+" Fax: "+$F{fax_no} + "Email: "+$F{email}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-45" stretchType="RelativeToTallestObject" x="0" y="0" width="570" height="28" forecolor="#000000" uuid="65423431-5c7f-4982-bc3f-98fb88506388"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="16" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{company_name}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="227" y="69" width="70" height="15" isPrintWhenDetailOverflows="true" uuid="674ce85d-66bb-4bb5-b1c3-1b091aa47878"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{customer_name}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="0" y="151" width="98" height="22" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="44cde7a7-abb0-4a35-9085-363a3c691f69"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Stamping Remarks"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="0" y="106" width="98" height="15" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="9b47a220-d6e1-4f06-8590-2c1e0f983416"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Cus Job No"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="0" y="121" width="98" height="15" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="5cf7bcfe-b33c-4d78-a7f5-98fca000a96f"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Product Size"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="0" y="136" width="98" height="15" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="8707d08a-52d5-41b3-9909-cefe7b179485"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Metal"]]></textFieldExpression>
+				</textField>
+				<image scaleImage="FillFrame" hAlign="Center" vAlign="Top" isUsingCache="true" isLazy="true" onErrorType="Icon">
+					<reportElement isPrintRepeatedValues="false" x="442" y="115" width="120" height="120" uuid="f709ce75-aa9b-47f8-96ab-c7493e84983f"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<imageExpression><![CDATA[$F{image_url}]]></imageExpression>
+				</image>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="98" y="106" width="60" height="15" isPrintWhenDetailOverflows="true" uuid="b7636eb5-a476-4984-b482-fc8b657ee90f"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{cus_job_no}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="98" y="121" width="60" height="15" isPrintWhenDetailOverflows="true" uuid="76d183ed-df86-497b-8675-eb157e0a600c"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{product_size}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="98" y="136" width="60" height="15" isPrintWhenDetailOverflows="true" uuid="5c10f4a8-564b-4a45-8e69-dd13f793553a"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{lot_code}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="98" y="151" width="337" height="22" isPrintWhenDetailOverflows="true" uuid="3d860e69-2e37-4286-a863-8939bde13dc4"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{stamping_remarks}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement key="staticText-21" x="0" y="261" width="570" height="22" uuid="547c7427-2e2b-48e9-a937-5f024bef6d73"/>
+					<box leftPadding="2" rightPadding="2">
+						<bottomPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="10" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Stone Details"]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="0" y="54" width="570" height="1" uuid="923d6abf-8d6e-4c20-959d-ab438d391acc"/>
+				</line>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="0" y="173" width="98" height="34" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="553c3cd6-e26b-4e44-a913-9683afb78fec"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Special Finishing"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="98" y="173" width="199" height="34" isPrintWhenDetailOverflows="true" uuid="7ea8c325-12d9-4123-b4b0-4a1cacc68a2a"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{sp_name}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="228" y="91" width="68" height="15" isPrintWhenDetailOverflows="true" uuid="a94d485d-b11d-49d9-ab30-be1c7b0a02cb"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{style_no}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="158" y="91" width="70" height="15" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="ba5b7a95-7aff-4ec5-a1e7-43891662bc2c"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Style No"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="158" y="106" width="70" height="15" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="3ef6017a-9bea-467a-bb36-2b943ae24ec3"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Cus Order No"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="158" y="121" width="70" height="15" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="d43297db-f074-41bb-98cf-241a722b5e67"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Qty"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="158" y="136" width="70" height="15" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="937a6ef3-d5b2-40ef-a8cb-c14ad675fb3c"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Metal Wt"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="296" y="91" width="70" height="15" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="4aa3902a-f906-496f-ad95-d19b0b0ae783"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Product Type"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="228" y="106" width="68" height="15" isPrintWhenDetailOverflows="true" uuid="2e8b6e1a-32d7-41a0-9b48-7639ed1fbf0f"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{cus_order_no}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.0;(#,##0.0)" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="228" y="121" width="68" height="15" isPrintWhenDetailOverflows="true" uuid="0c9738f1-65ba-4046-bc95-0442a488ffa8"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{qty} + " " + $F{uom}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="228" y="136" width="68" height="15" isPrintWhenDetailOverflows="true" uuid="a238266f-277e-4ce9-a2d8-b0754d5d1222"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{metal_weight}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="296" y="106" width="70" height="15" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="05a95948-9b42-47ee-858a-877a174c2a76"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Factory"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="296" y="121" width="70" height="15" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="095c3b86-cc81-46ea-8094-642606c44022"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Diamond"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="296" y="136" width="70" height="15" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="73168077-d70c-4aa8-826e-5b8b67e1edca"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Gemstone"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="367" y="91" width="68" height="15" isPrintWhenDetailOverflows="true" uuid="2001c1b4-2501-4416-98f6-6c26b15e87ca"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{product_type_name}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="367" y="106" width="68" height="15" isPrintWhenDetailOverflows="true" uuid="d49e0ca7-5e5f-4548-a849-a60062dfd7e9"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{fac_name}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="367" y="121" width="68" height="15" isPrintWhenDetailOverflows="true" uuid="c2a4582c-199b-4646-b3f8-afee3262d06b"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{dia_qlity}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="367" y="136" width="68" height="15" isPrintWhenDetailOverflows="true" uuid="8788b24c-6f7b-47bc-97ac-98602458d3a4"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{cs_qlity}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="157" y="69" width="70" height="15" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="efcddf14-6d81-4339-acda-9f4bcd7f67fb"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Customer"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="297" y="69" width="70" height="15" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="0eaa8403-1ad2-43b9-9674-c9465c1b71e1"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Delivery Dt"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="367" y="69" width="68" height="15" isPrintWhenDetailOverflows="true" uuid="3be3153e-9b05-4f6e-a89a-67cc50de8dc7"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{del_dt}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="0" y="207" width="98" height="41" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="46d60cdb-9478-4566-bb9b-9cfcfe309e85"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Production Remarks"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="98" y="207" width="337" height="41" isPrintWhenDetailOverflows="true" uuid="2c7092da-d38b-4c6a-b88b-8b457c0c6825"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{prod_remarks}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-21" x="0" y="56" width="570" height="13" uuid="bc5235ba-d760-483f-b3ab-b30904e88898"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="297" y="173" width="70" height="34" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="b76f7722-60a3-46e6-ab93-975cee4106ba"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Findings"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="367" y="173" width="68" height="34" isPrintWhenDetailOverflows="true" uuid="83b91634-77e3-4441-9fc6-7e323c742b9b"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{fnd_name}]]></textFieldExpression>
+				</textField>
+				<componentElement>
+					<reportElement x="456" y="69" width="91" height="30" uuid="69458f9e-215d-470f-af1c-c07abb495dd7"/>
+					<jr:Code128 xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" moduleWidth="1.0" textPosition="none">
+						<jr:codeExpression><![CDATA[$F{job_no}]]></jr:codeExpression>
+					</jr:Code128>
+				</componentElement>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="89">
+				<subreport>
+					<reportElement x="0" y="13" width="345" height="25" uuid="748108ff-1fe5-4f4e-9730-2ac8280c7aac"/>
+					<subreportParameter name="PM_SUB_REPORT_PATH">
+						<subreportParameterExpression><![CDATA[$P{PM_SUB_REPORT_PATH}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="i_inv_id">
+						<subreportParameterExpression><![CDATA[$P{i_inv_id}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="dateFormat">
+						<subreportParameterExpression><![CDATA[$P{dateFormat}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="tenant">
+						<subreportParameterExpression><![CDATA[$P{tenant}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "JTJobSheetDetails2.jasper"]]></subreportExpression>
+				</subreport>
+				<staticText>
+					<reportElement key="staticText-21" x="0" y="0" width="570" height="13" uuid="bbccaa20-924d-49c4-90aa-52e85db6b576"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<subreport>
+					<reportElement x="390" y="13" width="180" height="25" uuid="275f36b6-99cb-44f3-877f-9306796c6d22"/>
+					<subreportParameter name="PM_SUB_REPORT_PATH">
+						<subreportParameterExpression><![CDATA[$P{PM_SUB_REPORT_PATH}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="i_inv_id">
+						<subreportParameterExpression><![CDATA[$P{i_inv_id}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="dateFormat">
+						<subreportParameterExpression><![CDATA[$P{dateFormat}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="tenant">
+						<subreportParameterExpression><![CDATA[$P{tenant}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "JTJobSheetDetails3.jasper"]]></subreportExpression>
+				</subreport>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="staticText-21" x="345" y="13" width="45" height="25" uuid="bd5c3627-a00e-41b4-8f89-affa9606432b"/>
+					<box leftPadding="2" rightPadding="2">
+						<bottomPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="10" isBold="true"/>
+					</textElement>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<detail>
+		<band height="25" splitType="Prevent">
+			<subreport>
+				<reportElement x="0" y="0" width="570" height="25" uuid="b17dab33-cf0d-4cd1-93ea-e9d5a62fbb2d"/>
+				<subreportParameter name="PM_SUB_REPORT_PATH">
+					<subreportParameterExpression><![CDATA[$P{PM_SUB_REPORT_PATH}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="i_inv_id">
+					<subreportParameterExpression><![CDATA[$P{i_inv_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="dateFormat">
+					<subreportParameterExpression><![CDATA[$P{dateFormat}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="tenant">
+					<subreportParameterExpression><![CDATA[$P{tenant}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "JTJobSheetDetails.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="80" splitType="Stretch">
+			<textField>
+				<reportElement key="staticText-21" x="0" y="0" width="117" height="13" uuid="cbb7791c-6f5c-43a6-bcd7-1620a693525f"/>
+				<box leftPadding="2" rightPadding="2">
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Product Manager"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement key="staticText-21" x="141" y="0" width="140" height="13" uuid="f4e3ac6e-b027-420a-830c-fdb2373a6a51"/>
+				<box leftPadding="2" rightPadding="2">
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Stone Details"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement key="staticText-21" x="291" y="0" width="138" height="13" uuid="5fdd99c1-5452-4fbd-9cc7-9358e6ad2123"/>
+				<box leftPadding="2" rightPadding="2">
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["QC Manger"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="79" width="117" height="1" uuid="3b999360-e0db-46aa-af5b-d2480dab8a87"/>
+			</line>
+			<line>
+				<reportElement x="141" y="79" width="139" height="1" uuid="541f9e04-0d08-4050-a662-17e938de4196"/>
+			</line>
+			<line>
+				<reportElement x="290" y="79" width="143" height="1" uuid="7c1af48c-be7d-4f83-af93-8042ceba0795"/>
+			</line>
+			<image>
+				<reportElement x="467" y="0" width="80" height="80" uuid="7cdbad9f-cba7-4224-aaec-9efa89212afc"/>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(
+new com.google.zxing.qrcode.QRCodeWriter().encode(
+$F{job_no},
+com.google.zxing.BarcodeFormat.QR_CODE, 300, 300
+)
+)]]></imageExpression>
+			</image>
+		</band>
+	</pageFooter>
+</jasperReport>

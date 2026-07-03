@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="InvoiceHKNew_subreport2" pageWidth="150" pageHeight="842" columnWidth="150" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="40377b25-57dd-4a81-9f0f-dab7fb64342f">
+	<property name="ireport.zoom" value="2.1435888100000016"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="invId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+    t1.inv_id,
+    lot.group_type                         AS diamond_group,
+	sum(case when com.metal_type = 'DIAMOND' and lot.group_type = 'R7-11'  then c.balance_qty1 else 0 end) as r7_11,
+        sum(case when com.metal_type = 'DIAMOND' and lot.group_type = 'R7+11'  then c.balance_qty1 else 0 end) as r7plus11,
+        sum(case when com.metal_type = 'DIAMOND' and lot.group_type = 'R9-11'  then c.balance_qty1 else 0 end) as r9_11,
+        sum(case when com.metal_type = 'DIAMOND' and lot.group_type = 'R9+11'  then c.balance_qty1 else 0 end) as r9plus11,
+        sum(case when com.metal_type = 'DIAMOND' and lot.group_type = 'PC'     then c.balance_qty1 else 0 end) as pc,
+    max(c.uom1)                              AS uom
+    FROM tbl_invoice_hk_summary t1
+    left join tbl_mfg_bag bag on t1.bag_id = bag.bag_id
+	and bag.is_deleted = 0
+	left join tbl_mfg_bag_component c on c.bag_id = bag.bag_id
+	and c.is_deleted =0
+	left join tbl_lot lot on c.lot_id = lot.lot_id
+	and lot.is_deleted =0
+	left join tbl_commodity com on lot.commodity_id = com.commodity_id
+	and com.is_deleted = 0
+WHERE com.metal_type = 'DIAMOND'
+and t1.inv_id in ($P!{invId})
+GROUP BY
+    lot.group_type,
+    t1.inv_id
+ORDER BY
+    lot.group_type]]>
+	</queryString>
+	<field name="inv_id" class="java.lang.Integer"/>
+	<field name="diamond_group" class="java.lang.String"/>
+	<field name="r7_11" class="java.math.BigDecimal"/>
+	<field name="r7plus11" class="java.math.BigDecimal"/>
+	<field name="r9_11" class="java.math.BigDecimal"/>
+	<field name="r9plus11" class="java.math.BigDecimal"/>
+	<field name="pc" class="java.math.BigDecimal"/>
+	<field name="uom" class="java.lang.String"/>
+	<variable name="v_r7_11" class="java.math.BigDecimal" resetType="Group" resetGroup="inv_id" calculation="Sum">
+		<variableExpression><![CDATA[$F{r7_11} == null ? java.math.BigDecimal.ZERO : $F{r7_11}]]></variableExpression>
+	</variable>
+	<variable name="v_r7plus11" class="java.math.BigDecimal" resetType="Group" resetGroup="inv_id" calculation="Sum">
+		<variableExpression><![CDATA[$F{r7plus11} == null ? java.math.BigDecimal.ZERO : $F{r7plus11}]]></variableExpression>
+	</variable>
+	<variable name="v_r9_11" class="java.math.BigDecimal" resetType="Group" resetGroup="inv_id" calculation="Sum">
+		<variableExpression><![CDATA[$F{r9_11} == null ? java.math.BigDecimal.ZERO : $F{r9_11}]]></variableExpression>
+	</variable>
+	<variable name="v_r9plus11" class="java.math.BigDecimal" resetType="Group" resetGroup="inv_id" calculation="Sum">
+		<variableExpression><![CDATA[$F{r9plus11} == null ? java.math.BigDecimal.ZERO : $F{r9plus11}]]></variableExpression>
+	</variable>
+	<variable name="v_pc" class="java.math.BigDecimal" resetType="Group" resetGroup="inv_id" calculation="Sum">
+		<variableExpression><![CDATA[$F{pc} == null ? java.math.BigDecimal.ZERO : $F{pc}]]></variableExpression>
+	</variable>
+	<group name="inv_id">
+		<groupExpression><![CDATA[$F{inv_id}]]></groupExpression>
+		<groupFooter>
+			<band height="80">
+				<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="100" height="16" uuid="2aa80017-266f-48a6-bb3b-a0d3a1e7b97f"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{v_r7_11}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="16" width="100" height="16" uuid="196d0e76-d6d8-4e23-b5ce-91ad4d00a04e"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{v_r7plus11}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="32" width="100" height="16" uuid="2c2f7f42-ee1c-4e7a-a3cd-62e91ba1ca5c"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{v_r9_11}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="48" width="100" height="16" uuid="7258cad6-819f-4eff-9d23-9c069312b4b4"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{v_r9plus11}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="64" width="100" height="16" uuid="92df05f7-e116-4b1c-b40e-0d290504b343"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{v_pc}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="100" y="0" width="50" height="16" uuid="a6b576e7-8a5e-478c-8e01-8949e15d4eaf"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{uom}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="100" y="48" width="50" height="16" uuid="718e7e07-6d06-4291-9310-c1a470cad2da"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{uom}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="100" y="32" width="50" height="16" uuid="79ad40f2-d7f8-493b-8820-31f4724c54f3"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{uom}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="100" y="64" width="50" height="16" uuid="3d5278f6-9a31-4af0-9a10-d507548190dc"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{uom}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="100" y="16" width="50" height="16" uuid="0c94b3c7-d0a0-457c-ae90-a316911a7b2a"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{uom}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+</jasperReport>

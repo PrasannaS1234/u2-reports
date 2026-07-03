@@ -1,0 +1,707 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="FGPurchaseInvoicewithImageSuraj" pageWidth="540" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="520" leftMargin="10" rightMargin="10" topMargin="10" bottomMargin="10" isSummaryNewPage="true" uuid="9ad6d883-1638-4ddd-b4d4-9debcc20f6c2">
+	<property name="ireport.zoom" value="1.3310000000000024"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="25"/>
+	<subDataset name="dataset1" uuid="aab1cfac-44ab-4519-8a85-1da358ac9197">
+		<parameter name="invId" class="java.lang.String">
+			<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[select
+
+			max(chgs.charge_name) charge_name,
+			sum(chgs.plus_minus_flag * case when 0 < 0 then -1 else 1 end * chgs.input_amt) othamt
+		from
+			tbl_jew_purchase_return_invoice_chgs chgs
+		where
+			1 = 1
+			and chgs.inv_id =  $P!{invId}
+			and chgs.is_deleted = 0
+		group by
+			chgs.inv_id,
+			chgs.charge_id
+		 having sum(chgs.plus_minus_flag * chgs.input_amt) <> 0]]>
+		</queryString>
+		<field name="charge_name" class="java.lang.String"/>
+		<field name="othamt" class="java.math.BigDecimal"/>
+	</subDataset>
+	<scriptlet name="scriptlet1" class="net.sf.jasperreports.engine.JRDefaultScriptlet"/>
+	<parameter name="i_inv_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="tenant" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'NA'"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+    ROW_NUMBER() OVER (ORDER BY q.inv_id, q.product_type) AS s_no,
+ROUND(
+    (MAX(q.invoice_total_amt_usd) OVER (PARTITION BY q.inv_id)),
+    0
+) AS inv_total_usd_roundoff,
+    ROUND((max(q.invoice_total_amt_usd) OVER (PARTITION BY q.inv_id)),2) - TRUNC((max(q.invoice_total_amt_usd) OVER (PARTITION BY q.inv_id)), 0)  AS amount_decimal,
+   COALESCE(
+    fn_amount_to_words(
+        FLOOR(
+            round(max(q.invoice_total_amt_usd) OVER (PARTITION BY q.inv_id),0)
+        ),
+        ''::varchar,
+        '',
+        ''
+    ) || ' only',
+    ''
+) AS inv_total_words,
+    q.*
+FROM (SELECT
+    im.inv_id,
+    im.remarks,
+    pt.product_type_name product_type,
+    --(case when max(id.prod_description) is not null then max(id.prod_description) else max(pt.product_type_name) end) AS --product_type,
+    COUNT(DISTINCT id.jew_id)             AS item_count,
+    MAX(tcomp.company_name)               AS company_name,
+
+    MAX(COALESCE(
+        NULLIF(fn_get_customer_invoice_no(im.inv_type, im.inv_id), ''),
+        concat(im.inv_type, '-', im.inv_no))) AS inv_type_no,
+    TO_CHAR(MAX(im.inv_dt), COALESCE(MAX(tcomp.date_format), 'dd/MM/yyyy')) AS inv_dt,
+    im.created_dt,
+    MAX(im.currency)                      AS currency,
+max(c.currency_code)                      as currency_code,
+    MAX(tcus.supplier_name)               AS supplier_name,
+     MAX(tcus.display_name)               AS supplier_dis_name,
+    MAX(im.reference_no)                  AS reference_no,
+    to_char(MAX(im.inv_due_dt),'dd/MM/yyyy')  AS inv_due_dt,
+    MAX(addr.country)                     AS country,
+max(addr.state) as state,
+--     max(addr.primary_contact_no) as ph_no,
+    MAX(im.exchange_rate)                 AS exchange_rate,
+    MAX(CONCAT(emp.first_name,' ',emp.last_name)) AS sales_man,
+    max(concat (prp.first_name, ' ', prp.last_name)) as prepare_by,
+    STRING_AGG(DISTINCT id.prod_description, ', ' ORDER BY id.prod_description) AS prod_description,
+    SUM(id.inv_qty)                       AS gross_wt,
+    SUM(j.net_wt)                         AS total_net_wt,
+    SUM(id.input_amt ) AS total_amt_usd,
+    MAX( im.total_invoice_net_amount) AS invoice_total_amt_usd,
+max(payment.paid_amount)paid_amt,	concat('/home/ubuntu/tekfilo/jewtrade/uploads/',$P{tenant},'comp',tcomp.company_id,'/company/',tcomp.company_id,tcomp.log_url) comp_logo
+FROM tbl_jew_purchase_return_invoice_main im
+INNER JOIN tbl_jew_purchase_return_invoice_det id
+    ON im.inv_id = id.inv_id
+   AND id.is_deleted = 0
+INNER JOIN tbl_company tcomp
+    ON im.company_id = tcomp.company_id
+left join tbl_currency c on im.currency = c.currency_code
+and c.is_deleted =0
+INNER JOIN tbl_jewellery j
+    ON id.jew_id = j.jew_id
+   AND j.is_deleted = 0
+inner join tbl_product_type pt on pt.product_type_id = j.product_type_id
+  LEFT JOIN (
+        SELECT
+            p.inv_id,
+            SUM(
+                COALESCE(p.received_amount, 0)) AS paid_amount
+        FROM tbl_payment_received_det p
+        INNER JOIN tbl_payment_received_main pm ON pm.payment_id = p.payment_id
+        WHERE p.is_deleted = 0
+        GROUP BY p.inv_id
+    ) payment ON payment.inv_id = im.inv_id
+LEFT JOIN (
+        SELECT DISTINCT ON (jc.jew_id)
+               jc.jew_id,
+               jc.pp_rate,
+               l.impure_to_pure_conv_factor AS purity
+        FROM tbl_jewellery_component jc
+        LEFT JOIN tbl_lot l ON jc.lot_id = l.lot_id AND l.is_deleted = 0 and l.lot_type = 'METAL'
+        ORDER BY jc.jew_id
+) tj ON j.jew_id = tj.jew_id
+LEFT JOIN tbl_buyer emp
+    ON emp.buyer_id = im.buyer_id
+   AND emp.is_deleted = 0
+left join tbl_user prp on im.created_by = prp.user_id and prp.is_deleted=0
+INNER JOIN tbl_sku s
+    ON j.sku_id = s.sku_id
+   AND s.is_deleted = 0
+LEFT JOIN tbl_supplier tcus
+    ON im.supplier_id = tcus.supplier_id
+LEFT JOIN (
+    SELECT DISTINCT ON (a.supplier_id)
+        a.supplier_id,
+        a.country,
+        a.state
+--         a.primary_contact_no
+    FROM tbl_supplier_address a
+    WHERE a.is_deleted = 0
+      AND a.default_address = 1
+    ORDER BY a.supplier_id, a.address_id DESC
+) addr
+    ON addr.supplier_id = tcus.supplier_id
+WHERE im.is_deleted = 0
+AND im.inv_id IN ($P!{i_inv_id})
+GROUP BY
+    im.inv_id,
+    pt.product_type_name,
+    tcomp.company_id
+ORDER BY
+    im.inv_id,
+    pt.product_type_name
+)q;]]>
+	</queryString>
+	<field name="s_no" class="java.lang.Long"/>
+	<field name="inv_total_usd_roundoff" class="java.math.BigDecimal"/>
+	<field name="amount_decimal" class="java.math.BigDecimal"/>
+	<field name="inv_total_words" class="java.lang.String"/>
+	<field name="inv_id" class="java.lang.Integer"/>
+	<field name="remarks" class="java.lang.String"/>
+	<field name="product_type" class="java.lang.String"/>
+	<field name="item_count" class="java.lang.Long"/>
+	<field name="company_name" class="java.lang.String"/>
+	<field name="inv_type_no" class="java.lang.String"/>
+	<field name="inv_dt" class="java.lang.String"/>
+	<field name="created_dt" class="java.sql.Timestamp"/>
+	<field name="currency" class="java.lang.String"/>
+	<field name="currency_code" class="java.lang.String"/>
+	<field name="supplier_name" class="java.lang.String"/>
+	<field name="supplier_dis_name" class="java.lang.String"/>
+	<field name="reference_no" class="java.lang.String"/>
+	<field name="inv_due_dt" class="java.lang.String"/>
+	<field name="country" class="java.lang.String"/>
+	<field name="state" class="java.lang.String"/>
+	<field name="exchange_rate" class="java.math.BigDecimal"/>
+	<field name="sales_man" class="java.lang.String"/>
+	<field name="prepare_by" class="java.lang.String"/>
+	<field name="prod_description" class="java.lang.String"/>
+	<field name="gross_wt" class="java.math.BigDecimal"/>
+	<field name="total_net_wt" class="java.math.BigDecimal"/>
+	<field name="total_amt_usd" class="java.math.BigDecimal"/>
+	<field name="invoice_total_amt_usd" class="java.math.BigDecimal"/>
+	<field name="paid_amt" class="java.math.BigDecimal"/>
+	<field name="comp_logo" class="java.lang.String"/>
+	<variable name="total_value" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{total_amt_usd}]]></variableExpression>
+	</variable>
+	<variable name="gross_tot" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{gross_wt}]]></variableExpression>
+	</variable>
+	<variable name="item_count_1" class="java.lang.Long" resetType="Page" calculation="Sum">
+		<variableExpression><![CDATA[$F{item_count}]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="212" splitType="Stretch">
+			<image hAlign="Center" vAlign="Middle" isLazy="true" onErrorType="Icon">
+				<reportElement x="0" y="0" width="83" height="74" uuid="0a4528c3-f4dc-464b-b981-77480af3494c"/>
+				<imageExpression><![CDATA[$F{comp_logo}]]></imageExpression>
+			</image>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="83" y="0" width="448" height="41" backcolor="#FFFFFF" uuid="f1f41843-5076-45ee-8984-fe4430d16a56"/>
+				<box topPadding="2" bottomPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Monotype Corsiva" size="20" isBold="true" isItalic="false" pdfFontName="/usr/share/fonts/TTF/Monotype Corsiva Regular.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{company_name}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="83" y="41" width="437" height="33" uuid="cc456d8c-8afe-47e4-84ce-883f4b1fdfc3"/>
+				<box topPadding="2" bottomPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Monotype Corsiva" size="16" isBold="false" isItalic="false" isUnderline="true" pdfFontName="/usr/share/fonts/TTF/Monotype Corsiva Regular.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Retail Purchase Return Summary Voucher ]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="211" width="520" height="1" uuid="7fed603a-52da-4e61-8fd1-4eef4c870bc7"/>
+			</line>
+			<staticText>
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="88" width="83" height="18" uuid="47b221f3-c625-42c7-9828-dab3c38b9f40"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Supplier Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement stretchType="RelativeToTallestObject" x="303" y="88" width="107" height="18" uuid="e5a9111d-ca62-42b0-bb1d-7da01de852e4"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Document No.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement stretchType="RelativeToTallestObject" x="303" y="106" width="107" height="18" uuid="a9999612-62ba-4334-a088-5f953b216192"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Document Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement stretchType="RelativeToTallestObject" x="303" y="124" width="107" height="18" uuid="6853d613-546e-4a29-bdb5-e8c07889e9c5"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Reference No.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement stretchType="RelativeToTallestObject" x="303" y="142" width="107" height="18" uuid="fc257ae6-b9d6-42b9-854e-8ae32c95ee5b"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Time]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="410" y="88" width="110" height="18" isPrintWhenDetailOverflows="true" uuid="1049e929-efe5-4f23-8e48-9bc7289b8596"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Calibri" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{inv_type_no}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="410" y="106" width="110" height="18" isPrintWhenDetailOverflows="true" uuid="3ee6441c-0081-4e17-bed8-07ea0b11db9f"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Calibri" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{inv_dt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="410" y="124" width="110" height="18" isPrintWhenDetailOverflows="true" uuid="063cfa58-3c17-4fa0-9994-7b813c5c65ab"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Calibri" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{reference_no}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="h.mm a" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="410" y="142" width="110" height="18" isPrintWhenDetailOverflows="true" uuid="113d7904-af1a-4d36-8e3e-7a0c11e2587e"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Calibri" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.text.SimpleDateFormat("hh:mm:ss a")
+.format(
+    new java.util.Date(
+        $F{created_dt}.getTime() + (5 * 60 + 30) * 60 * 1000
+    )
+)]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="83" y="106" width="136" height="18" isPrintWhenDetailOverflows="true" uuid="c93d2e99-8d78-41d3-b8ff-2e9eab1173ba"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Calibri" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{state}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="190" width="25" height="20" uuid="9f2dca56-be34-48e8-b8bc-52f068bec787"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[S No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="25" y="190" width="245" height="21" uuid="41a33d87-0daf-417c-8c56-b749ab921261"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Product Type]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="270" y="190" width="85" height="20" uuid="35d71b90-816a-411d-b19f-bb0d65e31b03"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Item Count]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="355" y="190" width="75" height="20" uuid="b83f3121-c203-41ad-9d8e-8047c2f53638"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Gross Wt.GMS]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="430" y="190" width="90" height="20" uuid="4db4e823-5b52-4c0d-87bb-24521d9258cf"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Total Value "+$F{currency_code}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="83" y="88" width="187" height="18" isPrintWhenDetailOverflows="true" uuid="1703b32a-6d35-48b5-a441-e8039698744b"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Calibri" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{supplier_name}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" mode="Transparent" x="410" y="160" width="110" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="bb021072-f49b-4f05-a316-5539098fc180"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="Calibri" size="9" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sales_man}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement stretchType="RelativeToTallestObject" x="303" y="160" width="107" height="18" uuid="fd1e07ce-9ed6-414b-a3b5-2fa84a748a27"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Buyer Name]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="83" y="124" width="136" height="18" isPrintWhenDetailOverflows="true" uuid="2ced4dcb-4abf-46c5-9471-e8c2d1fd16a6"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Calibri" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{country}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="18" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="25" height="18" isPrintWhenDetailOverflows="true" uuid="8cd7b3a0-0bce-4760-a632-84d7564b0856"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Calibri" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{s_no}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="25" y="0" width="245" height="18" isPrintWhenDetailOverflows="true" uuid="11f329d1-a28f-4160-9b6d-af40441c4b76"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Calibri" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{product_type}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+				<reportElement x="355" y="0" width="75" height="18" isPrintWhenDetailOverflows="true" uuid="564bb367-85cd-462d-9767-9e3e0d3941d2"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Calibri" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{gross_wt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="430" y="0" width="90" height="18" isPrintWhenDetailOverflows="true" uuid="b8d1db56-64c4-4a46-a238-6844ae17e379"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Calibri" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{total_amt_usd}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="270" y="0" width="85" height="18" isPrintWhenDetailOverflows="true" uuid="bc8a05b6-38c1-4072-8cd3-b968072b9627"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Calibri" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{item_count}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="192">
+			<staticText>
+				<reportElement x="0" y="0" width="270" height="18" uuid="8a48a339-0697-4d00-81f4-5e164c7c3413"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.25"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.25"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="430" y="0" width="90" height="18" isPrintWhenDetailOverflows="true" uuid="a5b9dbea-11cc-44c3-bb21-8bf0a42cff61"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.25"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.25"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{total_value}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="176" width="83" height="16" uuid="6a10384a-b213-472e-9571-899bcb908e74"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Received By]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="139" y="176" width="80" height="16" uuid="4c9f744e-c2eb-45e2-94a5-60a0c646dfe5"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Checked By]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="270" y="176" width="85" height="16" uuid="01842807-1b3a-4c68-bc65-b033407bbd19"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Prepare By]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="410" y="176" width="110" height="16" uuid="4897cb90-a9ea-460d-8229-612be9727382"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Authorised Signatory]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="270" y="117" width="250" height="20" uuid="2caf5359-8345-48d4-8f23-460de33b7c77"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Calibri" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["For, " + $F{company_name}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement positionType="Float" x="326" y="56" width="104" height="18" uuid="8d8f0673-9703-4dea-82d8-5514eafd44cb"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Net Amount  ]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="430" y="56" width="90" height="18" isPrintWhenDetailOverflows="true" uuid="ff59d84e-8740-4796-8f86-b4a651fad1ed"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.25"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.25"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{inv_total_usd_roundoff}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement positionType="Float" x="0" y="69" width="83" height="20" uuid="efec6166-7880-4cb0-a39a-602382aa24cb"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Debited : "]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.00" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="83" y="69" width="25" height="20" isPrintWhenDetailOverflows="true" uuid="bbac8bef-e5fa-4fe2-94bb-b3f50f7947c0"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Calibri" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{currency_code}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="83" y="18" width="243" height="20" isPrintWhenDetailOverflows="true" uuid="393c70bf-467f-4e22-818f-75b4c301e467"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Calibri" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{currency_code}+" "+$F{inv_total_words}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="18" width="83" height="20" isPrintWhenDetailOverflows="true" uuid="0e56355c-90e2-448c-8fe5-e81f711d1e5f"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Amount In Words:   ]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+				<reportElement x="355" y="0" width="75" height="18" isPrintWhenDetailOverflows="true" uuid="e96eb71f-c545-4aa6-80e4-a600becdb870"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.25"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.25"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{gross_tot}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="270" y="156" width="85" height="20" isPrintWhenDetailOverflows="true" uuid="4abc2941-9bda-405d-a374-16254f5fdb3c"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Calibri" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{prepare_by}]]></textFieldExpression>
+			</textField>
+			<componentElement>
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="326" y="19" width="194" height="19" uuid="0baf22e6-303a-4925-8869-f11b7cccd203"/>
+				<jr:list xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" printOrder="Vertical">
+					<datasetRun subDataset="dataset1" uuid="9eb93853-fdcf-4f19-a731-42eb7b17aa09">
+						<datasetParameter name="invId">
+							<datasetParameterExpression><![CDATA[$F{inv_id}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:listContents height="19" width="194">
+						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<reportElement positionType="Float" x="0" y="0" width="104" height="19" isPrintWhenDetailOverflows="true" uuid="7cc6dea8-30ac-4dae-998c-d8312e818516"/>
+							<box leftPadding="2" rightPadding="2"/>
+							<textElement textAlignment="Right" verticalAlignment="Middle">
+								<font fontName="SansSerif" size="9" isBold="true"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$F{charge_name}]]></textFieldExpression>
+						</textField>
+						<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+							<reportElement positionType="Float" x="104" y="0" width="90" height="19" isPrintWhenDetailOverflows="true" uuid="6dc6f8d9-5a6d-48b8-b7cf-5122cc47b6ce"/>
+							<textElement textAlignment="Right" verticalAlignment="Middle">
+								<font fontName="SansSerif" size="9" isBold="true"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$F{othamt}]]></textFieldExpression>
+						</textField>
+					</jr:listContents>
+				</jr:list>
+			</componentElement>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="431" y="38" width="89" height="18" isPrintWhenDetailOverflows="true" uuid="532bee5d-7dbb-431d-bb56-33aabbea78f9"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["(" + $F{amount_decimal} + ")"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement positionType="Float" x="326" y="38" width="105" height="18" uuid="c755bca1-7141-4a83-a882-f2747fbd690d"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Rounding Amount]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement positionType="Float" x="0" y="89" width="83" height="20" uuid="cecc61e6-80ea-4859-acb4-48f22ea78eb6"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Note :"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.00" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="83" y="89" width="243" height="20" uuid="9bdd3493-c36c-43f9-a639-b5c97a946a1c"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Calibri" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{remarks}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="108" y="69" width="136" height="20" isPrintWhenDetailOverflows="true" uuid="23f687fd-2784-4010-a34c-e87816ee9db4"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Calibri" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{inv_total_usd_roundoff}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="270" y="0" width="85" height="18" isPrintWhenDetailOverflows="true" uuid="b0647f8b-26e6-4380-9a85-1ba99b8dce5b"/>
+				<box>
+					<topPen lineWidth="1.25"/>
+					<bottomPen lineWidth="1.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{item_count_1}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

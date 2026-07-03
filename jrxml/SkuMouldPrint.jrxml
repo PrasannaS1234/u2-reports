@@ -1,0 +1,951 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SkuMould" pageWidth="340" pageHeight="450" whenNoDataType="AllSectionsNoDetail" columnWidth="330" leftMargin="5" rightMargin="5" topMargin="5" bottomMargin="5" uuid="c77f7cdd-f3a0-446c-9002-ab96fc3ebcf4">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<subDataset name="component" uuid="9f635239-62b1-4650-abc3-41d399b6a2ef">
+		<parameter name="skuId" class="java.lang.Integer">
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[WITh v_comp AS (
+	SELECT
+		 tsc.sku_component_id component_id,
+		 j.sku_id sales_order_det_id,
+		 row_number() over (order by 1) recusrive_level,
+		 j.sku_id,
+		 tsc.total_wt tot_qty,
+		 tsc.qty1,
+		 tsc.qty2,
+		 case when tsc.qty2 > 0 then tsc.total_wt / tsc.qty2 else 0 end per_pc_wt
+	FROM
+		 tbl_sku_component tsc
+		inner join tbl_sku j on tsc.sku_id = j.sku_id
+			and j.is_deleted = 0
+		inner join tbl_commodity com on tsc.commodity_id = com.commodity_id
+		inner join tbl_commodity_group cgr on com.commodity_group_id = cgr.commodity_group_id
+	WHERE
+		 tsc.is_deleted = 0
+		 and (cgr.commodity_group_type like '%DIAMOND%')
+		 and j.sku_id = $P!{skuId}
+	 ),
+	 v_max as (
+		 select max(recusrive_level) recusrive_level,
+		 max(component_id) component_id,
+		 max(sku_id) sku_id
+		 from v_comp
+	 ),
+v_temp as (
+	select
+		9999999+row_number() over (order by 1) component_id,
+		m.sku_id sales_order_det_id,
+		m.sku_id,
+	    generate_series recusrive_level,
+
+		0 tot_qty,
+	 	0 qty1,
+	 	0 qty2,
+		0 per_pcs_wt
+	from
+	v_max m
+	inner join generate_series(COALESCE (m.recusrive_level,0)+1,6) on 1 = 1
+)select * from v_comp v union all select * from v_temp]]>
+		</queryString>
+		<field name="component_id" class="java.lang.Long"/>
+		<field name="sales_order_det_id" class="java.lang.Integer"/>
+		<field name="recusrive_level" class="java.lang.Long"/>
+		<field name="sku_id" class="java.lang.Long"/>
+		<field name="tot_qty" class="java.math.BigDecimal"/>
+		<field name="qty1" class="java.math.BigDecimal"/>
+		<field name="qty2" class="java.math.BigDecimal"/>
+		<field name="per_pc_wt" class="java.math.BigDecimal"/>
+		<group name="component_id">
+			<groupExpression><![CDATA[$F{component_id}]]></groupExpression>
+		</group>
+	</subDataset>
+	<subDataset name="comp_cs" uuid="781e5f53-350d-4e5e-84fd-c38803564ebc">
+		<parameter name="skuId" class="java.lang.String"/>
+		<queryString>
+			<![CDATA[WITh v_comp AS (
+	SELECT
+		 tsc.sku_component_id component_id,
+		 j.sku_id sales_order_det_id,
+		 row_number() over (order by 1) recusrive_level,
+		 j.sku_id,
+		 tsc.total_wt tot_qty,
+		 tsc.qty1,
+		 tsc.qty2,
+		 case when tsc.qty2 > 0 then tsc.total_wt / tsc.qty2 else 0 end per_pc_wt
+	FROM
+		 tbl_sku_component tsc
+		inner join tbl_sku j on tsc.sku_id = j.sku_id
+			and j.is_deleted = 0
+		inner join tbl_commodity com on tsc.commodity_id = com.commodity_id
+		inner join tbl_commodity_group cgr on com.commodity_group_id = cgr.commodity_group_id
+	WHERE
+		 tsc.is_deleted = 0
+		 and (cgr.commodity_group_type not like '%DIAMOND%')
+		 and j.sku_id = $P!{skuId}
+	 ),
+	 v_max as (
+		 select max(recusrive_level) recusrive_level,
+		 max(component_id) component_id,
+		 max(sku_id) sku_id
+		 from v_comp
+	 ),
+v_temp as (
+	select
+		9999999+row_number() over (order by 1) component_id,
+		m.sku_id sales_order_det_id,
+		m.sku_id,
+	    generate_series recusrive_level,
+
+		0 tot_qty,
+	 	0 qty1,
+	 	0 qty2,
+		0 per_pcs_wt
+	from
+	v_max m
+	inner join generate_series(COALESCE (m.recusrive_level,0)+1,6) on 1 = 1
+)select * from v_comp v union all select * from v_temp]]>
+		</queryString>
+		<field name="component_id" class="java.lang.Long"/>
+		<field name="sales_order_det_id" class="java.lang.Integer"/>
+		<field name="recusrive_level" class="java.lang.Long"/>
+		<field name="sku_id" class="java.lang.Long"/>
+		<field name="tot_qty" class="java.math.BigDecimal"/>
+		<field name="qty1" class="java.math.BigDecimal"/>
+		<field name="qty2" class="java.math.BigDecimal"/>
+		<field name="per_pc_wt" class="java.math.BigDecimal"/>
+	</subDataset>
+	<parameter name="tenant" class="java.lang.String">
+		<defaultValueExpression><![CDATA[" "]]></defaultValueExpression>
+	</parameter>
+	<parameter name="i_sku_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'-1'"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select s.sku_id,
+	s.sku_no,
+	p.product_type_name,
+	ps.product_size,
+	s.customer_ref_no,
+	m.mould_no,
+	m.rack_no,
+	m.shop_name,
+	pc.cam_wt,
+	pc.casting_wt,
+    	pc.cad_wt,
+	w.wax_wt,
+	pc.pipe_weight,
+	s.metal_weight shipment_weight,
+	sc.tot_qty,
+    	sc.qty1,
+	sc.qty2,
+	round(case when sc.qty2 > 0 then sc.tot_qty / sc.qty2 else 0 end,3) per_pcs_wt,
+	concat('/home/ubuntu/tekfilo/jewtrade/uploads/',$P{tenant},'comp',s.company_id,'/sku/',s.sku_id,s.image_url) image_url,
+	pc.screw_weight
+from
+    tbl_sku s
+	inner join tbl_product_type p on s.product_type_id = p.product_type_id
+	left join(
+		select row_number() over (partition by sm.sku_id order by 1) sno, sm.*
+		from tbl_sku_mould sm where sm.is_deleted = 0
+	)m on s.sku_id = m.sku_id
+		and m.sno = 1
+	left join(
+		select row_number() over (partition by sw.sku_id order by 1) sno, sw.*
+		from tbl_sku_wax sw where sw.is_deleted = 0
+	)w on s.sku_id = w.sku_id
+		and w.sno = 1
+    left join(
+		select sjob.sku_id, sum(c.total_wt) tot_qty, sum(c.qty1) qty1, sum(c.qty2) qty2
+		 from    tbl_sku sjob
+		inner join tbl_sku_component c on sjob.sku_id = c.sku_id
+		 where c.is_deleted  = 0
+		 and (sjob.sku_id) in ($P!{i_sku_id})
+		 group by sjob.sku_id
+	)sc on s.sku_id = sc.sku_id
+	left join(
+			select
+			jm.sku_id,
+			max(case when upper(dp.process_name) = 'CASTING' then jm.output_weight else 0 end) casting_wt,
+			max(case when upper(dp.process_name) = 'CAM' then jm.output_weight else 0 end) cam_wt,
+			max(case when upper(dp.process_name) = 'CAD' then jm.output_weight else 0 end) cad_wt,
+		    max(case when upper(dp.process_name) = 'PIPE PAIR' then jm.loss_weight else 0 end) pipe_weight,
+			max(case when upper(dp.process_name) = 'SCREW' then jm.loss_weight else 0 end) screw_weight
+			from tbl_sku_metal_weight_calculation jm
+		    inner join tbl_process dp on jm.process_id = dp.process_id
+		    where (jm.sku_id) in ($P!{i_sku_id})
+		    group by jm.sku_id
+    )pc on s.sku_id = pc.sku_id
+    left join tbl_product_size ps on s.product_size_id = ps.size_id
+where
+	s.is_deleted = 0
+	and (s.sku_id) in ($P!{i_sku_id})]]>
+	</queryString>
+	<field name="sku_id" class="java.lang.Integer"/>
+	<field name="sku_no" class="java.lang.String"/>
+	<field name="product_type_name" class="java.lang.String"/>
+	<field name="product_size" class="java.lang.String"/>
+	<field name="customer_ref_no" class="java.lang.String"/>
+	<field name="mould_no" class="java.lang.String"/>
+	<field name="rack_no" class="java.lang.String"/>
+	<field name="shop_name" class="java.lang.String"/>
+	<field name="cam_wt" class="java.math.BigDecimal"/>
+	<field name="casting_wt" class="java.math.BigDecimal"/>
+	<field name="cad_wt" class="java.math.BigDecimal"/>
+	<field name="wax_wt" class="java.math.BigDecimal"/>
+	<field name="pipe_weight" class="java.math.BigDecimal"/>
+	<field name="shipment_weight" class="java.math.BigDecimal"/>
+	<field name="tot_qty" class="java.math.BigDecimal"/>
+	<field name="qty1" class="java.math.BigDecimal"/>
+	<field name="qty2" class="java.math.BigDecimal"/>
+	<field name="per_pcs_wt" class="java.math.BigDecimal"/>
+	<field name="image_url" class="java.lang.String"/>
+	<field name="screw_weight" class="java.math.BigDecimal"/>
+	<group name="G1" isStartNewPage="true">
+		<groupExpression><![CDATA[$F{sku_id}+ "-" +$F{mould_no}]]></groupExpression>
+		<groupHeader>
+			<band height="428">
+				<textField pattern="#,##0.000" isBlankWhenNull="true">
+					<reportElement x="233" y="220" width="70" height="16" uuid="89b34f3a-68ac-4efc-bbd6-21369b886348"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{casting_wt}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="23" y="220" width="70" height="16" uuid="d8a33a79-3fb3-480b-b154-dff3f0430a75"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Mould No : ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="163" y="220" width="70" height="16" uuid="4f49f3a7-c000-46f0-9100-1647438e4248"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Casting WT :]]></text>
+				</staticText>
+				<frame>
+					<reportElement x="23" y="0" width="280" height="160" uuid="8f28894d-6a7d-4815-82bb-a681e357e2dc"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<image scaleImage="RealSize" hAlign="Center" isLazy="true" onErrorType="Icon">
+						<reportElement key="image-1" stretchType="RelativeToTallestObject" x="12" y="0" width="257" height="160" uuid="0cf17ccd-305d-4659-a9e0-4da4c20eacd1"/>
+						<box topPadding="5" leftPadding="5" bottomPadding="5" rightPadding="5">
+							<topPen lineWidth="0.0" lineStyle="Solid"/>
+							<leftPen lineWidth="0.0" lineStyle="Solid"/>
+							<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+							<rightPen lineWidth="0.0" lineStyle="Solid"/>
+						</box>
+						<imageExpression><![CDATA[$F{image_url}]]></imageExpression>
+					</image>
+				</frame>
+				<textField>
+					<reportElement x="23" y="160" width="280" height="20" uuid="0067b853-d7ec-4f70-9129-1f99ada75cc9"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="11" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{sku_no}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="93" y="220" width="70" height="16" uuid="b524b267-caf4-4b4a-abfa-357d731b2f09"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{mould_no}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="93" y="252" width="70" height="16" uuid="d6a35f80-9c52-4a0c-8265-4ed330931c34"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{shop_name}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="93" y="236" width="70" height="16" uuid="361a456b-0ddd-443d-8d81-71341a30276e"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{rack_no}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.000" isBlankWhenNull="true">
+					<reportElement x="233" y="236" width="70" height="16" uuid="61e4ce9a-ae68-4418-bc90-6a2560f37642"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{shipment_weight}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="233" y="252" width="70" height="16" uuid="cdee4214-b2af-4a17-9c94-2eb76f975e08"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{screw_weight}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="23" y="286" width="70" height="20" uuid="d8580b00-df6b-4977-9572-89c82df45b11"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="7" isBold="true"/>
+					</textElement>
+					<text><![CDATA[D.PCS]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="23" y="306" width="70" height="20" uuid="dbdf72ea-ab18-4944-9386-cd654f00a5fd"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="7" isBold="true"/>
+					</textElement>
+					<text><![CDATA[D.WT]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="23" y="236" width="70" height="16" uuid="84a4c955-f37f-4914-9e5d-5afb72642c63"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Rack No :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="23" y="252" width="70" height="16" uuid="8855e028-7f35-42ee-b3fa-07dc9f890622"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Shop Name :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="163" y="236" width="70" height="16" uuid="675c9240-81c1-43f3-9fe3-db83992d4ec6"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Delivery WT :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="163" y="252" width="70" height="16" uuid="1b579fa7-3d03-48e2-8eab-a1f9563e3dc0"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Screw WT :]]></text>
+				</staticText>
+				<textField pattern="#,##0.000" isBlankWhenNull="true">
+					<reportElement x="93" y="386" width="70" height="22" uuid="161b2b19-96f8-4d9b-817d-9b3cc703ad2d"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{cad_wt}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="23" y="386" width="70" height="22" uuid="3595c21a-0e98-4d87-be90-e8c25d764eab"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Volume :]]></text>
+				</staticText>
+				<frame>
+					<reportElement x="163" y="386" width="140" height="42" uuid="b99482eb-2d0a-4925-8b23-5a9f363029f8"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<componentElement>
+						<reportElement x="0" y="6" width="140" height="30" uuid="b0b89546-7edd-4c55-aa71-d982068559f7"/>
+						<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code39 (Extended)" drawText="false" checksumRequired="false">
+							<jr:codeExpression><![CDATA[$F{mould_no}]]></jr:codeExpression>
+						</jr:barbecue>
+					</componentElement>
+				</frame>
+				<textField pattern="#,##0.000" isBlankWhenNull="true">
+					<reportElement x="93" y="408" width="70" height="20" uuid="36dd4f40-b0ab-4a2c-9d27-d7b36de02d0b"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{cam_wt}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="23" y="408" width="70" height="20" uuid="1313a87c-af43-4efa-abc5-e7fd80b0a3ae"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[CAM WT : ]]></text>
+				</staticText>
+				<elementGroup/>
+				<textField>
+					<reportElement x="23" y="200" width="140" height="20" uuid="ce39bc52-6f4a-4c13-a0c3-d8c7fec5be91"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{product_type_name}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="23" y="326" width="70" height="20" uuid="5cd8f014-249e-424a-8b59-b0dff108eaae"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="7" isBold="true"/>
+					</textElement>
+					<text><![CDATA[D.PC WT ]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="233" y="200" width="70" height="20" uuid="df54c70b-a468-4703-81f1-c0c678fdc358"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{product_size}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="163" y="200" width="70" height="20" uuid="7cc8a7a4-af0c-4d09-b55f-82f886324276"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Product Size :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="23" y="268" width="70" height="18" uuid="c611a6c6-b9a1-4301-91c5-1a9ab3300ae1"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Pipe WT :]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="23" y="180" width="280" height="20" uuid="ccdd8c46-5802-48fc-b299-9b4d2dbbc2da"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{customer_ref_no}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="23" y="366" width="70" height="20" uuid="f0d68bfa-eb4d-4461-adb6-4d7a83683dd8"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="7" isBold="true"/>
+					</textElement>
+					<text><![CDATA[CS.WT]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="23" y="346" width="70" height="20" uuid="fc16502b-fe47-4a79-81ff-01730019df81"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="7" isBold="true"/>
+					</textElement>
+					<text><![CDATA[CS.PCS]]></text>
+				</staticText>
+				<crosstab>
+					<reportElement x="93" y="286" width="210" height="60" uuid="c8ea0070-9dd6-4558-b73e-e51bf5ff1911"/>
+					<crosstabDataset>
+						<dataset>
+							<datasetRun subDataset="component" uuid="bd52805f-51cc-4606-8600-9ccbaae9934f">
+								<datasetParameter name="skuId">
+									<datasetParameterExpression><![CDATA[$F{sku_id}]]></datasetParameterExpression>
+								</datasetParameter>
+								<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+							</datasetRun>
+						</dataset>
+					</crosstabDataset>
+					<rowGroup name="sales_order_det_id" width="0">
+						<bucket class="java.lang.Integer">
+							<bucketExpression><![CDATA[$F{sales_order_det_id}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents backcolor="#F0F8FF" mode="Opaque"/>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<columnGroup name="component_id" height="0" totalPosition="End">
+						<bucket class="java.lang.Long">
+							<bucketExpression><![CDATA[$F{component_id}]]></bucketExpression>
+						</bucket>
+						<crosstabColumnHeader>
+							<cellContents backcolor="#F0F8FF" mode="Opaque"/>
+						</crosstabColumnHeader>
+						<crosstabTotalColumnHeader>
+							<cellContents backcolor="#BFE1FF" mode="Opaque"/>
+						</crosstabTotalColumnHeader>
+					</columnGroup>
+					<measure name="tot_qtyMeasure" class="java.math.BigDecimal" calculation="Sum">
+						<measureExpression><![CDATA[$F{tot_qty}]]></measureExpression>
+					</measure>
+					<measure name="pcs" class="java.math.BigDecimal" calculation="Sum">
+						<measureExpression><![CDATA[$F{qty2}]]></measureExpression>
+					</measure>
+					<measure name="per_pcs_wt" class="java.math.BigDecimal" calculation="Sum">
+						<measureExpression><![CDATA[$F{per_pc_wt}]]></measureExpression>
+					</measure>
+					<crosstabCell width="30" height="60">
+						<cellContents>
+							<textField pattern="###0" isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="30" height="20" uuid="f93f4a11-786a-409e-9921-654a59cae745"/>
+								<box rightPadding="2">
+									<pen lineWidth="0.5"/>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{pcs}]]></textFieldExpression>
+							</textField>
+							<textField pattern="###0.000" isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="20" width="30" height="20" uuid="cb4cdbba-54c2-4e0f-bf43-8670a0c71837"/>
+								<box rightPadding="2">
+									<pen lineWidth="0.5"/>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{tot_qtyMeasure}]]></textFieldExpression>
+							</textField>
+							<textField pattern="###0.000" isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="40" width="30" height="20" uuid="cdaab8d3-0a16-4b4f-92b8-460d64397e79"/>
+								<box rightPadding="2">
+									<pen lineWidth="0.5"/>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{per_pcs_wt}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell height="25" rowTotalGroup="sales_order_det_id">
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25" uuid="4ec21c05-c649-4ac3-a258-4976ab0bc322"/>
+								<textFieldExpression><![CDATA[$V{tot_qtyMeasure}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell width="30" height="60" columnTotalGroup="component_id">
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<textField pattern="###0" isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="30" height="20" uuid="2a7ad2f8-71f7-498e-a66c-f58220c0bf2b"/>
+								<box rightPadding="2">
+									<pen lineWidth="0.5"/>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{pcs}]]></textFieldExpression>
+							</textField>
+							<textField pattern="###0.000" isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="20" width="30" height="20" uuid="72c13a45-ff8d-4a35-8185-3326a6409764"/>
+								<box rightPadding="2">
+									<pen lineWidth="0.5"/>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{tot_qtyMeasure}]]></textFieldExpression>
+							</textField>
+							<textField pattern="###0.000" isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="40" width="30" height="20" uuid="e55fd2d5-edc7-4454-973f-0fc81b20df87"/>
+								<box rightPadding="2">
+									<pen lineWidth="0.5"/>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{per_pcs_wt}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="sales_order_det_id" columnTotalGroup="component_id">
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25" uuid="29b4f595-dea4-4f32-be10-6840fc4bf1b1"/>
+								<textFieldExpression><![CDATA[$V{tot_qtyMeasure}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+				</crosstab>
+				<crosstab>
+					<reportElement x="93" y="346" width="210" height="40" uuid="eecdc2c9-664a-47d0-a864-7ac6e2af8567"/>
+					<crosstabDataset>
+						<dataset>
+							<datasetRun subDataset="comp_cs" uuid="6981058e-bc2d-409b-9426-bc0bd88bb55a">
+								<datasetParameter name="skuId">
+									<datasetParameterExpression><![CDATA[$F{sku_id}]]></datasetParameterExpression>
+								</datasetParameter>
+								<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+							</datasetRun>
+						</dataset>
+					</crosstabDataset>
+					<rowGroup name="sales_order_det_id" width="0">
+						<bucket class="java.lang.Integer">
+							<bucketExpression><![CDATA[$F{sales_order_det_id}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents backcolor="#F0F8FF" mode="Opaque"/>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<columnGroup name="component_id" height="0" totalPosition="End">
+						<bucket class="java.lang.Long">
+							<bucketExpression><![CDATA[$F{component_id}]]></bucketExpression>
+						</bucket>
+						<crosstabColumnHeader>
+							<cellContents backcolor="#F0F8FF" mode="Opaque"/>
+						</crosstabColumnHeader>
+						<crosstabTotalColumnHeader>
+							<cellContents backcolor="#BFE1FF" mode="Opaque"/>
+						</crosstabTotalColumnHeader>
+					</columnGroup>
+					<measure name="tot_qtyMeasure" class="java.math.BigDecimal" calculation="Sum">
+						<measureExpression><![CDATA[$F{tot_qty}]]></measureExpression>
+					</measure>
+					<measure name="per_pcs_wt" class="java.math.BigDecimal" calculation="Sum">
+						<measureExpression><![CDATA[$F{per_pc_wt}]]></measureExpression>
+					</measure>
+					<measure name="qty2" class="java.math.BigDecimal" calculation="Sum">
+						<measureExpression><![CDATA[$F{qty2}]]></measureExpression>
+					</measure>
+					<crosstabCell width="30" height="40">
+						<cellContents>
+							<textField pattern="###0" isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="30" height="20" uuid="95a2b985-6072-421f-9d34-ade829619728"/>
+								<box rightPadding="2">
+									<pen lineWidth="0.5"/>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="7"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{qty2}]]></textFieldExpression>
+							</textField>
+							<textField pattern="###0.000" isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="20" width="30" height="20" uuid="b33b7629-b319-46cc-a1f3-d089a8da9b06"/>
+								<box rightPadding="2">
+									<pen lineWidth="0.5"/>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="7"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{tot_qtyMeasure}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell height="25" rowTotalGroup="sales_order_det_id">
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25" uuid="ec4092ce-02bd-4644-9bfc-b647b2819672"/>
+								<textFieldExpression><![CDATA[$V{tot_qtyMeasure}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell width="30" height="40" columnTotalGroup="component_id">
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<textField pattern="###0" isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="30" height="20" uuid="29a72dec-6d8c-4753-987d-6bac2f316b7a"/>
+								<box rightPadding="2">
+									<pen lineWidth="0.5"/>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="7"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{qty2}]]></textFieldExpression>
+							</textField>
+							<textField pattern="###0.000" isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="20" width="30" height="20" uuid="dd8b7af6-b781-42be-bf3f-7e3869e33d2f"/>
+								<box rightPadding="2">
+									<pen lineWidth="0.5"/>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="7"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{tot_qtyMeasure}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="sales_order_det_id" columnTotalGroup="component_id">
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25" uuid="4225e299-a636-44fb-aba0-1786cef1d020"/>
+								<textFieldExpression><![CDATA[$V{tot_qtyMeasure}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+				</crosstab>
+				<staticText>
+					<reportElement x="163" y="268" width="70" height="18" uuid="9476a245-3f15-4a36-8684-e0e4daa67fe7"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[WAX WT :]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="93" y="268" width="70" height="18" uuid="b3e37e07-5f22-4063-a0f8-91b3fa578a1a"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{pipe_weight}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="233" y="268" width="70" height="18" uuid="86702a98-dae8-40ec-815f-73c3b7b64647"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{wax_wt}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+</jasperReport>

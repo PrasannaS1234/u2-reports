@@ -1,0 +1,2937 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="JobSheetPrint" pageWidth="595" pageHeight="840" whenNoDataType="AllSectionsNoDetail" columnWidth="585" leftMargin="5" rightMargin="5" topMargin="5" bottomMargin="5" uuid="c77f7cdd-f3a0-446c-9002-ab96fc3ebcf4">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="92"/>
+	<parameter name="i_bag_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'-1'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="tenant" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'NA'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA["E:\\Development\\source-code\\jew-trade-service\\src\\main\\resources\\jasper\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dateFormat" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new String("dd-mm-yyyy")]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+	comp.company_name,
+	t.jew_id,
+	concat(t.jew_type, t.jew_no) job_type_no,
+	bag.bag_id,
+	bag.bag_qty,
+	concat(bag.bag_type, bag.bag_no) bag_type_no,
+	s.sku_no,
+	p.product_type_name,
+	c.customer_name,
+	sd.customer_order_no,
+	sd.customer_jew_no,
+	so.reference_no,
+	tsc.dia_wt||' CT  '||tsc.dia_pcs||' PCS' diamond_remarks,
+	tsc.cs_wt||' CT  '||tsc.cs_pcs||' PCS' gemstone_remarks,
+	sd.metal_wt,
+	to_char(so.delivery_date, $P{dateFormat}) delivery_date,
+	to_char(so.sales_order_date, $P{dateFormat}) sales_order_date,
+	ps.product_size,
+	t.metal_weight,
+	t.metal1,
+	t.stamping_details,
+	tscn.note prod_description,
+	case
+	    when coalesce(length(trim(sd.image_url)),0) > 0 then
+		concat('/home/ubuntu/tekfilo/jewtrade/uploads/',$P{tenant},'comp',so.company_id,'/salesorder/',sd.sales_order_det_id,sd.image_url)
+		when coalesce(length(trim(t.image_url)),0) > 0 then
+		concat('/home/ubuntu/tekfilo/jewtrade/uploads/',$P{tenant},'comp',t.company_id,'/jewellery/',t.jew_id,t.image_url)
+		else concat('/home/ubuntu/tekfilo/jewtrade/uploads/',$P{tenant},'comp',s.company_id,'/sku/',s.sku_id,s.image_url)
+	end image_url,
+	lot.lot_code,
+	round(jc.total_qty1,3) total_qty1,
+	fac.factory_name,
+	lot.uom1,
+	s.uom,
+	concat(u.first_name,' ', u.last_name) issued_by,
+	sd.color_code
+from
+	tbl_jewellery t
+	inner join tbl_sales_order_main so on t.sales_order_id = so.sales_order_id
+	inner join tbl_sales_order_det sd on so.sales_order_id = sd.sales_order_id
+		and t.sales_order_det_id = sd.sales_order_det_id
+		and sd.is_deleted = 0
+	left join(
+		select
+			sc.sales_order_det_id,
+			round(sum(case when COALESCE(com.metal_type,'DIAMOND') = 'DIAMOND' then tot_qty else 0 end),3) dia_wt,
+			round(sum(case when COALESCE(com.metal_type,'DIAMOND') = 'DIAMOND' then qty2 else 0 end),0) dia_pcs,
+			round(sum(case when COALESCE(com.metal_type,'DIAMOND') = 'GEMSTONE' then tot_qty else 0 end),3) cs_wt,
+			round(sum(case when COALESCE(com.metal_type,'DIAMOND') = 'GEMSTONE' then qty2 else 0 end),0) cs_pcs
+		from
+			tbl_sales_order_component sc
+			inner join tbl_commodity com on sc.commodity_id = com.commodity_id
+		where
+			sc.is_deleted = 0
+		group by
+			sc.sales_order_det_id
+	)tsc on sd.sales_order_det_id = tsc.sales_order_det_id
+	left join(
+		select
+			sc.sales_order_det_id,
+			string_agg(sc.note,', ') note
+		from
+			tbl_sales_order_prod_note sc
+		where
+			sc.is_deleted = 0
+		group by
+			sc.sales_order_det_id
+	)tscn on sd.sales_order_det_id = tscn.sales_order_det_id
+	inner join tbl_mfg_bag bag on t.jew_id= bag.job_id
+		and bag.is_deleted = 0
+	inner join tbl_sku s on t.sku_id = s.sku_id
+		and s.is_deleted = 0
+	inner join tbl_product_type p on s.product_type_id = p.product_type_id
+		and p.is_deleted = 0
+    inner join tbl_company comp on t.company_id = comp.company_id
+	inner join tbl_customer c on so.customer_id = c.customer_id
+		and c.is_deleted = 0
+	left join tbl_jewellery_component jc on t.jew_id = jc.jew_id
+		and jc.is_deleted = 0
+	left join tbl_lot lot on jc.lot_id = lot.lot_id
+	left join tbl_factory fac on so.factory_id = fac.factory_id
+	left join tbl_user u on so.created_by = u.user_id
+          left join tbl_product_size ps on t.product_size_id = ps.size_id
+where
+	(bag.bag_id) in ($P!{i_bag_id})
+order by
+	 bag.bag_id]]>
+	</queryString>
+	<field name="company_name" class="java.lang.String"/>
+	<field name="jew_id" class="java.lang.Integer"/>
+	<field name="job_type_no" class="java.lang.String"/>
+	<field name="bag_id" class="java.lang.Integer"/>
+	<field name="bag_qty" class="java.math.BigDecimal"/>
+	<field name="bag_type_no" class="java.lang.String"/>
+	<field name="sku_no" class="java.lang.String"/>
+	<field name="product_type_name" class="java.lang.String"/>
+	<field name="customer_name" class="java.lang.String"/>
+	<field name="customer_order_no" class="java.lang.String"/>
+	<field name="customer_jew_no" class="java.lang.String"/>
+	<field name="reference_no" class="java.lang.String"/>
+	<field name="diamond_remarks" class="java.lang.String"/>
+	<field name="gemstone_remarks" class="java.lang.String"/>
+	<field name="metal_wt" class="java.math.BigDecimal"/>
+	<field name="delivery_date" class="java.lang.String"/>
+	<field name="sales_order_date" class="java.lang.String"/>
+	<field name="product_size" class="java.lang.String"/>
+	<field name="metal_weight" class="java.math.BigDecimal"/>
+	<field name="metal1" class="java.lang.String"/>
+	<field name="stamping_details" class="java.lang.String"/>
+	<field name="prod_description" class="java.lang.String"/>
+	<field name="image_url" class="java.lang.String"/>
+	<field name="lot_code" class="java.lang.String"/>
+	<field name="total_qty1" class="java.math.BigDecimal"/>
+	<field name="factory_name" class="java.lang.String"/>
+	<field name="uom1" class="java.lang.String"/>
+	<field name="uom" class="java.lang.String"/>
+	<field name="issued_by" class="java.lang.String"/>
+	<field name="color_code" class="java.lang.String"/>
+	<group name="BAG" keepTogether="true">
+		<groupExpression><![CDATA[$F{bag_id}]]></groupExpression>
+		<groupHeader>
+			<band height="257" splitType="Stretch">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="85" y="78" width="70" height="26" isPrintWhenDetailOverflows="true" uuid="08c52b2c-2f82-4171-8470-f7e676585d6c"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" isBold="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{product_size}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="155" y="0" width="65" height="26" isPrintWhenDetailOverflows="true" uuid="84a4c955-f37f-4914-9e5d-5afb72642c63"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[客户]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="155" y="26" width="65" height="26" isPrintWhenDetailOverflows="true" uuid="8855e028-7f35-42ee-b3fa-07dc9f890622"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[出货限期]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="78" width="85" height="26" isPrintWhenDetailOverflows="true" uuid="31c3a075-58a4-4e43-aeef-f63c1afb7eef"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[尺寸]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="300" y="26" width="75" height="26" isPrintWhenDetailOverflows="true" uuid="70e5a888-2d07-4cdf-9801-a40818171ff8"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[货形分类]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="375" y="26" width="71" height="26" isPrintWhenDetailOverflows="true" uuid="4ddc60b5-55a6-46da-a8a0-91162f3c3e51"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" isBold="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{product_type_name}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="220" y="52" width="80" height="26" isPrintWhenDetailOverflows="true" uuid="c0013615-a23a-4f2a-b9a4-d30bf54b930e"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" isBold="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{color_code}]]></textFieldExpression>
+				</textField>
+				<frame>
+					<reportElement x="461" y="27" width="115" height="24" uuid="11cc534b-1e60-4da6-8065-e5e8d4024188"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+				</frame>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="220" y="0" width="80" height="26" isPrintWhenDetailOverflows="true" uuid="cfb26dd6-5303-4ecd-ac17-6901a89e8760"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" isBold="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{customer_name}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="220" y="26" width="80" height="26" isPrintWhenDetailOverflows="true" uuid="7c486b96-3df0-4130-b7f0-eb914e2180aa"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" isBold="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{delivery_date}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="155" y="78" width="65" height="26" isPrintWhenDetailOverflows="true" uuid="2e32d101-9508-40fe-8df5-61ff441f0596"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[件数]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" pattern="#,##0.0" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="220" y="78" width="45" height="26" isPrintWhenDetailOverflows="true" uuid="be34cb94-fd6b-451e-844d-049377ed968c"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" isBold="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{bag_qty}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="130" width="85" height="30" isPrintWhenDetailOverflows="true" uuid="81d3a119-bb4d-4888-9251-f13672c87fc1"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[订单字印]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="85" y="130" width="215" height="30" isPrintWhenDetailOverflows="true" uuid="d7597cd2-947f-4655-b41f-2861a68ef123"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" isBold="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{stamping_details}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="85" height="26" isPrintWhenDetailOverflows="true" uuid="9773eaa6-4930-450a-9aa5-c712ccb51589"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[工单号]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="85" y="0" width="70" height="26" isPrintWhenDetailOverflows="true" uuid="c76786e4-85ab-49ca-b2c5-d5cb1638eca7"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" isBold="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{job_type_no}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="26" width="85" height="26" isPrintWhenDetailOverflows="true" uuid="ae4bf978-40b3-4550-8bc1-c62ef9fb3a57"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[发单日期]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="85" y="26" width="70" height="26" isPrintWhenDetailOverflows="true" uuid="7934345f-c60b-4247-af70-3bdb902365a2"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" isBold="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{sales_order_date}]]></textFieldExpression>
+				</textField>
+				<image scaleImage="RetainShape" hAlign="Center" isLazy="true" onErrorType="Icon">
+					<reportElement key="image-1" stretchType="RelativeToTallestObject" x="446" y="72" width="130" height="130" uuid="0cf17ccd-305d-4659-a9e0-4da4c20eacd1"/>
+					<box topPadding="5" leftPadding="5" bottomPadding="5" rightPadding="5">
+						<topPen lineWidth="0.0" lineStyle="Solid"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid"/>
+					</box>
+					<imageExpression><![CDATA[$F{image_url}]]></imageExpression>
+				</image>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="104" width="85" height="26" isPrintWhenDetailOverflows="true" uuid="5561602f-6e8f-4306-b551-804d8e254c6f"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[金成色]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="85" y="104" width="70" height="26" isPrintWhenDetailOverflows="true" uuid="0cb81850-3ad7-431d-8192-992c921c51c8"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" isBold="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{metal1}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="85" y="160" width="361" height="42" isPrintWhenDetailOverflows="true" uuid="45be1033-fb8a-44ac-b93e-b6cfee06643e"/>
+					<box topPadding="4" leftPadding="4" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial Unicode MS" isBold="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{prod_description}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="202" width="585" height="25" isPrintWhenDetailOverflows="true" uuid="ff847f98-04ae-4154-9422-486817ed51f5"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="12" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[产品配石参考数据]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="300" y="0" width="75" height="26" isPrintWhenDetailOverflows="true" uuid="2a129e60-5033-48fb-87da-290151c0648e"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[款号]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="375" y="0" width="71" height="26" isPrintWhenDetailOverflows="true" uuid="6f15b98e-bac4-49ef-a42e-72f65d7789d3"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" isBold="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{sku_no}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="265" y="78" width="35" height="26" isPrintWhenDetailOverflows="true" uuid="bd990a96-e6f2-4ea7-b55a-45922924d6a3"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{uom}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="300" y="52" width="75" height="26" isPrintWhenDetailOverflows="true" uuid="f8673576-4593-4f16-a30f-86d65ceb02e5"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[开单]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="160" width="85" height="42" isPrintWhenDetailOverflows="true" uuid="63753dd8-e268-49a9-8691-b1e16da04e1b"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[生產備註]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="155" y="104" width="65" height="26" isPrintWhenDetailOverflows="true" uuid="a3594b8d-5a50-475a-acce-0b70778cab46"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[金重]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="265" y="104" width="35" height="26" isPrintWhenDetailOverflows="true" uuid="3e8a7a50-cc2d-4100-9975-76047cc13f00"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" isBold="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Gms]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="220" y="104" width="45" height="26" isPrintWhenDetailOverflows="true" uuid="62bf7710-5bb0-4351-8c02-e19daadb1993"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" isBold="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{metal_wt}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="375" y="52" width="71" height="26" isPrintWhenDetailOverflows="true" uuid="40c73b4c-3252-47f3-831c-90c0526283de"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" isBold="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{issued_by}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="300" y="78" width="75" height="26" isPrintWhenDetailOverflows="true" uuid="ffe8f6f5-8182-43c8-bb04-ac410d57df9c"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[石總重]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="375" y="78" width="71" height="26" isPrintWhenDetailOverflows="true" uuid="8a2ffe4b-5513-4d06-967d-de41173f9350"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{diamond_remarks}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="300" y="104" width="75" height="26" isPrintWhenDetailOverflows="true" uuid="b387c073-b38a-4336-a16e-aa87899c11d5"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[寶石總重]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="375" y="104" width="71" height="26" isPrintWhenDetailOverflows="true" uuid="53c6b891-b11e-4ed6-9598-93de8770c509"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{gemstone_remarks}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="52" width="85" height="26" isPrintWhenDetailOverflows="true" uuid="e51c62dd-9dff-455b-aa14-0ed7660293f4"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[客户订单号]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="85" y="52" width="70" height="26" isPrintWhenDetailOverflows="true" uuid="30234c64-f38c-46f8-bd38-f4c65486b92e"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" isBold="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{customer_jew_no}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="375" y="130" width="71" height="30" isPrintWhenDetailOverflows="true" uuid="34b32df3-1c2f-4e26-bb86-0e0c443e05e1"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+				</textField>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="300" y="130" width="75" height="30" isPrintWhenDetailOverflows="true" uuid="90613f10-c5c0-4dc1-87ba-740b71d38f22"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[配件]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="227" width="70" height="30" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="35002b4c-c8cd-4944-93e0-4b77b94be7be"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[物料编号]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="70" y="227" width="63" height="30" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="e0466a0d-7f7d-4455-987a-ccfab410c068"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[物料名称]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="133" y="227" width="38" height="30" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="b3f147c7-3ff2-438b-9867-389c09bc38de"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[形状]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="171" y="227" width="38" height="30" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="b8da47b2-7967-4f94-b3d9-13e73c129813"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[尺寸]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="209" y="227" width="38" height="30" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="f9c88f20-c3d1-4aba-b9fe-e1097a25ecd8"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[数量]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="292" y="227" width="70" height="30" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="ea2431c3-9ceb-4436-b780-ed3c137da729"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[物料编号]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="247" y="227" width="45" height="30" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="f2614cee-d838-4d36-9cf3-116af4342f77"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[石重]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="463" y="227" width="38" height="30" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="c0709455-5ca5-4879-b9f5-94ca44b1d214"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[尺寸]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="362" y="227" width="63" height="30" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="843f57e3-5d45-45df-8d01-cb29052a4734"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[物料名称]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="501" y="227" width="38" height="30" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="9183d6b0-1f5a-498b-b036-dd40b7dfd287"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[数量]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="425" y="227" width="38" height="30" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="487c5028-6a5c-4d95-a796-24617ea8386f"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[形状]]></text>
+				</staticText>
+				<frame>
+					<reportElement x="446" y="62" width="139" height="140" uuid="8f28894d-6a7d-4815-82bb-a681e357e2dc"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+				</frame>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="155" y="52" width="65" height="26" isPrintWhenDetailOverflows="true" uuid="74a6ddad-efbd-4773-91b4-03149dc3cced"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[信封颜色]]></text>
+				</staticText>
+				<componentElement>
+					<reportElement x="461" y="27" width="116" height="24" uuid="3298e929-e87b-4e39-97e0-982b6ca300f3"/>
+					<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code39" drawText="false" checksumRequired="false">
+						<jr:codeExpression><![CDATA[$F{bag_type_no}]]></jr:codeExpression>
+					</jr:barbecue>
+				</componentElement>
+				<textField isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="446" y="0" width="139" height="26" isPrintWhenDetailOverflows="true" uuid="8f99908b-fa8d-4d01-a09d-e74f7913ff85"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="12" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{bag_type_no}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="539" y="227" width="46" height="30" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="8bbec666-9dfa-4d06-a3e2-827b4ed85e4c"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[石重]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="376">
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="585" height="25" isPrintWhenDetailOverflows="true" uuid="5eb1508e-ea04-442d-9a1b-681a2d117c69"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[配石 - 完成明细]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="25" width="65" height="52" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="60121292-ec21-47c7-b83b-0a3c02aeb379"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[日期]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="65" y="25" width="100" height="52" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="308e99e7-986d-4e33-83e4-57bcc7284c36"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[內容]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="165" y="25" width="93" height="52" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="d03fe399-c429-44f6-95d8-5a6ecb2f06d3"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[配备数]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="258" y="25" width="90" height="52" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="8b8946f4-22b2-41e4-8d90-6e058b22d5ee"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[回仓数]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="348" y="25" width="84" height="52" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="92d75f71-eeb3-4400-875e-6b6390a94958"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[损坏]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="432" y="45" width="90" height="16" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="c3ad5a7a-3a2f-47e1-8d32-3b54f2555c09"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[损耗]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="522" y="25" width="63" height="52" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="06a117fe-e56e-479f-99d4-1b3065ef17d1"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[经手人]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="165" y="77" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="7c0a9b64-6f6a-4d76-b33a-9bb33f4cfe5f"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="210" y="77" width="48" height="20" isPrintWhenDetailOverflows="true" uuid="f7c56c10-2779-471c-9375-97d749565616"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="303" y="77" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="881d386a-3bf1-471f-ae0a-fa7f71bd462b"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="258" y="77" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="409cd95a-4dcf-4808-8703-5b0710133953"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="390" y="77" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="d36c142c-15d4-4f6c-abf2-2ef0c2f2c059"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="348" y="77" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="d348fd26-0dd1-4e2a-bb68-c1ef4d787cd4"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="477" y="77" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="6b499a56-7b69-445a-99c0-7a9df3d6a36c"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="432" y="77" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="0326f13a-6bd4-4f54-9fde-c9a0d08894cc"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="522" y="77" width="63" height="20" isPrintWhenDetailOverflows="true" uuid="d86ce956-4eb7-4803-b828-dc4cac28da8e"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="65" y="77" width="100" height="20" isPrintWhenDetailOverflows="true" uuid="b77c7194-17b0-4a40-ad3c-5179ec793eeb"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="77" width="65" height="20" isPrintWhenDetailOverflows="true" uuid="599b1ed6-0503-4dce-ab18-b8ef54ed1852"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="477" y="97" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="3fb1c0ef-d171-4e7f-9850-806c9b39e1ae"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="522" y="97" width="63" height="20" isPrintWhenDetailOverflows="true" uuid="0f66a7d7-a779-4d29-ad53-27c5b4a8bae7"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="258" y="97" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="20e02f08-50e8-45e4-adb4-4aeb01a62f1b"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="348" y="97" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="bea66822-efc3-4dbb-9e27-1a489a1a5fcf"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="97" width="65" height="20" isPrintWhenDetailOverflows="true" uuid="fa65e1f6-24a2-408e-bd48-eece5619c312"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="210" y="97" width="48" height="20" isPrintWhenDetailOverflows="true" uuid="05b5d0f1-c369-4ff3-afba-713614873a9d"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="65" y="97" width="100" height="20" isPrintWhenDetailOverflows="true" uuid="d5dc0a49-a2b7-4bf5-a226-3356c686b277"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="165" y="97" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="aceda34e-edca-414e-becb-5ea02bf16cdc"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="432" y="97" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="0daf98a0-e03c-42ef-9640-40d1e8e6b79d"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="303" y="97" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="9ec1f771-ca21-4c76-a481-8889c29f1044"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="390" y="97" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="f3211e0c-707b-41bb-ad87-c81558ef0007"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="432" y="117" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="bdad03a5-f5ed-44bc-97b1-8dbb8f7ccca4"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="303" y="117" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="3f977f5f-ad98-458d-97ed-b6d400160bd5"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="522" y="117" width="63" height="20" isPrintWhenDetailOverflows="true" uuid="931b40de-4de5-425f-8501-f6519234e873"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="348" y="117" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="a0d81c9c-ddae-4351-9d69-952d7c430d32"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="390" y="117" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="49aed331-4a21-4348-b8ef-4703d9b4aecb"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="165" y="117" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="9b356a8c-3342-4dff-b7cb-b7bad243a777"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="477" y="117" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="eb1d362c-7a3e-4d4c-aa0b-5bc29cf6ada7"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="210" y="117" width="48" height="20" isPrintWhenDetailOverflows="true" uuid="3fb64778-1cf4-4772-9b67-b477c4d8369d"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="258" y="117" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="83da5a3f-2f4e-4254-90bf-a304ce4629b5"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="65" y="117" width="100" height="20" isPrintWhenDetailOverflows="true" uuid="72bb6813-798f-441b-90d1-ddf6b6c2fb6d"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="117" width="65" height="20" isPrintWhenDetailOverflows="true" uuid="db6ec868-131e-4b4b-9f2d-c1d1a12d0539"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="348" y="137" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="aba91c0f-931a-4fef-b362-7ce860a98fed"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="137" width="65" height="20" isPrintWhenDetailOverflows="true" uuid="d75c4c3f-f2f8-4447-9e59-eeb830841f0d"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="258" y="137" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="e556bfb3-4796-47b7-8ef6-c907bf436322"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="65" y="137" width="100" height="20" isPrintWhenDetailOverflows="true" uuid="b84776f6-135d-476a-8238-d3cdadab07bc"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="165" y="137" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="baa2d247-9858-40b8-8a79-72199d485c83"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="432" y="137" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="090caee7-a3e9-4611-b63c-c2a32ed921f1"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="522" y="137" width="63" height="20" isPrintWhenDetailOverflows="true" uuid="0b91bad7-09b4-4bdb-a3dc-c468f009888a"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="477" y="137" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="030f11b9-b361-4ca6-9aeb-5f199b68cfdc"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="210" y="137" width="48" height="20" isPrintWhenDetailOverflows="true" uuid="ce56b1ac-2f4e-4a06-a18e-9912e6838a5a"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="303" y="137" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="7a745cef-74d2-4507-b926-8478bfda3475"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="390" y="137" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="0c26de6a-0861-4c51-b70b-9786e3f2be52"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="348" y="157" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="b70d0aa5-c312-4252-a74f-2571d4164cd0"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="390" y="157" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="dfca5404-6596-4eec-ae1a-769e529a9c09"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="477" y="157" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="dfa8c014-7f14-4bb7-978f-1fb84d137ce7"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="258" y="157" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="476b92cb-6a5a-48ec-9572-40a50ed7e2bb"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="432" y="157" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="569eb737-741d-4657-9757-b8a87dbc2e1c"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="303" y="157" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="acd6eb70-bc7c-4129-9f5a-ad87935daf2a"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="157" width="65" height="20" isPrintWhenDetailOverflows="true" uuid="535e3342-86f9-4670-9dd4-0809dd12e91f"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="522" y="157" width="63" height="20" isPrintWhenDetailOverflows="true" uuid="411b476b-fc03-414b-8887-5d174201ff39"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="210" y="157" width="48" height="20" isPrintWhenDetailOverflows="true" uuid="dfb94a5f-b102-489a-9cfd-0762771e263b"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="65" y="157" width="100" height="20" isPrintWhenDetailOverflows="true" uuid="6af5acc1-4ef2-4ae0-b6e2-e1b44f362961"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="165" y="157" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="4ae1188f-d111-471d-88c6-eca51970ef75"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="522" y="177" width="63" height="20" isPrintWhenDetailOverflows="true" uuid="a4bee934-d365-4d16-b165-ebfde1278e65"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="303" y="177" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="2bba1239-f905-4c0f-aaad-6edecf05dc48"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="432" y="177" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="c4bcc76c-da41-4735-be29-f849b6ae74f8"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="348" y="177" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="1144fb39-9ff7-4e2c-bbea-9a41cbf0ddf0"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="65" y="177" width="100" height="20" isPrintWhenDetailOverflows="true" uuid="6e098854-dbf7-40b4-bf7e-a44dbcf0b18f"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="177" width="65" height="20" isPrintWhenDetailOverflows="true" uuid="db29dff5-8db8-4f98-a875-f625bd55a58c"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="165" y="177" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="1e99e6fb-82ea-4c22-a4cc-bea436476752"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="390" y="177" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="179ffd50-cdbd-47b9-995f-8a66196ee5c9"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="477" y="177" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="f221e27d-98d4-4a00-ba38-9811d864b0ba"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="258" y="177" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="cdb31a5d-cc04-45b0-9ac5-b7f1ad9fa378"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="210" y="177" width="48" height="20" isPrintWhenDetailOverflows="true" uuid="63906e88-829f-47fa-8f24-8fe9d139ffe1"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="432" y="316" width="90" height="20" isPrintWhenDetailOverflows="true" uuid="04cdf8f5-f4ba-4ae7-a853-7b3b78e5a42a"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[经手人]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="522" y="296" width="63" height="20" isPrintWhenDetailOverflows="true" uuid="bad22d8b-163f-4b57-9849-27370d33c0d7"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="258" y="296" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="a9221478-fbd6-465c-a0c8-6106f63284bb"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="303" y="316" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="1b0f62cc-70cc-43ea-9387-7ab899bdd330"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="348" y="296" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="a3d76731-1dcc-46f1-a9ec-1d37957d3a64"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="165" y="261" width="93" height="35" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="8cace2aa-464a-4b9a-a4f9-1c69b1fd14f5"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[回仓数]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="237" width="585" height="24" isPrintWhenDetailOverflows="true" uuid="ea33595c-1b30-4164-bc05-5462547f463a"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="12" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[金部 - 完成明细]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="522" y="316" width="63" height="20" isPrintWhenDetailOverflows="true" uuid="e8d95bf0-82ef-441c-9a0c-1844e25ba730"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="348" y="316" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="98891105-4264-49c2-89d2-2b06955214f8"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="390" y="316" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="b245485d-edd4-4634-9f4c-3dcab2f74a76"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="296" width="65" height="20" isPrintWhenDetailOverflows="true" uuid="eefb8b77-694b-4ee0-88db-44c77f168d84"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="165" y="316" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="17376f91-94dd-48f0-b45a-8afe6ac49e2e"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="210" y="296" width="48" height="20" isPrintWhenDetailOverflows="true" uuid="0de82a38-695e-4d9a-990d-3afd39fdd5b2"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="261" width="65" height="35" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="bc4f9dda-91ac-4eaa-b269-0a1cf9ef1dbf"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[日期]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="432" y="296" width="90" height="20" isPrintWhenDetailOverflows="true" uuid="d5b7a469-027c-4b3c-ac55-69f0dd099494"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[净金重]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="432" y="261" width="90" height="35" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="bded98c2-d8f9-4b05-b3c1-79201af496b0"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[全件重]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="65" y="296" width="100" height="20" isPrintWhenDetailOverflows="true" uuid="d72940fb-65a5-4ea7-872b-f9db660d5edb"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="348" y="261" width="84" height="35" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="ee1d59d2-c8e4-41db-a524-1172226c5d4c"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[回石]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="210" y="316" width="48" height="20" isPrintWhenDetailOverflows="true" uuid="980aa007-9064-43ad-bb3d-9faca534c4b2"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="522" y="261" width="63" height="35" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="e2327ac9-8348-4634-9e41-240026a44ac5"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="165" y="296" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="7dfb791d-1804-493c-88c0-427a48fe857c"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="303" y="296" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="2229ccf3-a418-4308-afa6-a69de9f9f31b"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="65" y="261" width="100" height="35" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="24d42817-43a3-40ed-b715-eae90172a4b5"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[内容]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="258" y="316" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="b74d97da-b65c-4c2c-a761-7e693a099cf7"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="258" y="261" width="90" height="35" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="8e028703-ff11-47b8-83f2-1e2fdb6f9802"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[回辨]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="390" y="296" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="448db808-4c43-4f6d-b5ed-2f5d496b72e1"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="65" y="316" width="100" height="20" isPrintWhenDetailOverflows="true" uuid="f0245fc8-e5f6-45b4-97c0-5c4d584ad039"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="316" width="65" height="20" isPrintWhenDetailOverflows="true" uuid="b2234620-e22d-42c2-96ca-6bdfe9e1ca84"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="348" y="197" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="c41f1297-3439-4c56-b608-4f95905642ee"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="258" y="197" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="8f2d0989-1157-4cff-b77c-85483704a1d1"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="477" y="197" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="65ac14d8-a3a7-4f60-9ec3-bfeb666d4fbe"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="522" y="197" width="63" height="20" isPrintWhenDetailOverflows="true" uuid="1b5501f8-3e2e-4186-9317-1571a3af7777"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="390" y="197" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="5648123d-208f-4bc8-9617-7765ab64054a"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="197" width="65" height="20" isPrintWhenDetailOverflows="true" uuid="65dfe7f2-c39e-4f29-9086-263ead4039e1"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="303" y="197" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="1c0448da-1330-4bce-9f11-105cd25f38c1"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="65" y="197" width="100" height="20" isPrintWhenDetailOverflows="true" uuid="65967d6c-4215-4906-9ac0-b155f0fb1755"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="210" y="197" width="48" height="20" isPrintWhenDetailOverflows="true" uuid="209457c9-7488-465a-8def-64509cdcc2c9"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="432" y="197" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="bba0ca0e-2ab1-42a0-9a93-cac6c6850175"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="165" y="197" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="2234e9f3-edfb-4e12-92b9-b997af997366"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="348" y="217" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="a419f7f7-1514-41e7-a24c-a50e0ab06156"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="258" y="217" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="52217e07-6e97-4205-8626-e5932999426d"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="477" y="217" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="61b6dc1d-c149-4c2f-989d-947338537bf9"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="522" y="217" width="63" height="20" isPrintWhenDetailOverflows="true" uuid="7eed8c67-d89c-4b29-9e72-b1236571d10a"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="390" y="217" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="f5209ad5-7e4b-418c-9e68-52eed2fd7aa6"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="217" width="65" height="20" isPrintWhenDetailOverflows="true" uuid="6068a461-4bbe-4c95-a3e5-9f426d77ec6e"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="303" y="217" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="190ce120-0dd2-4d09-aae4-70173685c023"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="65" y="217" width="100" height="20" isPrintWhenDetailOverflows="true" uuid="f34e41f4-211e-4bae-b4a3-c534ff14dbab"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="210" y="217" width="48" height="20" isPrintWhenDetailOverflows="true" uuid="5454ed0e-eb3c-4955-a994-0700fdcb1c96"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="432" y="217" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="fd0189ef-fb2f-45ba-a330-38deb2aa016b"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="165" y="217" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="7960922d-1c02-42e3-9b6d-2b8d9d79f6c0"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.25" lineStyle="Dotted"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="432" y="61" width="45" height="16" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="80662c61-2752-4663-b5a3-f8cc4e6b2a9a"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[数量]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="477" y="61" width="45" height="16" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="aa57930f-5baa-4a6b-9cab-e2bd0492e637"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[石重]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="432" y="25" width="90" height="20" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="53eefadb-a601-444d-a15c-9fc3ad93ae9c"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial Unicode MS" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[车石]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="210" y="336" width="48" height="20" isPrintWhenDetailOverflows="true" uuid="3a89b01a-b57d-45b0-8f7b-55a27bfb0a3b"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="348" y="336" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="1986bc3e-ead5-48bf-8e17-ab2dd438de4f"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="258" y="336" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="bf76cd4e-e0c9-4922-a5bc-783efbf3a782"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="303" y="336" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="ad7bb624-1376-49ba-a721-c5a9efb0e432"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="522" y="336" width="63" height="20" isPrintWhenDetailOverflows="true" uuid="2316f141-c84e-4c60-ad05-cdee002ead8b"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="65" y="336" width="100" height="20" isPrintWhenDetailOverflows="true" uuid="6c713348-cd71-4fa0-b143-7bfa59387a1a"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="336" width="65" height="20" isPrintWhenDetailOverflows="true" uuid="0d555e25-f874-4823-924c-c0e24e356349"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="165" y="336" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="5f0e6ac8-e5a1-45fe-b25b-0f91e27210c3"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="390" y="336" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="d4239aec-b100-450e-9ce0-0037b54bf051"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="432" y="336" width="90" height="20" isPrintWhenDetailOverflows="true" uuid="0e363308-aadc-41cb-8400-46f895952a3e"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="390" y="356" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="ff988f9a-c97f-4a3f-b80f-0ad87e505e8f"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="522" y="356" width="63" height="20" isPrintWhenDetailOverflows="true" uuid="59387554-b6c5-4f33-a136-9906bcd56070"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="65" y="356" width="100" height="20" isPrintWhenDetailOverflows="true" uuid="cd4c52d1-9942-4f54-a308-28173753dc63"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="258" y="356" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="c6e20996-105d-4d03-8a1c-885d86405822"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="348" y="356" width="42" height="20" isPrintWhenDetailOverflows="true" uuid="60a52d62-f4de-4a20-84cf-587d36426698"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="165" y="356" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="af371c4e-17cf-4744-b563-114ccf0de034"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="303" y="356" width="45" height="20" isPrintWhenDetailOverflows="true" uuid="7c6d40f0-ad4a-4ff8-b023-783719f9d1b9"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="432" y="356" width="90" height="20" isPrintWhenDetailOverflows="true" uuid="377e99b7-8ea2-48d1-b07e-4b8b7555e7c0"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="210" y="356" width="48" height="20" isPrintWhenDetailOverflows="true" uuid="c67be6a0-2b07-4d04-bcf4-49252d7a8fbb"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="356" width="65" height="20" isPrintWhenDetailOverflows="true" uuid="848c8216-aa98-4cbd-9283-c97c4506d409"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial Unicode MS" isBold="true" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="0" y="0" width="585" height="20" forecolor="#333333" uuid="4519afa8-408b-4805-a9f6-eca5f80658b3"/>
+				<box>
+					<pen lineColor="#000000"/>
+					<topPen lineWidth="0.0" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineColor="#000000"/>
+					<bottomPen lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial Unicode MS" size="14" isBold="true" isItalic="false" pdfFontName="STSong-Light" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[制品工单]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20">
+			<subreport>
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="292" height="20" uuid="5abaccfc-13e7-4018-8305-f9be637e1e5a"/>
+				<subreportParameter name="bagId">
+					<subreportParameterExpression><![CDATA[$F{bag_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "JobSheet_SubReport01.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement stretchType="RelativeToTallestObject" x="292" y="0" width="293" height="20" uuid="6ee3126c-a02b-4091-b17b-b0dda3512d89"/>
+				<subreportParameter name="bagId">
+					<subreportParameterExpression><![CDATA[$F{bag_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "JobSheet_SubReport02.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>

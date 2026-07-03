@@ -1,0 +1,906 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="RecutRegister" pageWidth="1050" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="1010" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="c77f7cdd-f3a0-446c-9002-ab96fc3ebcf4">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ReportPrintDateTime" class="java.lang.String"/>
+	<parameter name="ReportPrintedBy" class="java.lang.String"/>
+	<parameter name="fromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA["01/02/2022"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="toDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA["01/02/2022"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dateFormat" class="java.lang.String">
+		<defaultValueExpression><![CDATA["DD/MM/YYYY"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="factoryId" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="commodityGroupId" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="commodityId" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="lotCodes" class="java.lang.String">
+		<defaultValueExpression><![CDATA["' '"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+	com.company_name,
+	tx.*,
+	tx.in_out_flag * (tx.issued_qty1 + tx.received_qty1 + tx.broken_qty1 + tx.loss_qty1) total_qty1,
+	tx.in_out_flag * (tx.issued_qty2 + tx.received_qty2 + tx.broken_qty2 + tx.loss_qty2) total_qty2
+from
+(
+	select
+		t.issue_id,
+	    t.company_id,
+		t.issue_type||'-'||t.issue_no issue_type_no,
+		to_char(t.issue_dt, 'dd/mm/yyyy') issue_dt,
+		f.factory_name,
+		l.lot_code,
+		d.qty1 issued_qty1,
+		d.qty2 issued_qty2,
+		0 received_qty1,
+		0 received_qty2,
+		0 broken_qty1,
+		0 broken_qty2,
+		0 loss_qty1,
+		0 loss_qty2,
+		1 in_out_flag
+	from
+		tbl_recut_issue t
+		inner join tbl_recut_issue_det d on t.issue_id = d.issue_id
+			and d.is_deleted = 0
+		inner join tbl_lot l on d.lot_id = l.lot_id
+		and (l.commodity_group_id in ($P!{commodityGroupId}) or -1 in ($P!{commodityGroupId}))
+		and (l.commodity_id in ($P!{commodityId}) or -1 in ($P!{commodityId}))
+		and (l.lot_code in ($P!{lotCodes}) or ' ' in ($P!{lotCodes}))
+		inner join tbl_factory f on t.factory_id = f.factory_id
+		 and (f.factory_id in ($P!{factoryId}) or -1 in ($P!{factoryId}))
+	where
+		t.is_deleted = 0
+		and t.issue_dt >= to_date($P{fromDate}, $P{dateFormat})
+		and t.issue_dt <= to_date($P{toDate}, $P{dateFormat})
+	union all
+	select
+		td.issue_id,
+	    tr.company_id,
+		tr.receive_type||'-'||tr.receive_no receive_type_no,
+		to_char(tr.receive_dt, 'dd/mm/yyyy') issue_dt,
+		f.factory_name,
+		l.lot_code,
+		0 issued_qty1,
+		0 issued_qty2,
+		td.qty1 received_qty1,
+		td.qty2 received_qty2,
+		td.broken_qty1,
+		td.broken_qty2,
+		td.loss_qty1,
+		td.loss_qty2,
+		-1 in_out_flag
+	from
+		tbl_recut_receive tr
+		inner join tbl_recut_receive_det td on tr.receive_id = td.receive_id
+			and td.is_deleted = 0
+		inner join tbl_lot l on td.lot_id = l.lot_id
+		and (l.commodity_group_id in ($P!{commodityGroupId}) or -1 in ($P!{commodityGroupId}))
+		and (l.commodity_id in ($P!{commodityId}) or -1 in ($P!{commodityId}))
+		and (l.lot_code in ($P!{lotCodes}) or ' ' in ($P!{lotCodes}))
+		inner join tbl_factory f on tr.factory_id = f.factory_id
+		and (f.factory_id in ($P!{factoryId}) or -1 in ($P!{factoryId}))
+	where
+		tr.is_deleted = 0
+		and tr.receive_dt >= to_date($P{fromDate}, $P{dateFormat})
+		and tr.receive_dt <= to_date($P{toDate}, $P{dateFormat})
+)tx
+inner join tbl_company com on tx.company_id = com.company_id
+order by
+	tx.issue_id,
+	tx.issue_dt]]>
+	</queryString>
+	<field name="company_name" class="java.lang.String"/>
+	<field name="issue_id" class="java.lang.Integer"/>
+	<field name="company_id" class="java.lang.Integer"/>
+	<field name="issue_type_no" class="java.lang.String"/>
+	<field name="issue_dt" class="java.lang.String"/>
+	<field name="factory_name" class="java.lang.String"/>
+	<field name="lot_code" class="java.lang.String"/>
+	<field name="issued_qty1" class="java.math.BigDecimal"/>
+	<field name="issued_qty2" class="java.math.BigDecimal"/>
+	<field name="received_qty1" class="java.math.BigDecimal"/>
+	<field name="received_qty2" class="java.math.BigDecimal"/>
+	<field name="broken_qty1" class="java.math.BigDecimal"/>
+	<field name="broken_qty2" class="java.math.BigDecimal"/>
+	<field name="loss_qty1" class="java.math.BigDecimal"/>
+	<field name="loss_qty2" class="java.math.BigDecimal"/>
+	<field name="in_out_flag" class="java.lang.Integer"/>
+	<field name="total_qty1" class="java.math.BigDecimal"/>
+	<field name="total_qty2" class="java.math.BigDecimal"/>
+	<variable name="iss_qty_1" class="java.math.BigDecimal" resetType="Group" resetGroup="ISSUE_ID" calculation="Sum">
+		<variableExpression><![CDATA[$F{issued_qty1}]]></variableExpression>
+	</variable>
+	<variable name="iss_qty_2" class="java.math.BigDecimal" resetType="Group" resetGroup="ISSUE_ID" calculation="Sum">
+		<variableExpression><![CDATA[$F{issued_qty2}]]></variableExpression>
+	</variable>
+	<variable name="rec_qty_1" class="java.math.BigDecimal" resetType="Group" resetGroup="ISSUE_ID" calculation="Sum">
+		<variableExpression><![CDATA[$F{received_qty1}]]></variableExpression>
+	</variable>
+	<variable name="rec_qty_2" class="java.math.BigDecimal" resetType="Group" resetGroup="ISSUE_ID" calculation="Sum">
+		<variableExpression><![CDATA[$F{received_qty2}]]></variableExpression>
+	</variable>
+	<variable name="brok_qty_1" class="java.math.BigDecimal" resetType="Group" resetGroup="ISSUE_ID" calculation="Sum">
+		<variableExpression><![CDATA[$F{broken_qty1}]]></variableExpression>
+	</variable>
+	<variable name="brok_qty_2" class="java.math.BigDecimal" resetType="Group" resetGroup="ISSUE_ID" calculation="Sum">
+		<variableExpression><![CDATA[$F{broken_qty2}]]></variableExpression>
+	</variable>
+	<variable name="loss_qty_1" class="java.math.BigDecimal" resetType="Group" resetGroup="ISSUE_ID" calculation="Sum">
+		<variableExpression><![CDATA[$F{loss_qty1}]]></variableExpression>
+	</variable>
+	<variable name="loss_qty_2" class="java.math.BigDecimal" resetType="Group" resetGroup="ISSUE_ID" calculation="Sum">
+		<variableExpression><![CDATA[$F{loss_qty2}]]></variableExpression>
+	</variable>
+	<variable name="tot_qty_1" class="java.math.BigDecimal" resetType="Group" resetGroup="ISSUE_ID" calculation="Sum">
+		<variableExpression><![CDATA[$F{total_qty1}]]></variableExpression>
+	</variable>
+	<variable name="tot_qty_2" class="java.math.BigDecimal" resetType="Group" resetGroup="ISSUE_ID" calculation="Sum">
+		<variableExpression><![CDATA[$F{total_qty2}]]></variableExpression>
+	</variable>
+	<variable name="iss_qty_1_1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{issued_qty1}]]></variableExpression>
+	</variable>
+	<variable name="iss_qty_2_1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{issued_qty2}]]></variableExpression>
+	</variable>
+	<variable name="rec_qty_1_1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{received_qty1}]]></variableExpression>
+	</variable>
+	<variable name="rec_qty_2_1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{received_qty2}]]></variableExpression>
+	</variable>
+	<variable name="brok_qty_1_1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{broken_qty1}]]></variableExpression>
+	</variable>
+	<variable name="brok_qty_2_1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{broken_qty2}]]></variableExpression>
+	</variable>
+	<variable name="loss_qty_1_1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{loss_qty1}]]></variableExpression>
+	</variable>
+	<variable name="loss_qty_2_1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{loss_qty2}]]></variableExpression>
+	</variable>
+	<variable name="tot_qty_1_1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{total_qty1}]]></variableExpression>
+	</variable>
+	<variable name="tot_qty_2_1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{total_qty2}]]></variableExpression>
+	</variable>
+	<group name="ISSUE_ID">
+		<groupExpression><![CDATA[$F{issue_id}]]></groupExpression>
+		<groupFooter>
+			<band height="20">
+				<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="348" y="0" width="66" height="20" forecolor="#0000FF" backcolor="#FFFFFF" uuid="11579871-a547-4f7c-9612-5ab389aca5c8"/>
+					<box leftPadding="4" rightPadding="4">
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{iss_qty_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="414" y="0" width="66" height="20" forecolor="#0000FF" backcolor="#FFFFFF" uuid="7d0cfb5e-fc34-485f-b33e-16970cf01fde"/>
+					<box leftPadding="4" rightPadding="4">
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{iss_qty_2}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="480" y="0" width="66" height="20" forecolor="#0000FF" backcolor="#FFFFFF" uuid="24df3f05-22e1-470a-a4d4-517b4476044a"/>
+					<box leftPadding="4" rightPadding="4">
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{rec_qty_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="546" y="0" width="66" height="20" forecolor="#0000FF" backcolor="#FFFFFF" uuid="69ce228c-97bd-428b-82fc-65b7e89d8449"/>
+					<box leftPadding="4" rightPadding="4">
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{rec_qty_2}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="612" y="0" width="66" height="20" forecolor="#0000FF" backcolor="#FFFFFF" uuid="b2d3564f-0e81-4f50-ae8e-0a4adb222404"/>
+					<box leftPadding="4" rightPadding="4">
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{brok_qty_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="678" y="0" width="66" height="20" forecolor="#0000FF" backcolor="#FFFFFF" uuid="673764b3-a7b4-4c43-8b76-e383ef7b9c15"/>
+					<box leftPadding="4" rightPadding="4">
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{brok_qty_2}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="744" y="0" width="66" height="20" forecolor="#0000FF" backcolor="#FFFFFF" uuid="2153bf06-1f4a-4093-ba23-5563f2d4c797"/>
+					<box leftPadding="4" rightPadding="4">
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{loss_qty_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="810" y="0" width="66" height="20" forecolor="#0000FF" backcolor="#FFFFFF" uuid="7243aa17-e42d-4fbf-899f-272975ed2532"/>
+					<box leftPadding="4" rightPadding="4">
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{loss_qty_2}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="876" y="0" width="66" height="20" forecolor="#0000FF" backcolor="#FFFFFF" uuid="fff3e619-7bdd-4693-a8db-e0d3c5920f64"/>
+					<box leftPadding="4" rightPadding="4">
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{tot_qty_1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="942" y="0" width="68" height="20" forecolor="#0000FF" backcolor="#FFFFFF" uuid="d0dab4f6-a604-4386-aebe-478450aa8ac6"/>
+					<box leftPadding="4" rightPadding="4">
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{tot_qty_2}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement mode="Opaque" x="0" y="0" width="348" height="20" forecolor="#000000" backcolor="#FFFFFF" uuid="080acf69-7f4e-4d44-9f09-e0dfc075d351"/>
+					<box leftPadding="4" rightPadding="4">
+						<topPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+						<font fontName="Arial" size="9" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+						<paragraph lineSpacing="Single"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="48" splitType="Stretch">
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="16" width="678" height="16" forecolor="#FF66FF" backcolor="#FFFFFF" uuid="81bdf8ac-409a-4614-b4b8-f8d26810156a"/>
+				<box>
+					<pen lineColor="#000000"/>
+					<topPen lineColor="#000000"/>
+					<leftPen lineColor="#000000"/>
+					<bottomPen lineColor="#000000"/>
+					<rightPen lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Recut Register]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="678" y="32" width="132" height="16" forecolor="#999999" uuid="20d17136-516e-4f4d-a577-23daaf94327d"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Report Printed On :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="810" y="16" width="200" height="16" forecolor="#999999" uuid="77f6bf65-77d5-4ac1-926c-484dd3b577ef"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{ReportPrintedBy}.replace( "'", "" )]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="678" y="16" width="132" height="16" forecolor="#999999" uuid="96952bb8-9be8-4c0c-bab0-344d2f9b2782"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Report Printed By :]]></text>
+			</staticText>
+			<textField>
+				<reportElement mode="Transparent" x="0" y="32" width="678" height="16" forecolor="#00CCCC" backcolor="#FFFFFF" uuid="42a72620-0c78-409c-aebe-474fa15c1b02"/>
+				<box>
+					<pen lineColor="#000000"/>
+					<topPen lineColor="#000000"/>
+					<leftPen lineColor="#000000"/>
+					<bottomPen lineColor="#000000"/>
+					<rightPen lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="9" isBold="true" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Period from " + $P{fromDate}.replaceAll( "'", "" ) + " to " + $P{toDate}.replaceAll( "'", "" )]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="0" y="0" width="678" height="16" forecolor="#0033FF" uuid="225d5cd6-92b0-4ec5-be7d-091fd8f027e2"/>
+				<box>
+					<pen lineColor="#000000"/>
+					<topPen lineColor="#000000"/>
+					<leftPen lineColor="#000000"/>
+					<bottomPen lineColor="#000000"/>
+					<rightPen lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{company_name}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="678" y="0" width="132" height="16" forecolor="#999999" uuid="a7d4146f-c007-4e64-b48f-73ee2b41c54a"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Report Code :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="810" y="0" width="200" height="16" forecolor="#999999" uuid="0346f24a-b48e-49ac-8a3d-d329011f7709"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[JSR-01]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="810" y="32" width="200" height="16" forecolor="#999999" uuid="d486193b-5b5b-4d06-b606-1651d3f25c09"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{ReportPrintDateTime}.replace( "'", "" )]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="25" splitType="Stretch">
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="0" y="0" width="73" height="25" uuid="2aff6700-4274-49a2-9558-4d9bb823ae13"/>
+				<box leftPadding="4" rightPadding="4">
+					<pen lineWidth="0.5" lineStyle="Double"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Invoice No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="73" y="0" width="75" height="25" uuid="5a20005d-e7b0-4ec1-8ae6-c2e1f8fc7f73"/>
+				<box leftPadding="4" rightPadding="4">
+					<pen lineWidth="0.5" lineStyle="Double"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="148" y="0" width="100" height="25" uuid="a889f94c-b409-456f-b681-f4f8058466cb"/>
+				<box leftPadding="4" rightPadding="4">
+					<pen lineWidth="0.5" lineStyle="Double"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Factory]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="248" y="0" width="100" height="25" uuid="ae48b31f-10f0-4313-9f07-22d6f126758a"/>
+				<box leftPadding="4" rightPadding="4">
+					<pen lineWidth="0.5" lineStyle="Double"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Lot No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="348" y="0" width="66" height="25" uuid="9b4fec13-cc1e-46f1-8575-82d9580f260a"/>
+				<box leftPadding="4" rightPadding="4">
+					<pen lineWidth="0.5" lineStyle="Double"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Issue Qty1]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="414" y="0" width="66" height="25" uuid="2e22bccd-a826-42a4-833b-60ca1b46c944"/>
+				<box leftPadding="4" rightPadding="4">
+					<pen lineWidth="0.5" lineStyle="Double"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Issue Qty2]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="546" y="0" width="66" height="25" uuid="c531ce80-07c1-4ecc-be52-243238d01ab4"/>
+				<box leftPadding="4" rightPadding="4">
+					<pen lineWidth="0.5" lineStyle="Double"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Received Qty2]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="480" y="0" width="66" height="25" uuid="48ac8b0d-e4cd-497b-a6c0-bd92060c9a85"/>
+				<box leftPadding="4" rightPadding="4">
+					<pen lineWidth="0.5" lineStyle="Double"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Received Qty1]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="612" y="0" width="66" height="25" uuid="651b3b16-8485-4ee7-987a-6aa14e667487"/>
+				<box leftPadding="4" rightPadding="4">
+					<pen lineWidth="0.5" lineStyle="Double"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Broken Qty1]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="678" y="0" width="66" height="25" uuid="a4d6daee-0f51-4ea5-bcb5-2c2bcbfaa5e0"/>
+				<box leftPadding="4" rightPadding="4">
+					<pen lineWidth="0.5" lineStyle="Double"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Broken Qty2]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="744" y="0" width="66" height="25" uuid="ee1fc74e-1294-4d5d-b615-74515d5e2e8a"/>
+				<box leftPadding="4" rightPadding="4">
+					<pen lineWidth="0.5" lineStyle="Double"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Loss Qty1]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="810" y="0" width="66" height="25" uuid="d25a63c3-2fb1-4cc3-a8e5-c2791d3a8607"/>
+				<box leftPadding="4" rightPadding="4">
+					<pen lineWidth="0.5" lineStyle="Double"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Loss Qty2]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="876" y="0" width="66" height="25" uuid="40b02f74-24ed-414f-b129-068c9a1c4967"/>
+				<box leftPadding="4" rightPadding="4">
+					<pen lineWidth="0.5" lineStyle="Double"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total Qty1]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="942" y="0" width="68" height="25" uuid="27159349-2f7d-4715-a868-65cd03756e34"/>
+				<box leftPadding="4" rightPadding="4">
+					<pen lineWidth="0.5" lineStyle="Double"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total Qty2]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="0" y="0" width="73" height="20" uuid="6e37cd8c-4904-43fc-9726-defd2e3ea9aa"/>
+				<box leftPadding="4" rightPadding="4">
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{issue_type_no}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="73" y="0" width="75" height="20" uuid="785f7d73-e61b-4e50-a6f1-1458dc276b22"/>
+				<box leftPadding="4" rightPadding="4">
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{issue_dt}.replaceAll( "'", "" )]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="148" y="0" width="100" height="20" uuid="b6209b4e-a883-4f39-be72-1d8b311ae1fc"/>
+				<box leftPadding="4" rightPadding="4">
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{factory_name}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="248" y="0" width="100" height="20" uuid="b43f7534-5844-4d2d-9901-9f7fcd3faecb"/>
+				<box leftPadding="4" rightPadding="4">
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lot_code}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="348" y="0" width="66" height="20" uuid="ba0e8b29-5102-4b8e-b263-d20425318cd5"/>
+				<box leftPadding="4" rightPadding="4">
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{issued_qty1}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="414" y="0" width="66" height="20" uuid="04303fb6-7eb2-4178-a70f-ba2f3e91b8aa"/>
+				<box leftPadding="4" rightPadding="4">
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{issued_qty2}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="480" y="0" width="66" height="20" uuid="1bcd5487-5fbd-4beb-910f-d07b6fed1a10"/>
+				<box leftPadding="4" rightPadding="4">
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{received_qty1}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="546" y="0" width="66" height="20" uuid="501976cb-3448-40e6-8cbe-8b10b95ee6b5"/>
+				<box leftPadding="4" rightPadding="4">
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{received_qty2}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="678" y="0" width="66" height="20" uuid="baf5f728-8b6b-4dc8-84dd-d1f002cf85e1"/>
+				<box leftPadding="4" rightPadding="4">
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{broken_qty2}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="612" y="0" width="66" height="20" uuid="9b20f688-41ca-4995-8977-b98d9330078e"/>
+				<box leftPadding="4" rightPadding="4">
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{broken_qty1}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="744" y="0" width="66" height="20" uuid="1ca63c13-de4b-4977-86f8-edf37272e903"/>
+				<box leftPadding="4" rightPadding="4">
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{loss_qty1}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="810" y="0" width="66" height="20" uuid="d4738440-d5f2-4616-b8e8-5fcb10f2deac"/>
+				<box leftPadding="4" rightPadding="4">
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{loss_qty2}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="942" y="0" width="68" height="20" uuid="7e45d9c3-8e44-40b4-b0be-84116253e08e"/>
+				<box leftPadding="4" rightPadding="4">
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{total_qty2}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToBandHeight" x="876" y="0" width="66" height="20" uuid="c344d7e0-1070-44ca-a9bc-3b774e74289a"/>
+				<box leftPadding="4" rightPadding="4">
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{total_qty1}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="21">
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="1" width="348" height="20" forecolor="#000000" backcolor="#FFFFFF" uuid="a1a998b8-7f9d-4845-9a3c-5d3855cb6d78"/>
+				<box leftPadding="4" rightPadding="4">
+					<topPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="Arial" size="9" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<text><![CDATA[Total]]></text>
+			</staticText>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="546" y="1" width="66" height="20" forecolor="#000000" backcolor="#FFFFFF" uuid="f8013b0b-5a42-4b7e-8726-02e597a67301"/>
+				<box leftPadding="4" rightPadding="4">
+					<topPen lineWidth="0.0" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{rec_qty_2_1}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="678" y="1" width="66" height="20" forecolor="#000000" backcolor="#FFFFFF" uuid="84df0746-f1fd-4e0d-b6cb-abd5a4144eb3"/>
+				<box leftPadding="4" rightPadding="4">
+					<topPen lineWidth="0.0" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{brok_qty_2_1}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="480" y="1" width="66" height="20" forecolor="#000000" backcolor="#FFFFFF" uuid="13e1473b-07eb-4acf-8d16-ee38c09c5776"/>
+				<box leftPadding="4" rightPadding="4">
+					<topPen lineWidth="0.0" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{rec_qty_1_1}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="348" y="1" width="66" height="20" forecolor="#000000" backcolor="#FFFFFF" uuid="91195b68-95eb-4d80-9223-0ba7fbc4b317"/>
+				<box leftPadding="4" rightPadding="4">
+					<topPen lineWidth="0.0" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{iss_qty_1_1}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="942" y="1" width="68" height="20" forecolor="#000000" backcolor="#FFFFFF" uuid="3fd0a909-1c78-4f8a-8f86-f22f77552333"/>
+				<box leftPadding="4" rightPadding="4">
+					<topPen lineWidth="0.0" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{tot_qty_2_1}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="876" y="1" width="66" height="20" forecolor="#000000" backcolor="#FFFFFF" uuid="f74adf86-89ed-47e0-8779-6528b00ba8e3"/>
+				<box leftPadding="4" rightPadding="4">
+					<topPen lineWidth="0.0" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{tot_qty_1_1}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="744" y="1" width="66" height="20" forecolor="#000000" backcolor="#FFFFFF" uuid="2eca2417-3556-4dc0-8ce8-dcbe6220da92"/>
+				<box leftPadding="4" rightPadding="4">
+					<topPen lineWidth="0.0" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{loss_qty_1_1}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="810" y="1" width="66" height="20" forecolor="#000000" backcolor="#FFFFFF" uuid="66e9f3ca-b23e-44c3-8cef-7315b2aa7e21"/>
+				<box leftPadding="4" rightPadding="4">
+					<topPen lineWidth="0.0" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{loss_qty_2_1}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="612" y="1" width="66" height="20" forecolor="#000000" backcolor="#FFFFFF" uuid="090cf8a8-ca21-41e4-a2ba-9d1275664400"/>
+				<box leftPadding="4" rightPadding="4">
+					<topPen lineWidth="0.0" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{brok_qty_1_1}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="414" y="1" width="66" height="20" forecolor="#000000" backcolor="#FFFFFF" uuid="b8ec5826-2a86-478f-80ff-3698d9ebd258"/>
+				<box leftPadding="4" rightPadding="4">
+					<topPen lineWidth="0.0" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{iss_qty_2_1}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="DocumetHandoverRequestLetter" pageWidth="594" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="554" leftMargin="20" rightMargin="20" topMargin="50" bottomMargin="20" uuid="c77f7cdd-f3a0-446c-9002-ab96fc3ebcf4">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="i_inv_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="tenant" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'NA'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dateFormat" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new String("dd-Mon-yyyy")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="bank_id" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+    CURRENT_DATE AS curr_dt,
+    max(tcomp.company_name) company_name,
+          COALESCE(max(tcomp.city),'') comp_city,
+	max(im.inv_id) inv_id,
+	max(im.inv_type) inv_type,
+	max(im.inv_type||'-'||im.inv_no) inv_type_no,
+	to_char(max(im.inv_dt), 'dd/mm/yyyy') inv_dt,
+	to_char(max(im.inv_due_dt), 'dd/mm/yyyy')     inv_due_dt,
+          max(im.inv_dt) inv_dt_text,
+		 fn_get_customer_invoice_no(max(im.inv_type),max(im.inv_id)) cus_doc_type,
+	max(COALESCE(bank.bank_name,'')) bank_name,
+          max(COALESCE(bank.bank_account_number,'')) acc_no,
+		  max(COALESCE(bank.beneficiary_name,'')) beneficiary,
+		  max(COALESCE(bank.bank_address,'')) bank_add,
+          'IFSC Code : ' ||max(COALESCE(bank.ifsc_code,'')) ifsc_code,
+          max(im.total_invoice_qty1) qty1,
+           max(im.total_invoice_amount) total_amt,
+           max(im.inv_type||'-'||im.inv_no) inv_type_no,
+           COALESCE(max(tcomp.ie_code_no),'') comp_ie_code_no,
+           COALESCE(max(c.pan_no),'') pan_no,
+		   COALESCE(max(c.aadhar_no),'') aadhar_no,
+		   COALESCE(max(c.nick_name),'')  handover_person,
+           to_char(max(tcomp.iec_date), 'dd/mm/yyyy') comp_iec_date,
+           ROUND(MAX(im.total_invoice_amount) / NULLIF(MAX(im.exchange_rate),0), 2) AS total_amt_usd
+from
+	tbl_memo_sales_invoice_main im
+	inner join tbl_company tcomp on im.company_id = tcomp.company_id
+	inner join tbl_memo_sales_invoice_det id on im.inv_id = id.inv_id
+		and id.is_deleted = 0
+	  left join tbl_company_bank bank on ($P!{bank_id}) = bank.map_id
+	  left join tbl_employee c on im.document_handover_person_id = c.employee_id
+where
+	im.is_deleted = 0
+	and im.inv_id in ($P!{i_inv_id})
+group by
+	im.inv_id,
+	im.inv_type]]>
+	</queryString>
+	<field name="curr_dt" class="java.sql.Date"/>
+	<field name="company_name" class="java.lang.String"/>
+	<field name="comp_city" class="java.lang.String"/>
+	<field name="inv_id" class="java.lang.Integer"/>
+	<field name="inv_type" class="java.lang.String"/>
+	<field name="inv_type_no" class="java.lang.String"/>
+	<field name="inv_dt" class="java.lang.String"/>
+	<field name="inv_due_dt" class="java.lang.String"/>
+	<field name="inv_dt_text" class="java.sql.Date"/>
+	<field name="cus_doc_type" class="java.lang.String"/>
+	<field name="bank_name" class="java.lang.String"/>
+	<field name="acc_no" class="java.lang.String"/>
+	<field name="beneficiary" class="java.lang.String"/>
+	<field name="bank_add" class="java.lang.String"/>
+	<field name="ifsc_code" class="java.lang.String"/>
+	<field name="qty1" class="java.math.BigDecimal"/>
+	<field name="total_amt" class="java.math.BigDecimal"/>
+	<field name="comp_ie_code_no" class="java.lang.String"/>
+	<field name="pan_no" class="java.lang.String"/>
+	<field name="aadhar_no" class="java.lang.String"/>
+	<field name="handover_person" class="java.lang.String"/>
+	<field name="comp_iec_date" class="java.lang.String"/>
+	<field name="total_amt_usd" class="java.math.BigDecimal"/>
+	<group name="BAG" keepTogether="true">
+		<groupExpression><![CDATA[$F{inv_id}]]></groupExpression>
+	</group>
+	<title>
+		<band height="481">
+			<staticText>
+				<reportElement x="0" y="42" width="39" height="20" uuid="f09683cf-a797-4b3e-811b-7138cad43ca8"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Date : ]]></text>
+			</staticText>
+			<textField pattern="dd MMMMM yyyy">
+				<reportElement x="39" y="42" width="100" height="20" uuid="aead290b-8713-467c-a0a3-7dc995c38f99"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curr_dt}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="84" width="39" height="20" uuid="d6fd313f-9da5-44ba-9f42-bac08cd88b10"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[TO,]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="104" width="554" height="16" uuid="222e0fb9-4048-4e84-bcb9-ce1fb5765c2b"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bank_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="120" width="554" height="16" uuid="36e12400-e670-4943-b7c3-51da9d511df9"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Kalanagar Branch"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="161" width="554" height="15" uuid="50719acd-46cc-45c3-86a0-8983352d2dbc"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Sub: Handover the Original Consignment Certificate"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="221" width="554" height="15" uuid="2215ddc1-c99a-4206-b1d0-d22c818a41fa"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Dear Sir/ Madam,"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="236" width="554" height="43" uuid="61b79a6b-87ac-4302-83d9-ec84dcf3a9e9"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Request you to kindly handover the Consignment Export Certificate to Mr."+$F{handover_person}+" holding PAN Card number "+$F{pan_no}+". PAN Card copy is enclosed herewith."]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="299" width="554" height="20" uuid="389a1731-e95b-4592-902a-a1228f894dee"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Thanking You,"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="470" width="554" height="10" uuid="f6992ed9-d546-4561-b635-4540e1cc45bb"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="554" height="42" uuid="ca6e088c-45d7-4dbe-806e-775de68c40f8"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="387" width="303" height="18" isPrintWhenDetailOverflows="true" uuid="6ac99069-f956-447f-a415-9133121b45ea"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Authorised Signatory"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="356" width="251" height="18" uuid="b9ac4a16-b622-44fb-9173-99ced2960eae"/>
+				<textElement>
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["For, " +$F{company_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="176" width="554" height="18" uuid="ce58693f-659f-4965-826a-5ea3f86c76a5"/>
+				<textElement>
+					<font isBold="false" isUnderline="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Consignment Invoice No. " +$F{cus_doc_type} +" Dt. "+$F{inv_dt}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="194" width="554" height="18" uuid="7455696a-1a7b-47e1-b989-62f16dc9e957"/>
+				<textElement>
+					<font isBold="false" isUnderline="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Ref. No: Current A/c No.:" +$F{acc_no}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="319" width="554" height="20" uuid="2d691384-f9e4-4252-935b-10e8448c166b"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Yours Faithfully"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="405" width="303" height="18" isPrintWhenDetailOverflows="true" uuid="e86bcf66-5938-4ce0-a907-c594ce59af58"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Encl: As above"]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+</jasperReport>

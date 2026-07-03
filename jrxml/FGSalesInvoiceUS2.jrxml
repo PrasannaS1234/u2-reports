@@ -1,0 +1,2332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="FGSalesInvoiceMF23" pageWidth="612" pageHeight="792" whenNoDataType="AllSectionsNoDetail" columnWidth="587" leftMargin="15" rightMargin="10" topMargin="10" bottomMargin="10" uuid="994b5161-1c97-4377-8335-10ca4d4a4a3a">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<subDataset name="othChgs" uuid="6e89ef51-de48-4ecf-9355-dff3e9ac6f71">
+		<parameter name="invType" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["'APPROVAL'"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="invId" class="java.math.BigDecimal" isForPrompting="false">
+			<defaultValueExpression><![CDATA[new BigDecimal(-1)]]></defaultValueExpression>
+		</parameter>
+		<parameter name="totAmt" class="java.math.BigDecimal">
+			<defaultValueExpression><![CDATA[new BigDecimal(0)]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[select * from (
+select
+    inv_type,
+    inv_id,
+    charge_name,
+    case
+        when groupno = 3 then
+            sum(othamt) over (partition by 1)
+        else
+            othamt
+    end amt,
+    groupno
+from
+    (
+    select
+        $P{invType} inv_type,
+        $P{invId} inv_id,
+        1 groupno,
+        'Sub-Total' charge_name,
+        $P{totAmt} othamt
+    from
+        dual
+    union all
+    select
+        chgs.inv_type,
+        chgs.inv_id,
+        2 groupno,
+        max(rul.charge_name) charge_name,
+        sum(chgs.plus_minus_flag * case when $P{totAmt} < 0 then -1 else 1 end * chgs.oth_chgs_amt_intl) othamt
+    from
+        t_fg_sal_inv_chgs chgs
+        inner join t_inv_oth_chgs_rule rul
+        on chgs.rule_id = rul.rule_id
+    where
+        1 = 1
+    and chgs.inv_type =  $P{invType}
+    and chgs.inv_id =  $P{invId}
+        and chgs.is_deleted = 0
+    group by
+        chgs.inv_type,
+        chgs.inv_id,
+        rul.rule_id
+    having sum(chgs.plus_minus_flag * chgs.oth_chgs_amt_intl) <> 0
+    union all
+    select
+        chgs.inv_type,
+        chgs.inv_id,
+        2 groupno,
+        max(rul.charge_name) charge_name,
+        sum(chgs.plus_minus_flag * case when $P{totAmt} < 0 then -1 else 1 end * chgs.oth_chgs_amt_intl) othamt
+    from
+        t_fg_apr_sal_inv_chgs chgs
+        inner join t_inv_oth_chgs_rule rul
+        on chgs.rule_id = rul.rule_id
+    where
+        1 = 1
+    and chgs.inv_type =  $P{invType}
+    and chgs.inv_id =  $P{invId}
+        and chgs.is_deleted = 0
+    group by
+        chgs.inv_type,
+        chgs.inv_id,
+        rul.rule_id
+     having sum(chgs.plus_minus_flag * chgs.oth_chgs_amt_intl) <> 0
+   union all
+    select
+        chgs.inv_type,
+        chgs.inv_id,
+        2 groupno,
+        max(rul.charge_name) charge_name,
+        sum(chgs.plus_minus_flag * case when $P{totAmt} < 0 then -1 else 1 end * chgs.oth_chgs_amt_intl) othamt
+    from
+        t_fg_sal_ret_inv_chgs chgs
+        inner join t_inv_oth_chgs_rule rul
+        on chgs.rule_id = rul.rule_id
+    where
+        1 = 1
+    and chgs.inv_type =  $P{invType}
+    and chgs.inv_id =  $P{invId}
+        and chgs.is_deleted = 0
+    group by
+        chgs.inv_type,
+        chgs.inv_id,
+        rul.rule_id
+     having sum(chgs.plus_minus_flag * chgs.oth_chgs_amt_intl) <> 0
+   union all
+    select
+        chgs.inv_type,
+        chgs.inv_id,
+        2 groupno,
+        max(rul.charge_name) charge_name,
+        sum(chgs.plus_minus_flag * case when $P{totAmt} < 0 then -1 else 1 end * chgs.oth_chgs_amt_intl) othamt
+    from
+        t_fg_apr_sal_ret_inv_chgs chgs
+        inner join t_inv_oth_chgs_rule rul
+        on chgs.rule_id = rul.rule_id
+    where
+        1 = 1
+    and chgs.inv_type =  $P{invType}
+    and chgs.inv_id =  $P{invId}
+        and chgs.is_deleted = 0
+    group by
+        chgs.inv_type,
+        chgs.inv_id,
+        rul.rule_id
+    having sum(chgs.plus_minus_flag * chgs.oth_chgs_amt_intl) <> 0
+    union all
+    select
+        chgs.inv_type,
+        chgs.inv_id,
+        2 groupno,
+        max(rul.charge_name) charge_name,
+        sum(chgs.plus_minus_flag * case when $P{totAmt} < 0 then -1 else 1 end * chgs.oth_chgs_amt_intl) othamt
+    from
+        t_fg_pur_inv_chgs chgs
+        inner join t_inv_oth_chgs_rule rul
+        on chgs.rule_id = rul.rule_id
+    where
+        1 = 1
+    and chgs.inv_type =  $P{invType}
+    and chgs.inv_id =  $P{invId}
+        and chgs.is_deleted = 0
+    group by
+        chgs.inv_type,
+        chgs.inv_id,
+        rul.rule_id
+    having sum(chgs.plus_minus_flag * chgs.oth_chgs_amt_intl) <> 0
+    union all
+    select
+        chgs.inv_type,
+        chgs.inv_id,
+        2 groupno,
+        max(rul.charge_name) charge_name,
+        sum(chgs.plus_minus_flag * case when $P{totAmt} < 0 then -1 else 1 end * chgs.oth_chgs_amt_intl) othamt
+    from
+        t_fg_apr_pur_inv_chgs chgs
+        inner join t_inv_oth_chgs_rule rul
+        on chgs.rule_id = rul.rule_id
+    where
+        1 = 1
+    and chgs.inv_type =  $P{invType}
+    and chgs.inv_id =  $P{invId}
+        and chgs.is_deleted = 0
+    group by
+        chgs.inv_type,
+        chgs.inv_id,
+        rul.rule_id
+     having sum(chgs.plus_minus_flag * chgs.oth_chgs_amt_intl) <> 0
+   union all
+    select
+        chgs.inv_type,
+        chgs.inv_id,
+        2 groupno,
+        max(rul.charge_name) charge_name,
+        sum(chgs.plus_minus_flag * case when $P{totAmt} < 0 then -1 else 1 end * chgs.oth_chgs_amt_intl) othamt
+    from
+        t_fg_pur_ret_inv_chgs chgs
+        inner join t_inv_oth_chgs_rule rul
+        on chgs.rule_id = rul.rule_id
+    where
+        1 = 1
+    and chgs.inv_type =  $P{invType}
+    and chgs.inv_id =  $P{invId}
+        and chgs.is_deleted = 0
+    group by
+        chgs.inv_type,
+        chgs.inv_id,
+        rul.rule_id
+     having sum(chgs.plus_minus_flag * chgs.oth_chgs_amt_intl) <> 0
+    union all
+    select
+        chgs.inv_type,
+        chgs.inv_id,
+        2 groupno,
+        max(rul.charge_name) charge_name,
+        sum(chgs.plus_minus_flag * case when $P{totAmt} < 0 then -1 else 1 end * chgs.oth_chgs_amt_intl) othamt
+    from
+        t_fg_apr_pur_ret_inv_chgs chgs
+        inner join t_inv_oth_chgs_rule rul
+        on chgs.rule_id = rul.rule_id
+    where
+        1 = 1
+    and chgs.inv_type =  $P{invType}
+    and chgs.inv_id =  $P{invId}
+        and chgs.is_deleted = 0
+    group by
+        chgs.inv_type,
+        chgs.inv_id,
+        rul.rule_id
+    having sum(chgs.plus_minus_flag * chgs.oth_chgs_amt_intl) <> 0
+    union all
+    select
+        $P{invType} inv_type,
+        $P{invId} inv_id,
+        3 groupno,
+        'Grand Total' charge_name,
+        0 othamt
+    from
+        dual
+    )
+)
+order by groupno]]>
+		</queryString>
+		<field name="INV_TYPE" class="java.lang.String"/>
+		<field name="INV_ID" class="java.math.BigDecimal"/>
+		<field name="CHARGE_NAME" class="java.lang.String"/>
+		<field name="AMT" class="java.math.BigDecimal"/>
+		<field name="GROUPNO" class="java.math.BigDecimal"/>
+	</subDataset>
+	<subDataset name="componentDet" uuid="553acdf1-6b65-429d-b5d1-55b0d31f1b75">
+		<parameter name="contId" class="java.lang.String">
+			<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[select
+    mc.cont_id,
+    mc.lot_id,
+    mc.lot_code,
+    mc.consumed_qty2,
+    mc.consumed_qty1,
+    case when lot.rm_id in (1,2,3,4,5)and mc.consumed_qty1 > 0 then trim(to_char(round(mc.consumed_qty1, 3),'9999999990.000'))||' '||mc.uom1 else trim(to_char(mc.consumed_qty1, '9999999990')) end tag_wt,
+    case when lot.rm_id in (1,2,3,4,5) and mc.consumed_qty2 > 0 then trim(to_char(mc.consumed_qty2, '9999999990')) else trim(to_char(mc.consumed_qty2, '9999999990')) end no_of_stn,
+    lot.ss_inscription_no inscription_no,
+    lot.shape_name||' '||trim(case when lot.ss_certificate_no is not null then 'CERT: '|| nvl(lot.ss_lab_name,'GIA') || ' '|| lot.ss_certificate_no end ||
+case when lot.ss_inscription_no is not null then ' INS: '||
+    lot.ss_inscription_no end) description,
+    nvl(lot.color_name,' ') color_name,
+    nvl(lot.ss_clarity,' ') international_quality,
+nvl(lot.ss_color||case when lot.ss_clarity is not null then '-'||lot.ss_clarity end,' ') color_clarity,
+    mc.csc_id,
+lot.shape_name
+from t_main_components mc
+    inner join t_rm_lot lot on mc.lot_id = lot.lot_id
+        and lot.is_deleted = 0
+and lot.is_single_stone = 1
+where mc.cont_id in ($P!{contId})
+and mc.consumed_qty1 > 0
+    and mc.is_deleted = 0
+union
+select
+    c1.cont_id,
+    mc.lot_id,
+    mc.lot_code,
+    mc.consumed_qty2,
+    mc.consumed_qty1,
+    case when lot.rm_id in (1,2,3,4,5)and mc.consumed_qty1 > 0 then trim(to_char(round(mc.consumed_qty1, 3),'9999999990.000'))||' '||mc.uom1 else trim(to_char(mc.consumed_qty1, '9999999990')) end tag_wt,
+    case when lot.rm_id in (1,2,3,4,5)and mc.consumed_qty2 > 0 then trim(to_char(mc.consumed_qty2, '9999999990')) else     trim(to_char(mc.consumed_qty2, '9999999990')) end no_of_stn,
+    lot.ss_inscription_no inscription_no,
+    lot.shape_name||' '||trim(case when lot.ss_certificate_no is not null then 'CERT: '|| nvl(lot.ss_lab_name,'GIA') || ' '|| lot.ss_certificate_no end ||
+case when lot.ss_inscription_no is not null then ' INS: '||
+    lot.ss_inscription_no end) description,
+    nvl(lot.color_name,' ') color_name,
+    nvl(lot.ss_clarity,' ') international_quality,
+    nvl(lot.ss_color||case when lot.ss_clarity is not null then '-'||lot.ss_clarity end,' ') color_clarity,
+    mc.csc_id,
+lot.shape_name
+from
+t_contract c1
+inner join t_main_components mc on c1.original_cont_id = mc.cont_id
+and mc.consumed_qty1 > 0
+    and mc.is_deleted = 0
+    inner join t_rm_lot lot on mc.lot_id = lot.lot_id
+        and lot.is_deleted = 0
+and ((lot.is_single_stone = 1)
+or lot.com_id in (192))
+where
+    c1.cont_id in ($P!{contId})
+     and c1.previous_cont_id <> c1.original_cont_id
+    and c1.is_deleted = 0
+union
+select
+    c2.cont_id,
+    mc.lot_id,
+    mc.lot_code,
+    mc.consumed_qty2,
+    mc.consumed_qty1,
+    case when lot.rm_id in (1,2,3,4,5)and mc.consumed_qty1 > 0 then trim(to_char(round(mc.consumed_qty1, 3),'9999999990.000'))||' '||mc.uom1 else trim(to_char(mc.consumed_qty1, '9999999990')) end tag_wt,
+    case when lot.rm_id in (1,2,3,4,5)and mc.consumed_qty2 > 0 then trim(to_char(mc.consumed_qty2, '9999999990')) else     trim(to_char(mc.consumed_qty2, '9999999990')) end no_of_stn,
+    lot.ss_inscription_no inscription_no,
+    lot.shape_name||' '||trim(case when lot.ss_certificate_no is not null then 'CERT: '|| nvl(lot.ss_lab_name,'GIA') || ' '|| lot.ss_certificate_no end ||
+case when lot.ss_inscription_no is not null then ' INS: '||
+    lot.ss_inscription_no end) description,
+    nvl(lot.color_name,' ') color_name,
+    nvl(lot.ss_clarity,' ') international_quality,
+    nvl(replace(lot.ss_color,'/','-')||case when lot.ss_clarity is not null then '-'||lot.ss_clarity end,' ') color_clarity,
+    mc.csc_id,
+lot.shape_name
+from
+t_contract c2
+inner join t_main_components mc on c2.previous_cont_id = mc.cont_id
+
+and mc.consumed_qty1 > 0
+    and mc.is_deleted = 0
+    inner join t_rm_lot lot on mc.lot_id = lot.lot_id
+        and lot.is_deleted = 0
+and ((lot.is_single_stone = 1)
+or lot.com_id in (192))
+where
+    c2.cont_id in ($P!{contId})
+and c2.cont_type <> 'MFSP'
+    and c2.is_deleted = 0]]>
+		</queryString>
+		<field name="CONT_ID" class="java.math.BigDecimal"/>
+		<field name="LOT_ID" class="java.math.BigDecimal"/>
+		<field name="LOT_CODE" class="java.lang.String"/>
+		<field name="CONSUMED_QTY2" class="java.math.BigDecimal"/>
+		<field name="CONSUMED_QTY1" class="java.math.BigDecimal"/>
+		<field name="TAG_WT" class="java.lang.String"/>
+		<field name="NO_OF_STN" class="java.lang.String"/>
+		<field name="INSCRIPTION_NO" class="java.lang.String"/>
+		<field name="DESCRIPTION" class="java.lang.String"/>
+		<field name="COLOR_NAME" class="java.lang.String"/>
+		<field name="INTERNATIONAL_QUALITY" class="java.lang.String"/>
+		<field name="COLOR_CLARITY" class="java.lang.String"/>
+		<field name="CSC_ID" class="java.math.BigDecimal"/>
+		<field name="SHAPE_NAME" class="java.lang.String"/>
+	</subDataset>
+	<parameter name="PM_SUB_REPORT_PATH" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="invType" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["'FSIL'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="invId" class="java.lang.String" isForPrompting="false">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA["7700"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LGStatus" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new String("intl")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="cscId" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["27"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dateFormat" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new String("dd-Mon-yyyy")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="picReq" class="java.lang.String">
+		<defaultValueExpression><![CDATA["N"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="showMSRP" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'Y'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="reporttype" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'pdf'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="subAreaId" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["27"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+    case when ma.csc_id = 27 then 'https://d2gw0etq5qqk93.cloudfront.net/m/smdmf/mfwp2/MF-LOGO_Brwn.png' else $P{PM_SUB_REPORT_PATH}||'Sugarock.png' end img,
+    ma.inv_id,
+    ma.inv_no,
+    ma.inv_type,
+    ma.coordinator_employee_id salesman_emp_id,
+    ma.reference_no off_ref_no,
+    ma.inv_dt,
+    ma.cur_code,
+    ma.exchange_rate conv_rate,
+    pt.payment_type_name payment_type,
+    ma.po_so_id,
+    ma.close_day,
+    ma.close_dt,
+    ma.pn_recv_day,
+    ma.pn_recv_dt,
+    ma.inv_due_days,
+    ma.inv_due_months,
+    ma.inv_due_dt,
+    ma.carrier_name,
+    ma.mawb_no,
+    ma.hawb_no,
+    st.shipment_type_name shipment_type,
+    ma.csc_id,
+    cont.cont_id,
+    cont.cont_type,
+    det.product_code cont_no,
+    cont.jewellery_type,
+case when cont.cont_type like 'HK%' then nvl(cont.style_reference_no, cont.style_no) else  sty.style_no end style_no,
+    /* case when cont.cont_type like 'HK%' then nvl(cont.style_reference_no, cont.style_no) else nvl(sdsd.style_no, sty.style_no) end style_no, */
+/* commenting this bcs sod have 2 qty with one but in contract each contract hav different style */
+    det.uom1 uom,
+    det.inv_qty1 inv_qty,
+    det.inv_rate_intl rate,
+    det.inv_amt_intl amt,
+    nvl(badd.street,' ') bstreet,
+    nvl(badd.area,' ') barea,
+    nvl(badd.city,' ') bcity,
+    nvl(badd.city_pin,' ') bcity_pin,
+    nvl(badd.state,' ') bstate,
+    nvl(badd.country,' ') bcountry,
+    nvl(badd.contact_code,' ') bcontact_code,
+    nvl(badd.contact_phone,' ') bcontact_phone,
+    nvl(badd.contact_name,' ') bcontact_name,
+    nvl(badd.contact_mobile,' ') bcontact_mobile,
+    nvl(badd.contact_fax,' ') bcontact_fax,
+    nvl(badd.contact_email,' ') bcontact_email,
+    nvl(sadd.street,' ') sstreet,
+    nvl(sadd.area,' ') sarea,
+    nvl(sadd.city,' ') scity,
+    nvl(sadd.city_pin,' ') scity_pin,
+    nvl(sadd.state,' ') sstate,
+    nvl(sadd.country,' ') scountry,
+    nvl(sadd.contact_code,' ') scontact_code,
+    nvl(sadd.contact_phone,' ') scontact_phone,
+    nvl(sadd.contact_name,' ') scontact_name,
+    nvl(sadd.contact_mobile,' ') scontact_mobile,
+    nvl(sadd.contact_fax,' ') scontact_fax,
+    nvl(sadd.contact_email,' ') scontact_email,
+    nvl(det.prod_desc,case when sty.style_no like '%-0%' then sdsd.style_description
+when sty.style_no in ('LABOR','SUPPLIED') then sdsd.style_description
+when sty.style_stock_type in ('DELIVERY') then nvl(sdsd.style_description,t8.parameter_desc|| ' ' ||
+      t9.lot_desc || ' ' ||jt.jeweller_type_name)
+when sty.style_stock_type in ('FM_WHOLESALE') then trim(t8.parameter_desc|| ' ' ||
+      t9.lot_desc || ' ' ||jt.jeweller_type_name||' '||sdsd.style_description)
+ else
+    case when sty.style_stock_type in ('PROTOTYPE', 'SILVER') then
+             'INSTORE PROTOTYPE: '
+           end
+             ||t8.parameter_desc || ' ' ||case when sty.style_stock_type not in ('PROTOTYPE', 'SILVER') then t9.lot_desc||' ' end|| jt.jeweller_type_name end) description,
+    so.so_no po_no,
+
+    so.customer_reference_no cus_po_no,
+    emp.first_name||' '||emp.last_name orderby,
+    null pogivenby,
+    pd.party_company_name cus_name,
+    ma.remarks,
+    pt.payment_type_name payment_type,
+    case when $P!{showMSRP} = 'Y' then sty.msrp else null end msrp,
+    case when $P!{showMSRP} = 'Y' then 'MSRP' else null end msrp_lbl,
+    comp.company_official_name comp_off_name,
+    coad.street,
+    coad.contact_phone || ' ' ||coad.contact_fax phone_fax,
+    coad.website,
+    pd.party_id,
+    pd.party_type,
+
+    sty.diamond_color color,
+    sty.diamond_clarity clarity,
+ma.trans_type,
+        nvl(case when sty.style_no like 'SS%' then sty.tag_desc else cnm.consumed_qty1 end,case when stone.min_total_wt > 0 and sty.style_stock_type <> 'DELIVERY' and sty.style_no not in ('SUPPLIED','LABOR') then 'D '||trim(to_char(stone.min_total_wt,'99999999990.00'))||' CT' end) consumed_qty1,
+        nvl(case when sty.style_no like 'SS%' then
+case
+            when sty.tag_desc is not null and stone.no_of_stone > 0  and sty.style_stock_type <> 'DELIVERY' and sty.style_no not in ('SUPPLIED','LABOR') then
+                stone.no_of_stone || ' PCS'
+
+    end
+else cnm.consumed_qty2 end,case when stone.no_of_stone > 0  and sty.style_stock_type <> 'DELIVERY' and sty.style_no not in ('SUPPLIED','LABOR') then stone.no_of_stone end) consumed_qty2,
+case when sty.style_stock_type <> 'FM_WHOLESALE' then
+case when replace(sty.diamond_color,'/','-') = 'G-H' and replace(sty.diamond_clarity,'/','-') = 'VS2-SI1' then 'Exceptional'
+             when replace(sty.diamond_color,'/','-') = 'H-I' and replace(sty.diamond_clarity,'/','-') = 'SI1' then 'Premium'
+             when replace(sty.diamond_color,'/','-') = 'H-I' and replace(sty.diamond_clarity,'/','-') = 'SI2' then 'Standard'
+             when replace(sty.diamond_color,'/','-') = 'H-I' and replace(sty.diamond_clarity,'/','-') = 'I1' then 'Commercial'
+             else replace(nullif(sty.diamond_color,'NA'),'/','-')||case when nullif(sty.diamond_color,'NA') is not null then '/' end||replace(nullif(sty.diamond_clarity,'NA'),'/','-') end else ' ' end diam_quality
+from
+    v_all_inv_main ma
+    inner join v_all_inv_det det on ma.inv_id = det.inv_id
+        and ma.inv_type = det.inv_type
+    inner join v_party_details pd on ma.party_id = pd.party_id
+        and ma.party_type = pd.party_type
+        and lower(pd.party_company_name) like replace('%' || lower(trim('')) || '%', '%%', '%')
+    inner join t_contract cont on det.product_id = cont.cont_id
+        and cont.is_deleted = 0
+    left join t_sales_order_det sdsd on cont.sod_id = sdsd.sod_id
+        and sdsd.is_deleted = 0
+    left join (
+
+select
+    rr.inv_id,
+    rr.inv_type,
+    rr.inv_det_id,
+    rr.cont_id,
+    trim(to_char(wm_concat(case when rr.consumed_qty1 > 0 then rr.com_desc||' ' end||trim(to_char(rr.consumed_qty1,'99999990.00')))||' '||max(rr.uom1))) consumed_qty1,
+    trim(to_char(sum(rr.consumed_qty2),'9999999990')) consumed_qty2
+from
+(
+select
+sr.inv_id,
+    sr.inv_type,
+    sr.inv_det_id,
+    sr.cont_id,
+    max(sr.com_desc) com_desc,
+    case when cont_id = 5000940206 then 8.15 else sum(sr.consumed_qty1) end consumed_qty1,
+    case when cont_id = 5000940206 then 40 else sum(sr.consumed_qty2) end consumed_qty2,
+    max(sr.uom1) uom1
+from
+(
+select
+    ma1.inv_id,
+    ma1.inv_type,
+    det2.inv_det_id,
+lot.com_id,
+    max(det2.product_id) cont_id,
+    max(co.remarks) com_desc,
+    sum(det2.inv_qty1 * mc.consumed_qty1) cs1,
+    nullif(round(sum(det2.inv_qty1 * case when mc.rm_from_type in ('FROM_FG') then -1 * (mc.broken_qty1+mc.loss_qty1+mc.return_qty1) else mc.consumed_qty1 end),2),0) consumed_qty1,
+    max(mc.uom1) uom1,
+    sum(det2.inv_qty1 * case when mc.rm_from_type in ('FROM_FG') then -1 * (mc.broken_qty2+mc.loss_qty2+mc.return_qty2) else mc.consumed_qty2 end) consumed_qty2
+from
+    v_all_inv_main ma1
+inner join v_all_inv_det det2 on ma1.inv_id = det2.inv_id
+     and ma1.inv_type = det2.inv_type
+inner join t_contract ccon on det2.product_id = ccon.cont_id
+    inner join t_main_components mc on ccon.cont_id = mc.cont_id
+        and mc.is_deleted = 0
+    inner join t_rm_lot lot on mc.lot_id = lot.lot_id
+    and lot.is_deleted = 0
+    and lot.is_stone = 1
+and lot.is_single_stone = 0
+    and lot.com_id not in (192,2060,208,53,83)
+    inner join t_commodity co on lot.com_id = co.com_id
+        and co.is_deleted = 0
+where
+    ma1.csc_id in ($P!{cscId})
+    and (ma1.inv_id = $P!{invId} or -1 = $P!{invId})
+    and (ma1.inv_type = $P!{invType} or ' ' = $P!{invType})
+group by
+    ma1.inv_id,
+    ma1.inv_type,
+    det2.inv_det_id,
+    mc.cont_id,
+    lot.com_id
+union
+select
+    ma1.inv_id,
+    ma1.inv_type,
+    det2.inv_det_id,
+    lot.com_id,
+    max(det2.product_id) cont_id,
+    max(co.remarks) com_desc,
+    sum(det2.inv_qty1 * mc.consumed_qty1) cs1,
+    nullif(round(sum(det2.inv_qty1 * case when mc.rm_from_type in ('FROM_FG') then -1 * (mc.broken_qty1+mc.loss_qty1+mc.return_qty1) else mc.consumed_qty1 end),2),0) consumed_qty1,
+    max(mc.uom1) uom1,
+    sum(det2.inv_qty1 * case when mc.rm_from_type in ('FROM_FG') then -1 * (mc.broken_qty2+mc.loss_qty2+mc.return_qty2) else mc.consumed_qty2 end) consumed_qty2
+from
+    v_all_inv_main ma1
+inner join v_all_inv_det det2 on ma1.inv_id = det2.inv_id
+     and ma1.inv_type = det2.inv_type
+inner join t_contract ccon on det2.product_id = ccon.cont_id
+    inner join t_main_components mc on ccon.original_cont_id = mc.cont_id
+        and mc.is_deleted = 0
+    inner join t_rm_lot lot on mc.lot_id = lot.lot_id
+    and lot.is_deleted = 0
+    and lot.is_stone = 1
+    and lot.is_single_stone = 0
+    and lot.com_id not in (192,2060,208,53,83)
+  inner join t_commodity co on lot.com_id = co.com_id
+        and co.is_deleted = 0
+where
+    ma1.csc_id in ($P!{cscId})
+    and (ma1.inv_id = $P!{invId} or -1 = $P!{invId})
+    and (ma1.inv_type = $P!{invType} or ' ' = $P!{invType})
+group by
+    ma1.inv_id,
+    ma1.inv_type,
+    det2.inv_det_id,
+    mc.cont_id,
+    lot.com_id
+union
+select
+    ma1.inv_id,
+    ma1.inv_type,
+    det2.inv_det_id,
+lot.com_id,
+    max(det2.product_id) cont_id,
+    max(co.remarks) com_desc,
+    sum(det2.inv_qty1 * mc.consumed_qty1) cs1,
+    nullif(round(sum(det2.inv_qty1 * case when mc.rm_from_type in ('FROM_FG') then -1 * (mc.broken_qty1+mc.loss_qty1+mc.return_qty1) else mc.consumed_qty1 end),2),0) consumed_qty1,
+    max(mc.uom1) uom1,
+    sum(det2.inv_qty1 * case when mc.rm_from_type in ('FROM_FG') then -1 * (mc.broken_qty2+mc.loss_qty2+mc.return_qty2) else mc.consumed_qty2 end) consumed_qty2
+from
+    v_all_inv_main ma1
+inner join v_all_inv_det det2 on ma1.inv_id = det2.inv_id
+     and ma1.inv_type = det2.inv_type
+inner join t_contract ccon on det2.product_id = ccon.cont_id
+
+    inner join t_main_components mc on ccon.previous_cont_id = mc.cont_id
+        and mc.is_deleted = 0
+    inner join t_rm_lot lot on mc.lot_id = lot.lot_id
+    and lot.is_deleted = 0
+    and lot.is_stone = 1
+and lot.is_single_stone = 0
+    and lot.com_id not in (192,2060,208,53,83)
+    inner join t_commodity co on lot.com_id = co.com_id
+        and co.is_deleted = 0
+where
+     ma1.csc_id in ($P!{cscId})
+    and (ma1.inv_id = $P!{invId} or -1 = $P!{invId})
+    and (ma1.inv_type = $P!{invType} or ' ' = $P!{invType})
+group by
+    ma1.inv_id,
+    ma1.inv_type,
+    det2.inv_det_id,
+    mc.cont_id,
+    lot.com_id
+)sr
+group by
+sr.inv_id,
+    sr.inv_type,
+    sr.inv_det_id,
+    sr.cont_id,
+    sr.com_id
+)rr
+group by
+    rr.inv_id,
+    rr.inv_type,
+    rr.inv_det_id,
+    rr.cont_id
+having sum(rr.consumed_qty1) > 0
+    ) cnm on det.product_id = cnm.cont_id and ma.inv_id = cnm.inv_id
+    and ma.inv_type = cnm.inv_type and det.inv_det_id = cnm.inv_det_id
+    inner join t_style sty on det.style_no = sty.style_no
+        and sty.is_deleted = 0
+    inner join t_payment_type pt on ma.payment_type_id = pt.payment_type_id
+    inner join t_shipment_type st on ma.shipment_type_id = st.shipment_type_id
+    left join t_prod_order pod on cont.prod_order_id = pod.prod_order_id
+
+    left join t_purchase_order po on pod.po_id = po.po_id
+        and po.is_deleted = 0
+    left join t_sales_order so on ma.po_so_id = so.so_id
+        and so.csc_id = $P!{cscId}
+        and so.is_deleted = 0
+    left join t_sales_order_det sod on pod.sod_id = sod.sod_id
+        and sod.is_deleted = 0
+    left join t_style rsty on cont.style_reference_no = rsty.style_reference_no
+        and rsty.subarea_id = $P!{subAreaId}
+        and rsty.is_deleted = 0
+    left join t_inv_ship_address sadd on ma.inv_type = sadd.inv_type
+        and ma.inv_id = sadd.inv_id
+        and sadd.is_deleted = 0
+    left join t_inv_bill_address badd on ma.inv_type = badd.inv_type
+        and ma.inv_id = badd.inv_id
+        and badd.is_deleted = 0
+    left join t_employee emp on pd.coordinator_employee_id = emp.employee_id
+    inner join t_employee sman on ma.coordinator_employee_id = sman.employee_id
+    inner join t_csc ac on ma.csc_id = ac.csc_id
+    inner join t_company comp on ac.company_id = comp.company_id
+    inner join t_company_address coad on comp.company_id = coad.company_id
+        and coad.company_address_type = 'BILL_ADDR'
+    left join (
+                select
+                    sc.style_id style_id,
+                    sum(scd.pc_count) no_of_stone,
+                    sum(scd.min_total_wt) min_total_wt
+                from
+                    t_style_stone_card sc
+                    inner join t_style_stone_card_det scd on sc.style_stone_card_id = scd.style_stone_card_id
+                        and nvl(scd.min_total_wt, 0)  > 0
+                        and scd.com_id not in (53)
+                        and scd.is_deleted = 0
+                    inner join t_style sty on sc.style_id = sty.style_id
+                        and sty.subarea_id = 15
+                        and sty.is_deleted = 0
+                where
+                    sc.is_default = 1
+                    and sc.is_deleted = 0
+                group by
+                    sc.style_id
+                union
+                select
+                    sc1.style_id style_id,
+                    sum(scd1.pc_count) no_of_stone,
+                    sum(scd1.min_total_wt) min_total_wt
+                from
+                    t_style_stone_card sc1
+                    inner join t_style_stone_card_det scd1 on sc1.style_stone_card_id = scd1.style_stone_card_id
+                        and nvl(scd1.min_total_wt, 0)> 0
+                        and scd1.is_deleted = 0
+                    inner join t_style sty1 on sc1.style_id = sty1.style_id
+                        and sty1.subarea_id = 15
+                        and sty1.is_deleted = 0
+                where
+                    sc1.is_default = 1
+                    and sc1.is_deleted = 0
+                group by
+                    sc1.style_id
+              ) stone on cont.style_id = stone.style_id
+    left join t_design des on sty.design_id = des.design_id
+        and sty.subarea_id = des.subarea_id
+        and des.is_deleted = 0
+    left join t_design_label dl on des.label_id = dl.label_id
+        and des.subarea_id = dl.subarea_id
+        and dl.is_deleted = 0
+
+    left join t_parameter t8 on dl.brand = t8.parameter_code
+        and t8.parameter_head = 'BRAND_CATEGORY'
+        and t8.parameter_sub_head = 'BRAND_CATEGORY'
+        and t8.subarea_id = $P!{subAreaId}
+and t8.is_locked = 0
+        and t8.is_deleted = 0
+    left join t_jewellery_type jt on nvl(dl.jewellery_type,des.jewellery_type) = jt.jewellery_type
+        and jt.is_deleted = 0
+    left join t_rm_lot t9 on sty.default_metal = t9.lot_code
+                    and t9.is_stone = 0
+                    and t9.is_deleted = 0
+
+where
+    ma.csc_id in ($P!{cscId})
+    and (ma.inv_id = $P!{invId} or -1 = $P!{invId})
+    and (ma.inv_type = $P!{invType} or ' ' = $P!{invType})
+order by
+    ma.inv_no,
+    det.inv_det_id]]>
+	</queryString>
+	<field name="IMG" class="java.lang.String"/>
+	<field name="INV_ID" class="java.math.BigDecimal"/>
+	<field name="INV_NO" class="java.lang.String"/>
+	<field name="INV_TYPE" class="java.lang.String"/>
+	<field name="SALESMAN_EMP_ID" class="java.math.BigDecimal"/>
+	<field name="OFF_REF_NO" class="java.lang.String"/>
+	<field name="INV_DT" class="java.sql.Timestamp"/>
+	<field name="CUR_CODE" class="java.lang.String"/>
+	<field name="CONV_RATE" class="java.math.BigDecimal"/>
+	<field name="PAYMENT_TYPE" class="java.lang.String"/>
+	<field name="PO_SO_ID" class="java.math.BigDecimal"/>
+	<field name="CLOSE_DAY" class="java.math.BigDecimal"/>
+	<field name="CLOSE_DT" class="java.sql.Timestamp"/>
+	<field name="PN_RECV_DAY" class="java.math.BigDecimal"/>
+	<field name="PN_RECV_DT" class="java.sql.Timestamp"/>
+	<field name="INV_DUE_DAYS" class="java.math.BigDecimal"/>
+	<field name="INV_DUE_MONTHS" class="java.math.BigDecimal"/>
+	<field name="INV_DUE_DT" class="java.sql.Timestamp"/>
+	<field name="CARRIER_NAME" class="java.lang.String"/>
+	<field name="MAWB_NO" class="java.lang.String"/>
+	<field name="HAWB_NO" class="java.lang.String"/>
+	<field name="SHIPMENT_TYPE" class="java.lang.String"/>
+	<field name="CSC_ID" class="java.math.BigDecimal"/>
+	<field name="CONT_ID" class="java.math.BigDecimal"/>
+	<field name="CONT_TYPE" class="java.lang.String"/>
+	<field name="CONT_NO" class="java.lang.String"/>
+	<field name="JEWELLERY_TYPE" class="java.lang.String"/>
+	<field name="STYLE_NO" class="java.lang.String"/>
+	<field name="UOM" class="java.lang.String"/>
+	<field name="INV_QTY" class="java.math.BigDecimal"/>
+	<field name="RATE" class="java.math.BigDecimal"/>
+	<field name="AMT" class="java.math.BigDecimal"/>
+	<field name="BSTREET" class="java.lang.String"/>
+	<field name="BAREA" class="java.lang.String"/>
+	<field name="BCITY" class="java.lang.String"/>
+	<field name="BCITY_PIN" class="java.lang.String"/>
+	<field name="BSTATE" class="java.lang.String"/>
+	<field name="BCOUNTRY" class="java.lang.String"/>
+	<field name="BCONTACT_CODE" class="java.lang.String"/>
+	<field name="BCONTACT_PHONE" class="java.lang.String"/>
+	<field name="BCONTACT_NAME" class="java.lang.String"/>
+	<field name="BCONTACT_MOBILE" class="java.lang.String"/>
+	<field name="BCONTACT_FAX" class="java.lang.String"/>
+	<field name="BCONTACT_EMAIL" class="java.lang.String"/>
+	<field name="SSTREET" class="java.lang.String"/>
+	<field name="SAREA" class="java.lang.String"/>
+	<field name="SCITY" class="java.lang.String"/>
+	<field name="SCITY_PIN" class="java.lang.String"/>
+	<field name="SSTATE" class="java.lang.String"/>
+	<field name="SCOUNTRY" class="java.lang.String"/>
+	<field name="SCONTACT_CODE" class="java.lang.String"/>
+	<field name="SCONTACT_PHONE" class="java.lang.String"/>
+	<field name="SCONTACT_NAME" class="java.lang.String"/>
+	<field name="SCONTACT_MOBILE" class="java.lang.String"/>
+	<field name="SCONTACT_FAX" class="java.lang.String"/>
+	<field name="SCONTACT_EMAIL" class="java.lang.String"/>
+	<field name="DESCRIPTION" class="java.lang.String"/>
+	<field name="PO_NO" class="java.lang.String"/>
+	<field name="CUS_PO_NO" class="java.lang.String"/>
+	<field name="ORDERBY" class="java.lang.String"/>
+	<field name="POGIVENBY" class="java.lang.String"/>
+	<field name="CUS_NAME" class="java.lang.String"/>
+	<field name="REMARKS" class="java.lang.String"/>
+	<field name="MSRP" class="java.math.BigDecimal"/>
+	<field name="MSRP_LBL" class="java.lang.String"/>
+	<field name="COMP_OFF_NAME" class="java.lang.String"/>
+	<field name="STREET" class="java.lang.String"/>
+	<field name="PHONE_FAX" class="java.lang.String"/>
+	<field name="WEBSITE" class="java.lang.String"/>
+	<field name="PARTY_ID" class="java.math.BigDecimal"/>
+	<field name="PARTY_TYPE" class="java.lang.String"/>
+	<field name="COLOR" class="java.lang.String"/>
+	<field name="CLARITY" class="java.lang.String"/>
+	<field name="TRANS_TYPE" class="java.lang.String"/>
+	<field name="CONSUMED_QTY1" class="java.lang.String"/>
+	<field name="CONSUMED_QTY2" class="java.lang.String"/>
+	<field name="DIAM_QUALITY" class="java.lang.String"/>
+	<variable name="V_Report_Title" class="java.lang.String">
+		<variableExpression><![CDATA[$F{INV_TYPE}.equals( "FSRL" )?"CREDIT INVOICE":"INVOICE"]]></variableExpression>
+		<initialValueExpression><![CDATA[$F{INV_TYPE}.equals( "FSRL" )?"CREDIT INVOICE":"INVOICE"]]></initialValueExpression>
+	</variable>
+	<variable name="AMT_1" class="java.math.BigDecimal" resetType="Group" resetGroup="invIdGroup" calculation="Sum">
+		<variableExpression><![CDATA[$F{AMT}]]></variableExpression>
+	</variable>
+	<variable name="INV_QTY_1" class="java.math.BigDecimal" resetType="Group" resetGroup="invIdGroup" calculation="Sum">
+		<variableExpression><![CDATA[$F{INV_QTY}]]></variableExpression>
+	</variable>
+	<variable name="AMT_2" class="java.math.BigDecimal" resetType="Group" resetGroup="invIdGroup" calculation="Sum">
+		<variableExpression><![CDATA[$F{AMT}]]></variableExpression>
+	</variable>
+	<group name="invIdGroup" isStartNewPage="true" isResetPageNumber="true" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{INV_ID}]]></groupExpression>
+		<groupHeader>
+			<band height="259" splitType="Prevent">
+				<printWhenExpression><![CDATA[new Boolean((!$F{TRANS_TYPE}.equals( "MEMO" )) && !($V{PAGE_NUMBER}.intValue() != 1
+&& $P{reporttype}.equals( "xls" )))]]></printWhenExpression>
+				<image scaleImage="RetainShape" hAlign="Center" vAlign="Middle" isLazy="true" onErrorType="Icon">
+					<reportElement key="image-1" x="0" y="0" width="175" height="75" uuid="86d59dd6-e2ac-401d-8110-017777a713ab"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<imageExpression><![CDATA[$F{IMG}]]></imageExpression>
+				</image>
+				<staticText>
+					<reportElement key="staticText-2" x="370" y="36" width="70" height="13" uuid="738e5938-0263-43b9-b575-042f2148207e"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Document # :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-3" x="370" y="49" width="70" height="13" uuid="26b93dee-505b-4965-9cc9-cb648e2502e0"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Date:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-4" x="194" y="49" width="87" height="13" uuid="8fd413dc-9fa8-439d-b1be-7e980041f649"/>
+					<box leftPadding="0" rightPadding="0"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Customer Order #:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-5" x="194" y="62" width="87" height="13" uuid="c7874589-2d19-4722-85de-c0085c8a70ed"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Order By :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-6" x="370" y="62" width="70" height="13" uuid="c055e986-e657-4806-9c79-6dca3539bd59"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Terms :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-7" x="370" y="75" width="70" height="13" uuid="7445d222-7698-4c1c-a90c-81eb19113ce4"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Due Date :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-12" x="0" y="140" width="220" height="13" uuid="25c8403f-ae18-42a7-baa8-6c29713ae43e"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-13" mode="Opaque" x="0" y="153" width="220" height="13" forecolor="#FFFFFF" backcolor="#000000" uuid="303b3826-4116-4f12-acf5-46a4ec91111e"/>
+					<box leftPadding="3" rightPadding="1"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[BILL TO:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-14" mode="Opaque" x="324" y="153" width="218" height="13" forecolor="#FFFFFF" backcolor="#000000" uuid="ad09848a-b43a-478d-8775-840246365ce5"/>
+					<box leftPadding="3" rightPadding="1"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[SHIP TO:]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="0" y="166" width="220" height="13" isPrintWhenDetailOverflows="true" uuid="4ef9c001-a522-4845-ac6d-bd8e139aa9ee"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CUS_NAME}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="0" y="179" width="220" height="13" isPrintWhenDetailOverflows="true" uuid="a92c35b8-b23d-4d6b-aa27-18992c9f2459"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{BSTREET}+" "+$F{BAREA}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="0" y="192" width="220" height="13" isPrintWhenDetailOverflows="true" uuid="010e112f-7b24-47fc-8b8d-9af55c00aaed"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{BCITY}+" "+$F{BSTATE}+" "+$F{BCITY_PIN}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-3" stretchType="RelativeToTallestObject" x="0" y="205" width="220" height="13" isPrintWhenDetailOverflows="true" uuid="9817041d-7805-4257-a826-0cf1f9189ba7"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{BCONTACT_PHONE}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-4" stretchType="RelativeToTallestObject" x="324" y="166" width="218" height="13" isPrintWhenDetailOverflows="true" uuid="f9375c51-6a77-45b0-88c6-b74b9f4f6082"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CUS_NAME}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-5" stretchType="RelativeToTallestObject" x="324" y="179" width="218" height="13" isPrintWhenDetailOverflows="true" uuid="e31c1324-8fe7-48cc-b208-818a9696d5f1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{SSTREET}+" "+$F{SAREA}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-6" stretchType="RelativeToTallestObject" x="324" y="192" width="218" height="13" isPrintWhenDetailOverflows="true" uuid="45deecbd-c438-419b-962e-f661a70b4666"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{SCITY}+" "+ $F{SSTATE}+" "+$F{SCITY_PIN}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-7" stretchType="RelativeToTallestObject" x="324" y="205" width="218" height="13" isPrintWhenDetailOverflows="true" uuid="8036d2b6-5117-425a-a6a2-e6304a374ccf"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{SCONTACT_PHONE}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-21" x="0" y="218" width="542" height="13" uuid="d4ba1d63-c42e-4527-a22e-c19f2bc17a49"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-8" stretchType="RelativeToTallestObject" x="440" y="36" width="102" height="13" isPrintWhenDetailOverflows="true" uuid="83757d88-be6f-4970-b8be-617dd79c5132"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{INV_TYPE}+"-"+$F{INV_NO}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-9" stretchType="RelativeToTallestObject" x="281" y="49" width="75" height="13" isPrintWhenDetailOverflows="true" uuid="9ad5a6ff-80d0-4c4e-9779-f885ee524963"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CUS_PO_NO}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-10" stretchType="RelativeToTallestObject" x="281" y="75" width="75" height="13" isPrintWhenDetailOverflows="true" uuid="730faa8b-ceb4-4dfc-bd6c-c008490d946e"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{ORDERBY}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="MM/dd/yyyy" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="440" y="49" width="102" height="13" isPrintWhenDetailOverflows="true" uuid="feb2bc94-b9f6-4ebd-89de-51d134225abb"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{INV_DT}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="MM/dd/yyyy" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="440" y="75" width="102" height="13" isPrintWhenDetailOverflows="true" uuid="31b03c47-3446-4075-ae4a-c3c3458b851c"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{INV_DUE_DT}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-89" x="194" y="36" width="87" height="13" uuid="a15135db-7f8b-4702-86fc-6dc5a3421042"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Sales Order #:]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-38" stretchType="RelativeToTallestObject" x="440" y="62" width="147" height="13" isPrintWhenDetailOverflows="true" uuid="d50d7138-86f3-42f0-b163-bd8b70022835"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{PAYMENT_TYPE}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-102" mode="Opaque" x="20" y="231" width="99" height="28" forecolor="#000000" backcolor="#CCCCCC" uuid="4fdbb31b-a6ad-455f-b5e4-62ee36559f74"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Style No]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-103" mode="Opaque" x="119" y="231" width="63" height="28" forecolor="#000000" backcolor="#CCCCCC" uuid="28e27f8e-9630-4cf2-882b-b7806b1bcf9c"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Contract No./ Stock No.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-104" stretchType="RelativeToTallestObject" mode="Opaque" x="262" y="231" width="115" height="28" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#CCCCCC" uuid="b468af0a-9abf-4a40-a690-4b2c5b592b88"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Description]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-105" mode="Opaque" x="427" y="231" width="20" height="28" forecolor="#000000" backcolor="#CCCCCC" uuid="d3505885-76c3-4950-9f28-250d46489b3c"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Qty]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-106" mode="Opaque" x="447" y="231" width="45" height="28" forecolor="#000000" backcolor="#CCCCCC" uuid="4cc895fc-2ca6-4dda-8e22-357f00d5f6ef"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Unit Price]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-107" mode="Opaque" x="492" y="231" width="50" height="28" forecolor="#000000" backcolor="#CCCCCC" uuid="904f10af-f330-4354-9b32-72b45230214d"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Extended]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-108" mode="Opaque" x="0" y="231" width="20" height="28" forecolor="#000000" backcolor="#CCCCCC" uuid="bae01a2e-884d-48e7-a327-9133752d4516"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Sn]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-45" stretchType="RelativeToTallestObject" x="194" y="0" width="348" height="36" uuid="65423431-5c7f-4982-bc3f-98fb88506388"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial Black" size="16" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{V_Report_Title}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="staticText-64" mode="Opaque" x="542" y="231" width="45" height="28" forecolor="#000000" backcolor="#CCCCCC" uuid="33db3632-cd4d-489c-b619-6714a9b8df50"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{MSRP_LBL}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-4" stretchType="RelativeToTallestObject" x="0" y="88" width="194" height="13" isPrintWhenDetailOverflows="true" uuid="36abd230-7234-43ae-b1bd-7edf98125f1c"/>
+					<box leftPadding="0"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{COMP_OFF_NAME}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-4" stretchType="RelativeToTallestObject" x="0" y="101" width="220" height="13" isPrintWhenDetailOverflows="true" uuid="617ef4fc-7dcb-42cb-9913-ecedf944bb67"/>
+					<box leftPadding="0"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{STREET}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-4" stretchType="RelativeToTallestObject" x="0" y="114" width="220" height="13" isPrintWhenDetailOverflows="true" uuid="bcca4b03-dd0c-4db7-9f81-855985f17f38"/>
+					<box leftPadding="0"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{PHONE_FAX}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-5" x="370" y="88" width="70" height="13" uuid="2c522162-3081-4be0-b8c7-6f90dfbb5af1"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Carrier # :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-5" x="370" y="101" width="70" height="13" uuid="43e5df5d-5a6f-4a53-9c11-3c56de49321b"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[HAWB # :]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-10" stretchType="RelativeToTallestObject" x="440" y="88" width="147" height="13" isPrintWhenDetailOverflows="true" uuid="384bd7d5-ddab-460f-8c8c-220cd8da16d0"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CARRIER_NAME}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="MM/dd/yyyy" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="440" y="101" width="147" height="13" isPrintWhenDetailOverflows="true" uuid="fbc2ce59-af89-4479-90df-abc6e8a0b3ec"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{HAWB_NO}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-5" x="370" y="114" width="70" height="13" uuid="2c522162-3081-4be0-b8c7-6f90dfbb5af1"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Shipment Type :]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-10" stretchType="RelativeToTallestObject" x="440" y="114" width="147" height="13" isPrintWhenDetailOverflows="true" uuid="384bd7d5-ddab-460f-8c8c-220cd8da16d0"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{SHIPMENT_TYPE}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-62" stretchType="RelativeToTallestObject" mode="Opaque" x="222" y="231" width="40" height="28" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#CCCCCC" uuid="d508e04c-702c-475a-9073-b39effd5c6cf"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Tag Wt.]]></text>
+				</staticText>
+				<textField>
+					<reportElement key="staticText-12" x="0" y="127" width="175" height="13" uuid="32972e61-1021-49b8-8c59-4b6851123a6a"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{WEBSITE}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="220" y="153" width="104" height="13" uuid="279823d2-31ba-47d8-b5bf-913cb958f4bf"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="220" y="166" width="104" height="13" uuid="279823d2-31ba-47d8-b5bf-913cb958f4bf"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="220" y="179" width="104" height="13" uuid="279823d2-31ba-47d8-b5bf-913cb958f4bf"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="220" y="192" width="104" height="13" uuid="279823d2-31ba-47d8-b5bf-913cb958f4bf"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="220" y="205" width="104" height="13" uuid="279823d2-31ba-47d8-b5bf-913cb958f4bf"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-62" stretchType="RelativeToTallestObject" mode="Opaque" x="182" y="231" width="40" height="28" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#CCCCCC" uuid="d508e04c-702c-475a-9073-b39effd5c6cf"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[No. stn.]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-9" stretchType="RelativeToTallestObject" x="281" y="36" width="75" height="13" isPrintWhenDetailOverflows="true" uuid="9ad5a6ff-80d0-4c4e-9779-f885ee524963"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{PO_NO}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-5" x="194" y="75" width="87" height="13" uuid="c7874589-2d19-4722-85de-c0085c8a70ed"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[MF_SalesMan :]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-10" stretchType="RelativeToTallestObject" x="281" y="62" width="75" height="13" isPrintWhenDetailOverflows="true" uuid="730faa8b-ceb4-4dfc-bd6c-c008490d946e"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{POGIVENBY}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-105" mode="Opaque" x="377" y="231" width="50" height="28" forecolor="#000000" backcolor="#CCCCCC" uuid="d3505885-76c3-4950-9f28-250d46489b3c"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Dia. Quality]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-5" x="194" y="88" width="87" height="13" uuid="6415f67c-8b6a-4812-b9fe-9d58b6fa8f75"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Office Ref. #:]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-10" stretchType="RelativeToTallestObject" x="281" y="88" width="75" height="13" isPrintWhenDetailOverflows="true" uuid="ebbd4d77-36f3-484e-a980-81040fe34467"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{OFF_REF_NO}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="13" splitType="Prevent">
+				<printWhenExpression><![CDATA[new Boolean((!$F{TRANS_TYPE}.equals( "MEMO" )) && !($V{PAGE_NUMBER}.intValue() != 1 && $P{reporttype}.equals( "xls" )))]]></printWhenExpression>
+				<staticText>
+					<reportElement key="staticText-38" stretchType="RelativeToTallestObject" x="0" y="0" width="372" height="13" isPrintWhenDetailOverflows="true" uuid="e5dc269f-67a2-434a-acb0-647c521b7c0d"/>
+					<box leftPadding="1" rightPadding="0">
+						<topPen lineWidth="1.0" lineStyle="Solid"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Total]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" pattern="#,##0.0" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="372" y="0" width="75" height="13" isPrintWhenDetailOverflows="true" uuid="34cb2803-4df6-47a3-9e05-51a74f4266a5"/>
+					<box rightPadding="1">
+						<topPen lineWidth="1.0" lineStyle="Solid"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{INV_QTY_1}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="$ #,##0.00" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" mode="Transparent" x="447" y="0" width="95" height="13" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF" uuid="4f0889f5-bf01-472d-a1d8-9251cbaa8654"/>
+					<box rightPadding="2">
+						<topPen lineWidth="1.0" lineStyle="Solid"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+						<font fontName="Arial" size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+						<paragraph lineSpacing="Single"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{AMT_2}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-38" stretchType="RelativeToTallestObject" x="542" y="0" width="45" height="13" isPrintWhenDetailOverflows="true" uuid="6fc51b47-c7b8-4a8b-bc68-4047139526ef"/>
+					<box leftPadding="1" rightPadding="1">
+						<topPen lineWidth="1.0"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+			</band>
+			<band height="13">
+				<printWhenExpression><![CDATA[new Boolean((!$F{TRANS_TYPE}.equals( "MEMO" )) && !($V{PAGE_NUMBER}.intValue() != 1 && $P{reporttype}.equals( "xls" )))]]></printWhenExpression>
+				<componentElement>
+					<reportElement x="228" y="0" width="314" height="13" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="9a9bfdb9-44e0-49bc-a7bc-b0173c4c5e1a"/>
+					<jr:list xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" printOrder="Vertical">
+						<datasetRun subDataset="othChgs" uuid="b7f74610-fb33-47ad-8776-b05dfe6a516c">
+							<datasetParameter name="invType">
+								<datasetParameterExpression><![CDATA[$F{INV_TYPE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="invId">
+								<datasetParameterExpression><![CDATA[$F{INV_ID}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="totAmt">
+								<datasetParameterExpression><![CDATA[$V{AMT_1}]]></datasetParameterExpression>
+							</datasetParameter>
+							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						</datasetRun>
+						<jr:listContents height="13" width="314">
+							<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+								<reportElement key="staticText-22" x="0" y="0" width="263" height="13" uuid="8317f94a-b544-4b79-ac85-b3b2ce1e66bd"/>
+								<textElement textAlignment="Left" verticalAlignment="Middle" markup="none">
+									<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{CHARGE_NAME}]]></textFieldExpression>
+							</textField>
+							<textField isStretchWithOverflow="true" pattern="$ #,##0.00" isBlankWhenNull="true">
+								<reportElement key="textField" stretchType="RelativeToTallestObject" mode="Transparent" x="263" y="0" width="51" height="13" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF" uuid="471cd9b4-f228-4da5-9835-25778eea2fac"/>
+								<box topPadding="1" leftPadding="1" bottomPadding="3" rightPadding="1"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+									<font fontName="Arial" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+									<paragraph lineSpacing="Single"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{AMT}]]></textFieldExpression>
+							</textField>
+						</jr:listContents>
+					</jr:list>
+				</componentElement>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="dummyInvId" isStartNewPage="true" isResetPageNumber="true" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{INV_ID}]]></groupExpression>
+		<groupHeader>
+			<band height="255" splitType="Prevent">
+				<printWhenExpression><![CDATA[new Boolean(($F{TRANS_TYPE}.equals( "MEMO" )) && !($V{PAGE_NUMBER}.intValue() != 1
+&& $P{reporttype}.equals( "xls" )))]]></printWhenExpression>
+				<image scaleImage="RetainShape" hAlign="Center" vAlign="Middle" isLazy="true" onErrorType="Icon">
+					<reportElement key="image-2" x="0" y="0" width="175" height="75" uuid="4cb9887d-1c98-41c7-b6a7-d661a7794a21"/>
+					<imageExpression><![CDATA[$F{IMG}]]></imageExpression>
+				</image>
+				<staticText>
+					<reportElement key="staticText-39" x="194" y="0" width="348" height="34" uuid="ea2c4cbd-b67f-48ab-ae02-48c7a04862c6"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial Black" size="16" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[MEMORANDUM]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-4" stretchType="RelativeToTallestObject" x="0" y="88" width="194" height="13" isPrintWhenDetailOverflows="true" uuid="afc715ea-4260-45d0-8681-26c5db877684"/>
+					<box leftPadding="0"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{COMP_OFF_NAME}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-4" stretchType="RelativeToTallestObject" x="0" y="101" width="220" height="13" isPrintWhenDetailOverflows="true" uuid="8ecc08c5-5bba-47a5-905a-dd0b0c53e505"/>
+					<box leftPadding="0"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{STREET}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-4" stretchType="RelativeToTallestObject" x="0" y="114" width="220" height="13" isPrintWhenDetailOverflows="true" uuid="f6e455dc-067c-4bc1-a0ee-8fd6632d873c"/>
+					<box leftPadding="0"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{PHONE_FAX}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement mode="Transparent" x="0" y="127" width="175" height="13" forecolor="#000000" backcolor="#FFFFFF" uuid="ff3a8f74-31c7-413e-b120-897a783c89be"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+						<font fontName="Arial" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+						<paragraph lineSpacing="Single"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{WEBSITE}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-77" x="-1" y="218" width="543" height="9" uuid="513c638a-a713-47f4-890c-b3fb802c15c5"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-5" x="365" y="86" width="74" height="13" uuid="2c522162-3081-4be0-b8c7-6f90dfbb5af1"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Carrier # :]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" pattern="MM/dd/yyyy" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="439" y="99" width="103" height="13" isPrintWhenDetailOverflows="true" uuid="fbc2ce59-af89-4479-90df-abc6e8a0b3ec"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{HAWB_NO}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-3" x="365" y="47" width="74" height="13" uuid="26b93dee-505b-4965-9cc9-cb648e2502e0"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Date:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-2" x="365" y="34" width="74" height="13" uuid="738e5938-0263-43b9-b575-042f2148207e"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Document #:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-6" x="365" y="60" width="74" height="13" uuid="c055e986-e657-4806-9c79-6dca3539bd59"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Terms :]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" pattern="MM/dd/yyyy" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="439" y="47" width="103" height="13" isPrintWhenDetailOverflows="true" uuid="feb2bc94-b9f6-4ebd-89de-51d134225abb"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{INV_DT}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-10" stretchType="RelativeToTallestObject" x="439" y="86" width="103" height="13" isPrintWhenDetailOverflows="true" uuid="384bd7d5-ddab-460f-8c8c-220cd8da16d0"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CARRIER_NAME}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-10" stretchType="RelativeToTallestObject" x="439" y="112" width="103" height="13" isPrintWhenDetailOverflows="true" uuid="384bd7d5-ddab-460f-8c8c-220cd8da16d0"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{SHIPMENT_TYPE}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-7" x="365" y="73" width="74" height="13" uuid="7445d222-7698-4c1c-a90c-81eb19113ce4"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Return Due Date :]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-38" stretchType="RelativeToTallestObject" x="439" y="60" width="148" height="13" isPrintWhenDetailOverflows="true" uuid="d50d7138-86f3-42f0-b163-bd8b70022835"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{PAYMENT_TYPE}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-8" stretchType="RelativeToTallestObject" x="439" y="34" width="103" height="13" isPrintWhenDetailOverflows="true" uuid="83757d88-be6f-4970-b8be-617dd79c5132"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{INV_TYPE}+"-"+$F{INV_NO}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-5" x="365" y="99" width="74" height="13" uuid="43e5df5d-5a6f-4a53-9c11-3c56de49321b"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[HAWB # :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-5" x="365" y="112" width="74" height="13" uuid="2c522162-3081-4be0-b8c7-6f90dfbb5af1"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Shipment Type :]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" pattern="MM/dd/yyyy" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="439" y="73" width="103" height="13" isPrintWhenDetailOverflows="true" uuid="31b03c47-3446-4075-ae4a-c3c3458b851c"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{INV_DUE_DT}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="0" y="140" width="175" height="13" uuid="279823d2-31ba-47d8-b5bf-913cb958f4bf"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-14" mode="Opaque" x="324" y="153" width="218" height="13" forecolor="#FFFFFF" backcolor="#000000" uuid="ad09848a-b43a-478d-8775-840246365ce5"/>
+					<box leftPadding="3" rightPadding="1"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[SHIP TO:]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-4" stretchType="RelativeToTallestObject" x="324" y="166" width="218" height="13" isPrintWhenDetailOverflows="true" uuid="f9375c51-6a77-45b0-88c6-b74b9f4f6082"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CUS_NAME}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-5" stretchType="RelativeToTallestObject" x="324" y="179" width="218" height="13" isPrintWhenDetailOverflows="true" uuid="e31c1324-8fe7-48cc-b208-818a9696d5f1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{SSTREET}+" "+$F{SAREA}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="220" y="153" width="104" height="13" uuid="279823d2-31ba-47d8-b5bf-913cb958f4bf"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="220" y="166" width="104" height="13" uuid="279823d2-31ba-47d8-b5bf-913cb958f4bf"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="0" y="179" width="220" height="13" isPrintWhenDetailOverflows="true" uuid="a92c35b8-b23d-4d6b-aa27-18992c9f2459"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{BSTREET}+" "+$F{BAREA}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="0" y="192" width="220" height="13" isPrintWhenDetailOverflows="true" uuid="010e112f-7b24-47fc-8b8d-9af55c00aaed"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{BCITY}+" "+$F{BSTATE}+" "+$F{BCITY_PIN}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-6" stretchType="RelativeToTallestObject" x="324" y="192" width="218" height="13" isPrintWhenDetailOverflows="true" uuid="45deecbd-c438-419b-962e-f661a70b4666"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{SCITY}+" "+ $F{SSTATE}+" "+$F{SCITY_PIN}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="0" y="166" width="220" height="13" isPrintWhenDetailOverflows="true" uuid="4ef9c001-a522-4845-ac6d-bd8e139aa9ee"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CUS_NAME}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-13" mode="Opaque" x="0" y="153" width="220" height="13" forecolor="#FFFFFF" backcolor="#000000" uuid="303b3826-4116-4f12-acf5-46a4ec91111e"/>
+					<box leftPadding="3" rightPadding="1"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[BILL TO:]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-7" stretchType="RelativeToTallestObject" x="324" y="205" width="218" height="13" isPrintWhenDetailOverflows="true" uuid="8036d2b6-5117-425a-a6a2-e6304a374ccf"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{SCONTACT_PHONE}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="220" y="192" width="104" height="13" uuid="279823d2-31ba-47d8-b5bf-913cb958f4bf"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="220" y="205" width="104" height="13" uuid="279823d2-31ba-47d8-b5bf-913cb958f4bf"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-3" stretchType="RelativeToTallestObject" x="0" y="205" width="220" height="13" isPrintWhenDetailOverflows="true" uuid="9817041d-7805-4257-a826-0cf1f9189ba7"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{BCONTACT_PHONE}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="220" y="179" width="104" height="13" uuid="279823d2-31ba-47d8-b5bf-913cb958f4bf"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-89" x="194" y="34" width="87" height="13" uuid="a15135db-7f8b-4702-86fc-6dc5a3421042"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Sales Order #:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-5" x="194" y="73" width="87" height="13" uuid="c7874589-2d19-4722-85de-c0085c8a70ed"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[MF_SalesMan :]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-9" stretchType="RelativeToTallestObject" x="281" y="47" width="75" height="13" isPrintWhenDetailOverflows="true" uuid="9ad5a6ff-80d0-4c4e-9779-f885ee524963"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CUS_PO_NO}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-9" stretchType="RelativeToTallestObject" x="281" y="34" width="75" height="13" isPrintWhenDetailOverflows="true" uuid="9ad5a6ff-80d0-4c4e-9779-f885ee524963"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{PO_NO}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-10" stretchType="RelativeToTallestObject" x="281" y="60" width="75" height="13" isPrintWhenDetailOverflows="true" uuid="730faa8b-ceb4-4dfc-bd6c-c008490d946e"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{POGIVENBY}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-4" x="194" y="47" width="87" height="13" uuid="8fd413dc-9fa8-439d-b1be-7e980041f649"/>
+					<box leftPadding="0" rightPadding="0"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Customer Order #:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-5" x="194" y="60" width="87" height="13" uuid="c7874589-2d19-4722-85de-c0085c8a70ed"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Order By :]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-10" stretchType="RelativeToTallestObject" x="281" y="73" width="75" height="13" isPrintWhenDetailOverflows="true" uuid="730faa8b-ceb4-4dfc-bd6c-c008490d946e"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{ORDERBY}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-106" mode="Opaque" x="447" y="227" width="45" height="28" forecolor="#000000" backcolor="#CCCCCC" uuid="4cc895fc-2ca6-4dda-8e22-357f00d5f6ef"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Unit Price]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-108" mode="Opaque" x="0" y="227" width="20" height="28" forecolor="#000000" backcolor="#CCCCCC" uuid="bae01a2e-884d-48e7-a327-9133752d4516"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Sn]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-62" stretchType="RelativeToTallestObject" mode="Opaque" x="222" y="227" width="40" height="28" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#CCCCCC" uuid="d508e04c-702c-475a-9073-b39effd5c6cf"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Tag Wt.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-62" stretchType="RelativeToTallestObject" mode="Opaque" x="182" y="227" width="40" height="28" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#CCCCCC" uuid="d508e04c-702c-475a-9073-b39effd5c6cf"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[No. stn.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-102" mode="Opaque" x="20" y="227" width="99" height="28" forecolor="#000000" backcolor="#CCCCCC" uuid="4fdbb31b-a6ad-455f-b5e4-62ee36559f74"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Style No]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-105" mode="Opaque" x="377" y="227" width="50" height="28" forecolor="#000000" backcolor="#CCCCCC" uuid="d3505885-76c3-4950-9f28-250d46489b3c"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Dia. Quality]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-107" mode="Opaque" x="492" y="227" width="50" height="28" forecolor="#000000" backcolor="#CCCCCC" uuid="904f10af-f330-4354-9b32-72b45230214d"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Extended]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-103" mode="Opaque" x="119" y="227" width="63" height="28" forecolor="#000000" backcolor="#CCCCCC" uuid="28e27f8e-9630-4cf2-882b-b7806b1bcf9c"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Contract No/ Stock No.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-105" mode="Opaque" x="427" y="227" width="20" height="28" forecolor="#000000" backcolor="#CCCCCC" uuid="d3505885-76c3-4950-9f28-250d46489b3c"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Qty]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-104" stretchType="RelativeToTallestObject" mode="Opaque" x="262" y="227" width="115" height="28" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#CCCCCC" uuid="b468af0a-9abf-4a40-a690-4b2c5b592b88"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Description]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement key="staticText-64" mode="Opaque" x="542" y="227" width="45" height="28" forecolor="#000000" backcolor="#CCCCCC" uuid="33db3632-cd4d-489c-b619-6714a9b8df50"/>
+					<box>
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{MSRP_LBL}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-5" x="194" y="86" width="87" height="13" uuid="6fe124d4-1691-4d91-9bf4-b18d30a1f09e"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Office Ref. #:]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-10" stretchType="RelativeToTallestObject" x="281" y="86" width="75" height="13" isPrintWhenDetailOverflows="true" uuid="11c4c8b0-9bd3-4225-99e8-0c108dfd6213"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{OFF_REF_NO}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="13" splitType="Prevent">
+				<printWhenExpression><![CDATA[new Boolean($F{TRANS_TYPE}.equals( "MEMO" ) && !($V{PAGE_NUMBER}.intValue() != 1 && $P{reporttype}.equals( "xls" )))]]></printWhenExpression>
+				<staticText>
+					<reportElement key="staticText-38" stretchType="RelativeToTallestObject" x="0" y="0" width="372" height="13" isPrintWhenDetailOverflows="true" uuid="e5dc269f-67a2-434a-acb0-647c521b7c0d"/>
+					<box leftPadding="1" rightPadding="0">
+						<topPen lineWidth="1.0" lineStyle="Solid"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Total]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" pattern="#,##0.0" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="372" y="0" width="75" height="13" isPrintWhenDetailOverflows="true" uuid="34cb2803-4df6-47a3-9e05-51a74f4266a5"/>
+					<box rightPadding="1">
+						<topPen lineWidth="1.0" lineStyle="Solid"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{INV_QTY_1}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="$ #,##0.00" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" mode="Transparent" x="447" y="0" width="95" height="13" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF" uuid="4f0889f5-bf01-472d-a1d8-9251cbaa8654"/>
+					<box rightPadding="1">
+						<topPen lineWidth="1.0" lineStyle="Solid"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+						<font fontName="Arial" size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+						<paragraph lineSpacing="Single"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{AMT_2}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-38" stretchType="RelativeToTallestObject" x="542" y="0" width="45" height="13" isPrintWhenDetailOverflows="true" uuid="6fc51b47-c7b8-4a8b-bc68-4047139526ef"/>
+					<box leftPadding="1" rightPadding="1">
+						<topPen lineWidth="1.0"/>
+						<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+			</band>
+			<band height="13">
+				<printWhenExpression><![CDATA[new Boolean($F{TRANS_TYPE}.equals( "MEMO" ) && !($V{PAGE_NUMBER}.intValue() != 1 && $P{reporttype}.equals( "xls" )))]]></printWhenExpression>
+				<componentElement>
+					<reportElement x="228" y="0" width="314" height="13" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="9a9bfdb9-44e0-49bc-a7bc-b0173c4c5e1a"/>
+					<jr:list xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" printOrder="Vertical">
+						<datasetRun subDataset="othChgs" uuid="b7f74610-fb33-47ad-8776-b05dfe6a516c">
+							<datasetParameter name="invType">
+								<datasetParameterExpression><![CDATA[$F{INV_TYPE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="invId">
+								<datasetParameterExpression><![CDATA[$F{INV_ID}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="totAmt">
+								<datasetParameterExpression><![CDATA[$V{AMT_1}]]></datasetParameterExpression>
+							</datasetParameter>
+							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						</datasetRun>
+						<jr:listContents height="13" width="314">
+							<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+								<reportElement key="staticText-22" x="0" y="0" width="263" height="13" uuid="8317f94a-b544-4b79-ac85-b3b2ce1e66bd"/>
+								<textElement textAlignment="Left" verticalAlignment="Middle" markup="none">
+									<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{CHARGE_NAME}]]></textFieldExpression>
+							</textField>
+							<textField isStretchWithOverflow="true" pattern="$ #,##0.00" isBlankWhenNull="true">
+								<reportElement key="textField" stretchType="RelativeToTallestObject" mode="Transparent" x="263" y="0" width="51" height="13" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF" uuid="471cd9b4-f228-4da5-9835-25778eea2fac"/>
+								<box topPadding="1" leftPadding="1" bottomPadding="3" rightPadding="1"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+									<font fontName="Arial" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+									<paragraph lineSpacing="Single"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{AMT}]]></textFieldExpression>
+							</textField>
+						</jr:listContents>
+					</jr:list>
+				</componentElement>
+			</band>
+			<band height="276">
+				<printWhenExpression><![CDATA[new Boolean($F{TRANS_TYPE}.equals( "MEMO" ) && !($V{PAGE_NUMBER}.intValue() != 1 && $P{reporttype}.equals( "xls" )))]]></printWhenExpression>
+				<textField>
+					<reportElement key="staticText-25" x="0" y="0" width="119" height="13" uuid="8e432762-0385-4703-9e4e-6918a3b203aa"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["COMMENTS:"]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-37" x="0" y="13" width="587" height="25" uuid="5fe7cab8-c6e1-45ee-b0ad-e9d0e21ffc6d"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{REMARKS}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement key="staticText-25" x="0" y="45" width="119" height="13" uuid="e84a9d33-f32e-40d0-9a4c-b653430035ff"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Disclaimer:"]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-37" x="0" y="71" width="587" height="205" uuid="5fe7cab8-c6e1-45ee-b0ad-e9d0e21ffc6d"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Justified" verticalAlignment="Top">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA["The merchandise described and valued as above (merchandise) is delivered to you for inspection only. Title to the merchandise, except as expressly provided herein, shall at all times remain with " + $F{COMP_OFF_NAME} + ". You shall have no right, power or authority to sell, pledge, transfer, dispose or hypothecate all or any part of the Merchandise, by agreement or otherwise. You will not represent these goods to any seller as being owned by you and will inform creditors that these goods are not part of your inventory and belong to " + $F{COMP_OFF_NAME} + ".\n" +
+"\n" +
+"The sale of any or all of the merchandise by " + $F{COMP_OFF_NAME} + " to you shall only occur upon the rendition of an invoice by " + $F{COMP_OFF_NAME} + " to you for the merchandise. This agreement is NOT an invoice. A sale of any portion of such merchandise by " + $F{COMP_OFF_NAME} + " to you shall not affect the terms and provisions hereof with respect to the remaining merchandise in your possession on agreement. In the event that " + $F{COMP_OFF_NAME} + " sells all or any of the merchandise to you, you hereby grant " + $F{COMP_OFF_NAME} + " security interest in such Merchandise and the proceeds thereof.\n" +
+"\n" +
+"Upon demand, you shall immediately return the Merchandise to " + $F{COMP_OFF_NAME} + " in its original form, without substitution. While the merchandise is in your possession or that of your agents or representatives and until the merchandise is returned to " + $F{COMP_OFF_NAME} + ", you assume all risks of loss or damage to such merchandise regardless of cause. In case the seller retains account for collection of amount due under terms of this agreement the buyer agrees to pay the actual attorney’s fees or actual collection agency’s fees with interest and the costs of the court. Any discrepancies must be brought to our attention within 7 days of the invoice date, enabling us to take necessary action. Further all terms and conditions mentioned above will be deemed to be accepted unless notified in writing within 7 days of the memo date.\n" +
+"\n" +
+"The diamonds herein invoiced have been purchased from legitimate sources not involved in funding conflict, in compliance with United Nations Resolutions and corresponding national laws. The seller hereby guarantees that these diamonds are conflict free and confirms adherence to the World Diamond Council System of Warranties Guidelines."]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="0" y="58" width="587" height="13" uuid="45466bb5-c4b1-46e2-a596-61574dff01f5"/>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="ContIdGroup">
+		<groupExpression><![CDATA[$F{CONT_ID}]]></groupExpression>
+		<groupHeader>
+			<band splitType="Prevent"/>
+		</groupHeader>
+		<groupFooter>
+			<band height="13" splitType="Immediate">
+				<componentElement>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="542" height="13" isPrintWhenDetailOverflows="true" uuid="e61e19e7-f0ee-405b-9c1d-d1fafadfeafb"/>
+					<jr:list xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" printOrder="Vertical">
+						<datasetRun subDataset="componentDet" uuid="9c5db9af-4da9-4ff1-a05c-08b2c5b36d44">
+							<datasetParameter name="contId">
+								<datasetParameterExpression><![CDATA[$F{CONT_ID}]]></datasetParameterExpression>
+							</datasetParameter>
+							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						</datasetRun>
+						<jr:listContents height="13" width="542">
+							<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+								<reportElement stretchType="RelativeToTallestObject" x="119" y="0" width="63" height="13" uuid="81eab5f2-8127-409b-8785-8208a323c3e9"/>
+								<box leftPadding="1"/>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="7"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{LOT_CODE}]]></textFieldExpression>
+							</textField>
+							<textField isStretchWithOverflow="true" pattern="###0.0" isBlankWhenNull="true">
+								<reportElement stretchType="RelativeToTallestObject" x="182" y="0" width="40" height="13" uuid="9af6927d-d175-47e0-8fd1-63dff8f3b176"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="Arial" size="7"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{NO_OF_STN}]]></textFieldExpression>
+							</textField>
+							<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+								<reportElement stretchType="RelativeToTallestObject" x="222" y="0" width="40" height="13" uuid="08b0a85f-5125-4a5c-a357-1283ab640fcd"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="Arial" size="7"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{TAG_WT}]]></textFieldExpression>
+							</textField>
+							<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+								<reportElement stretchType="RelativeToTallestObject" x="397" y="0" width="50" height="13" uuid="da67da23-7ae6-4d78-bc83-f3daea2f6dbe"/>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="7"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{COLOR_CLARITY}]]></textFieldExpression>
+							</textField>
+							<textField pattern="" isBlankWhenNull="true">
+								<reportElement stretchType="RelativeToTallestObject" mode="Transparent" x="262" y="0" width="135" height="13" forecolor="#000000" backcolor="#FFFFFF" uuid="6b4c9a8e-f00a-4b69-96a6-64d53d12bd3d"/>
+								<box leftPadding="1"/>
+								<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+									<font fontName="Arial" size="7" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+									<paragraph lineSpacing="Single"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{DESCRIPTION}]]></textFieldExpression>
+							</textField>
+						</jr:listContents>
+					</jr:list>
+				</componentElement>
+			</band>
+			<band height="3">
+				<staticText>
+					<reportElement x="0" y="0" width="587" height="3" uuid="a25923fc-79cc-43cd-b7c2-76611c417d95"/>
+					<box>
+						<topPen lineWidth="0.1" lineColor="#666666"/>
+					</box>
+					<text><![CDATA[]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="17" splitType="Stretch">
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="20" y="0" width="99" height="14" isPrintWhenDetailOverflows="true" uuid="e0a862dd-5874-4556-a6cc-2e513f62d5b1"/>
+				<box>
+					<topPen lineWidth="0.0" lineColor="#666666"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{STYLE_NO}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="119" y="0" width="63" height="14" isPrintWhenDetailOverflows="true" uuid="9fdfb986-bcb7-43d9-bee5-3b463099de92"/>
+				<box>
+					<topPen lineWidth="0.0" lineColor="#666666"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{CONT_NO}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="262" y="0" width="115" height="14" isPrintWhenDetailOverflows="true" uuid="193a6c5d-6854-42c7-855b-4ba71a57c902"/>
+				<box>
+					<topPen lineWidth="0.0" lineColor="#666666"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{DESCRIPTION}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.0" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="427" y="0" width="20" height="14" isPrintWhenDetailOverflows="true" uuid="52a5b471-c4e6-4d9b-817b-d8c3e251c3ec"/>
+				<box>
+					<topPen lineWidth="0.0" lineColor="#666666"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{INV_QTY}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="$ #,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="447" y="0" width="45" height="14" isPrintWhenDetailOverflows="true" uuid="d8180c77-890e-4a3e-8f61-19a064fa4514"/>
+				<box>
+					<topPen lineWidth="0.0" lineColor="#666666"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{RATE}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="$ #,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" mode="Transparent" x="492" y="0" width="50" height="14" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF" uuid="7d8eb92b-ce17-4732-b126-71c6066ce5fb"/>
+				<box>
+					<topPen lineWidth="0.0" lineColor="#666666"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="Arial" size="7" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{AMT}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0." isBlankWhenNull="true">
+				<reportElement key="textField-43" stretchType="RelativeToTallestObject" x="0" y="0" width="20" height="14" isPrintWhenDetailOverflows="true" uuid="e80252e3-dd7f-4b15-8d0c-186ff955508d"/>
+				<box>
+					<topPen lineWidth="0.0" lineColor="#666666"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{invIdGroup_COUNT}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="$ #,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="542" y="0" width="45" height="14" isPrintWhenDetailOverflows="true" uuid="7fdc3d04-eb15-451d-9ce4-d16a516c9e69"/>
+				<box>
+					<topPen lineWidth="0.0" lineColor="#666666"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{MSRP}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="222" y="0" width="40" height="14" isPrintWhenDetailOverflows="true" uuid="9fdfb986-bcb7-43d9-bee5-3b463099de92"/>
+				<box>
+					<topPen lineWidth="0.0" lineColor="#666666"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{CONSUMED_QTY1}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" mode="Transparent" x="182" y="0" width="40" height="14" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF" uuid="124c5fe0-ddc2-4b4e-a9d1-a17e35fdb08b"/>
+				<box>
+					<topPen lineWidth="0.0" lineColor="#666666"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="Arial" size="7" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{CONSUMED_QTY2}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="377" y="0" width="50" height="14" isPrintWhenDetailOverflows="true" uuid="193a6c5d-6854-42c7-855b-4ba71a57c902"/>
+				<box>
+					<topPen lineWidth="0.0" lineColor="#666666"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{DIAM_QUALITY}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="14" width="587" height="3" uuid="d09d4bd1-05d0-42a9-9bd2-a5bc97c5179c"/>
+				<text><![CDATA[Static text]]></text>
+			</staticText>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<lastPageFooter>
+		<band splitType="Stretch"/>
+	</lastPageFooter>
+	<summary>
+		<band height="266" splitType="Stretch">
+			<printWhenExpression><![CDATA[new Boolean((!$F{TRANS_TYPE}.equals( "MEMO" )) && !($V{PAGE_NUMBER}.intValue() != 1 && $P{reporttype}.equals( "xls" )))]]></printWhenExpression>
+			<textField>
+				<reportElement x="0" y="251" width="587" height="15" uuid="e6048e7d-5a7b-48df-bd7d-a671eb197db7"/>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Thank you for your business"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-91" x="0" y="38" width="587" height="12" uuid="6dcfa572-2d9d-408d-a2b3-7cb8d859fe2d"/>
+				<box leftPadding="1" rightPadding="1"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField>
+				<reportElement key="staticText-97" x="0" y="50" width="588" height="15" uuid="c18c097a-c886-4f42-bb53-80f7cf870c81"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" Disclaimer :"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="staticText-8" stretchType="RelativeToTallestObject" x="0" y="78" width="588" height="14" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="5c933152-ceb0-4b5d-8220-369e915a551c"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="8" isBold="false" pdfFontName="Helvetica" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["This invoice is for RESALE only."]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="staticText-8" stretchType="RelativeToTallestObject" x="0" y="92" width="588" height="54" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="509bd877-a4d9-4b89-bac5-f5026820f6a1"/>
+				<textElement textAlignment="Justified" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="8" isBold="false" pdfFontName="Helvetica" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["The diamonds herein invoiced have been purchased from legitimate sources not involved in funding conflict, in compliance with United Nations Resolutions and corresponding national laws. The seller hereby guarantees that these diamonds are conflict free and confirms adherence to the World Diamond Council System of Warranties Guidelines."]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="staticText-8" stretchType="RelativeToTallestObject" x="0" y="174" width="587" height="35" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="ebdfb3bb-4d29-4e42-b206-528d760c856d"/>
+				<textElement textAlignment="Justified" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="8" isBold="false" pdfFontName="Helvetica" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Please remit the payment either(i)by check in the name of  " + $F{COMP_OFF_NAME} + " and mail check to address indicated above on this invoice or by(ii)"+
+"\nwire to Capital One Bank N.A.(1001 Avenue of Americas), New York NY 10018 for the credit of Account Number 7528845823 |" +
+"\nRouting Number 065000090 | SWIFT HIBKUS44."]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="staticText-8" stretchType="RelativeToTallestObject" x="0" y="209" width="587" height="38" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="8bd8a66e-0665-43e8-8480-c3d9aa4dfcd8"/>
+				<textElement textAlignment="Justified" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="8" isBold="false" pdfFontName="Helvetica" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["The company shall not be liable for any loss or damage arising out of or resulting from the remittance made to beneficiary other than Martin Flyer Jewelry LLC."+
+"\nAny past due balances are subject to finance charges @ 2% per month. If seller is forced to recover nonpayment, buyer agrees to pay collection agency's" +
+"\nactual charges and in case of legal action buyer agrees to pay attorney's fees, cost and other expenses including court fee, if any."]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-25" x="0" y="247" width="588" height="4" uuid="7130bb85-c18e-4bb9-a471-af13026e33a4"/>
+				<box leftPadding="1" rightPadding="1"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="staticText-8" stretchType="RelativeToTallestObject" x="0" y="146" width="587" height="28" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="e563fdb1-f9fc-4d3b-99e9-d2044d1b8623"/>
+				<textElement textAlignment="Justified" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="8" isBold="false" pdfFontName="Helvetica" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Any discrepancies in this invoice must be reported within 7 days of the invoice date. All other terms and conditions will be deemed to be accepted unless"+
+"\n notified in writing within 7 days of the invoice date."]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement key="staticText-25" x="0" y="0" width="119" height="13" uuid="27c3b775-eb20-4656-9100-e90e163da707"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["COMMENTS:"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField-37" x="0" y="13" width="587" height="25" uuid="5fe7cab8-c6e1-45ee-b0ad-e9d0e21ffc6d"/>
+				<box leftPadding="1" rightPadding="1"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{REMARKS}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="65" width="587" height="13" uuid="fbfe5b47-bd35-47ce-9099-bbc7fcef64ca"/>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

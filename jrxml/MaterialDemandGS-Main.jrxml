@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MaterialDemand" pageWidth="455" pageHeight="840" whenNoDataType="AllSectionsNoDetail" columnWidth="445" leftMargin="5" rightMargin="5" topMargin="5" bottomMargin="5" isIgnorePagination="true" uuid="c77f7cdd-f3a0-446c-9002-ab96fc3ebcf4">
+	<property name="ireport.zoom" value="1.5026296018031562"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="i_inv_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA["45"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="tenant" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'NA'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dateFormat" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new String("dd-Mon-yyyy")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["E:\\jasper-reports\\jrxml\\"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+	m.inv_id AS inv_id,
+	CONCAT(max(m.inv_type),'-',max(m.inv_no)) AS demand_no,
+          m.inv_date,
+	STRING_AGG(DISTINCT CONCAT(sm.sales_order_type,'-',sm.sales_order_no), ',') AS so_no
+FROM tbl_material_demand_main m
+INNER JOIN tbl_material_demand_det d
+	ON m.inv_id = d.inv_id
+	AND d.is_deleted = 0
+
+LEFT JOIN tbl_sales_order_main sm
+	ON d.so_id = sm.sales_order_id
+
+WHERE m.is_deleted = 0
+	AND m.inv_id IN ($P!{i_inv_id})
+
+GROUP BY
+	m.inv_id
+ORDER BY
+	m.inv_id;]]>
+	</queryString>
+	<field name="inv_id" class="java.lang.Integer"/>
+	<field name="demand_no" class="java.lang.String"/>
+	<field name="inv_date" class="java.sql.Date"/>
+	<field name="so_no" class="java.lang.String"/>
+	<group name="Sku">
+		<groupExpression><![CDATA[]]></groupExpression>
+	</group>
+	<title>
+		<band height="73">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="445" height="25" isPrintWhenDetailOverflows="true" uuid="69708c5b-0e3e-457d-9abc-bbeaef6e2982"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{so_no}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="75" y="40" width="75" height="18" isPrintWhenDetailOverflows="true" uuid="9d73b6d9-7166-4f09-85f7-1c35e02d3493"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{demand_no}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="40" width="75" height="18" isPrintWhenDetailOverflows="true" uuid="7cc90120-b695-43ab-aa55-9ee6578ffed7"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Demand No   :]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="370" y="40" width="75" height="18" isPrintWhenDetailOverflows="true" uuid="0696d4e2-581c-4300-b6a5-0b237ff01add"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{inv_date}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement stretchType="RelativeToTallestObject" x="273" y="40" width="97" height="18" isPrintWhenDetailOverflows="true" uuid="8a56793f-80f5-4d6e-a8a5-61eee9bfa149"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Demand Date   :]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="113">
+			<subreport>
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="445" height="113" isPrintWhenDetailOverflows="true" uuid="82b8cab9-6f5c-45de-90ff-bf89b21725ec"/>
+				<subreportParameter name="tenant"/>
+				<subreportParameter name="i_inv_id">
+					<subreportParameterExpression><![CDATA[$F{inv_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="dateFormat"/>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "MaterialDemandGS-DIA.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="155">
+			<subreport>
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="0" width="445" height="155" isRemoveLineWhenBlank="true" uuid="acc11d6f-4723-422e-a2e3-4a6c0fdd6de3"/>
+				<subreportParameter name="i_inv_id">
+					<subreportParameterExpression><![CDATA[$F{inv_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "MaterialDemandGS-ColS.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band splitType="Immediate"/>
+	</pageFooter>
+</jasperReport>

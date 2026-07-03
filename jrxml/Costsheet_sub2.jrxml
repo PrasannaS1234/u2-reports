@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ProformaSalesInvoiceCostsheet_subreport1" pageWidth="456" pageHeight="802" columnWidth="456" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="76111d11-bc33-4a99-a86b-c6967d8684c0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="inv_det_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+sum(gold_wt) as gold_wt,
+sum(silver_wt) as silver_wt,
+sum(gold_loss_wt) as gold_loss_wt,
+sum(silver_loss_wt) as silver_los_wt,
+sum(dia_wt) as dia_wt,
+sum(stone_wt) as stone_wt,
+sum(labor_qty) + sum(alloy_qty) + sum(cad_qty) as labour_total
+from
+(
+	-- Component Details
+SELECT
+		sum(CASE when lot.lot_type = 'METAL' and pc.consumed_qty1 > 0 and UPPER(com.commodity_name)
+		like '%GOLD%' then pc.consumed_qty1 end ) as gold_wt,
+		sum(CASE when lot.lot_type = 'METAL' and pc.consumed_qty1 > 0 and UPPER(com.commodity_name)
+		like '%SILVER%' then pc.consumed_qty1 end) as silver_wt,
+		sum(CASE when lot.lot_type = 'METAL' and pc.consumed_qty1 > 0 and UPPER(com.commodity_name)
+		like '%GOLD%' then pc.loss_qty1 end ) as gold_loss_wt,
+		sum(CASE when lot.lot_type = 'METAL' and pc.consumed_qty1 > 0 and UPPER(com.commodity_name)
+		like '%SILVER%' then pc.loss_qty1 end) as silver_loss_wt,
+	    sum(CASE WHEN pc.consumed_qty1 > 0 and lot.lot_type = 'STONE' and com.metal_type = 'DIAMOND'
+	    then pc.consumed_qty1 end) as dia_wt,
+	    sum(CASE WHEN pc.consumed_qty1 > 0 and lot.lot_type = 'STONE' and com.metal_type != 'DIAMOND'
+	    then pc.consumed_qty1 end) as stone_wt,
+		 0 cad_qty,
+		 0 alloy_qty,
+		 0 labor_qty
+    FROM tbl_proforma_factory_invoice_component pc
+    JOIN tbl_lot lot
+        ON pc.lot_id = lot.lot_id
+       AND lot.is_deleted = 0
+    JOIN tbl_commodity com
+        ON lot.commodity_id = com.commodity_id
+       AND com.is_deleted = 0
+    WHERE pc.is_deleted = 0
+      AND pc.inv_det_id = $P!{inv_det_id}
+    GROUP BY com.commodity_name
+union all
+--Labour BreakUp Details
+SELECT
+    0 gold_wt,
+	0 silver_wt,
+	0 gold_loss_wt,
+	0 silver_loss_wt,
+	0 dia_wt,
+	0 stone_wt,
+	case when UPPER(pro.process_name) like '%CAD%' then pl.qty end  as cad_qty,
+	case when UPPER(pro.process_name) like '%ALLOY%' then pl.qty  end as alloy_qty,
+    case when UPPER(pro.process_name) not like '%ALLOY%' and  UPPER(pro.process_name) not like '%CAD%' then pl.qty end as labor_qty
+FROM tbl_proforma_factory_invoice_labour pl
+LEFT JOIN tbl_process pro
+    ON pl.process_id = pro.process_id
+WHERE pl.is_deleted = 0
+  AND pl.inv_det_id = $P!{inv_det_id}
+)tmp]]>
+	</queryString>
+	<field name="gold_wt" class="java.math.BigDecimal"/>
+	<field name="silver_wt" class="java.math.BigDecimal"/>
+	<field name="gold_loss_wt" class="java.math.BigDecimal"/>
+	<field name="silver_los_wt" class="java.math.BigDecimal"/>
+	<field name="dia_wt" class="java.math.BigDecimal"/>
+	<field name="stone_wt" class="java.math.BigDecimal"/>
+	<field name="labour_total" class="java.math.BigDecimal"/>
+	<detail>
+		<band height="16" splitType="Stretch">
+			<textField isStretchWithOverflow="true" pattern="###0.000" isBlankWhenNull="true">
+				<reportElement x="116" y="0" width="56" height="16" isPrintWhenDetailOverflows="true" uuid="b9682aea-d58b-4635-88ed-df22fc806392"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{gold_wt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.000" isBlankWhenNull="true">
+				<reportElement x="55" y="0" width="61" height="16" isPrintWhenDetailOverflows="true" uuid="a43250b2-97c2-4818-803e-bf5beb7c03f6"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{silver_los_wt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.000" isBlankWhenNull="true">
+				<reportElement x="356" y="0" width="50" height="16" isPrintWhenDetailOverflows="true" uuid="51f0171d-96f2-4d7b-a5c2-5abfa64e65e6"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{dia_wt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.000" isBlankWhenNull="true">
+				<reportElement x="236" y="0" width="120" height="16" isPrintWhenDetailOverflows="true" uuid="cebc81eb-6bfc-4fbc-b0ff-e268f034464b"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{labour_total}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.000" isBlankWhenNull="true">
+				<reportElement x="172" y="0" width="64" height="16" isPrintWhenDetailOverflows="true" uuid="d5d70140-3d18-4906-827a-55c9d6504604"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{gold_loss_wt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.000" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="55" height="16" uuid="afb70b3f-2c13-406e-9b0e-f373f84effeb"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{silver_wt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.000" isBlankWhenNull="true">
+				<reportElement x="406" y="0" width="50" height="16" isPrintWhenDetailOverflows="true" uuid="d06079d5-520b-4807-a371-69ae1ac042ee"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{stone_wt}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="CertificateTrueLove" pageWidth="612" pageHeight="792" whenNoDataType="AllSectionsNoDetail" columnWidth="572" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="a3b71617-a723-40a8-b69a-57aaf2514290">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="FRONT_END_URL" class="java.lang.String">
+		<defaultValueExpression><![CDATA["''"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="i_input_nos" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'LP000024'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="tenant" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'tenanthi2b1g'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="loginCompanyId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[4]]></defaultValueExpression>
+	</parameter>
+	<parameter name="i_guest_name" class="java.lang.String"/>
+	<parameter name="i_inv_id" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select
+	upper(sku.category)	prod_desc,
+	upper(COALESCE(concat(jew.jew_type,jew.jew_no), sku.sku_no))	model_no,
+	upper(tcomp.shapes) dia_shape,
+	upper(concat(j.white_diamond_wt,', ',coalesce(nullif(j.color_diamond_wt,''),j.color_stone_wt)))	dia_weight,
+	upper(j.diamond_clarity)	color_clarity,
+	upper(tlot.lot_code) 	metal_type,
+	round((coalesce(j.tag_price,0)),0) price,
+	$P!{i_guest_name} guest_name,
+	concat('/home/ubuntu/tekfilo/jewtrade/uploads/',$P{tenant},'comp',j.company_id,'/cert_desires_header.jpg') header_img,
+	concat('/home/ubuntu/tekfilo/jewtrade/uploads/',$P{tenant},'comp',j.company_id,'/cert_desires_body.jpg') body_img,
+	concat('/home/ubuntu/tekfilo/jewtrade/uploads/',$P{tenant},'comp',sku.company_id,'/sku/',sku.sku_id,sku.image_url)	image_url,
+	j.printing_id
+from
+	tbl_label_printing j
+	inner join tbl_sku sku on j.sku_id = sku.sku_id
+	left join tbl_jewellery jew on j.jew_id = jew.jew_id
+	left join tbl_lot tlot on j.metal_id = tlot.lot_id
+	left join
+		(
+			select
+				comp.sku_id,
+				(string_agg(distinct sh.shape_name, ',')) as shapes
+			from
+				tbl_sku_component comp
+				inner join tbl_commodity tcom on comp.commodity_id = tcom.commodity_id
+				inner join tbl_commodity_group cg on tcom.commodity_group_id = cg.commodity_group_id
+					and cg.commodity_group_type not in ('COLORSTONE','METAL','LABOUR','FG_COST','TOTAL_COST')
+				left join tbl_shape sh on comp.shape_id = sh.shape_id
+			where
+				comp.is_deleted = 0
+			group by
+				comp.sku_id
+		) tcomp on j.sku_id = tcomp.sku_id
+where
+	j.is_deleted = 0
+	and (j.printing_id) in ($P!{i_inv_id})]]>
+	</queryString>
+	<field name="prod_desc" class="java.lang.String"/>
+	<field name="model_no" class="java.lang.String"/>
+	<field name="dia_shape" class="java.lang.String"/>
+	<field name="dia_weight" class="java.lang.String"/>
+	<field name="color_clarity" class="java.lang.String"/>
+	<field name="metal_type" class="java.lang.String"/>
+	<field name="price" class="java.math.BigDecimal"/>
+	<field name="guest_name" class="java.lang.String"/>
+	<field name="header_img" class="java.lang.String"/>
+	<field name="body_img" class="java.lang.String"/>
+	<field name="image_url" class="java.lang.String"/>
+	<field name="printing_id" class="java.lang.Integer"/>
+	<group name="jew_id">
+		<groupExpression><![CDATA[$F{printing_id}]]></groupExpression>
+		<groupHeader>
+			<band height="278" splitType="Stretch">
+				<image scaleImage="FillFrame" hAlign="Center" onErrorType="Icon">
+					<reportElement x="0" y="0" width="572" height="137" uuid="d321d392-3f56-4210-9e76-0cf3ca0ea981"/>
+					<imageExpression><![CDATA[$F{header_img}]]></imageExpression>
+				</image>
+				<staticText>
+					<reportElement x="0" y="155" width="572" height="77" uuid="4952b77f-380b-4e6e-a6cc-5a4baeac3459"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="14"/>
+					</textElement>
+					<text><![CDATA[The TrueLove Diamond collection was created to help you celebrate the beauty & rarity of true love. Each piece in the TrueLove diamond collection is designed to capture the essence and magic of true love: the greatest gift of all.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="232" width="572" height="46" forecolor="#000099" uuid="91e7d332-ebf9-4552-adf6-f5cd24f0df20"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Edwardian Script ITC" size="36" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Statement of Value & Authenticity]]></text>
+				</staticText>
+			</band>
+			<band height="232">
+				<image onErrorType="Icon">
+					<reportElement x="0" y="0" width="231" height="192" uuid="349ff345-a6c1-4dc3-a8eb-119b0ed71022"/>
+					<imageExpression><![CDATA[$F{body_img}]]></imageExpression>
+				</image>
+				<staticText>
+					<reportElement x="0" y="0" width="263" height="20" uuid="7d4d106b-5c12-4d2f-85f3-5b751df634cf"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial Black" size="12" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Description:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="26" width="263" height="20" uuid="76a1b3fa-f348-4cde-947a-4f66913e0f10"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial Black" size="12" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Model Number:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="52" width="263" height="20" uuid="79ac29c7-01e8-4e76-8d12-f56350ce7d81"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial Black" size="12" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Diamond Shape:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="78" width="263" height="20" uuid="fd7f71dd-fab4-4501-90a0-eeb9fe0bfbb3"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial Black" size="12" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Total Diamond Weight:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="104" width="263" height="20" uuid="e7497f0e-634f-4c80-954e-904feedd2d32"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial Black" size="12" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Diamond Color/Clarity:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="130" width="263" height="20" uuid="93f4de9e-86c3-47b4-85fd-81a6ee9b6cf0"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial Black" size="12" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Metal Type:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="156" width="263" height="20" uuid="c7facbf3-5aa5-4f76-ae5a-7c3bcfa8b1c8"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial Black" size="12" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Price Paid:]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="263" y="0" width="309" height="20" backcolor="#DDE4FF" uuid="b146cf37-c863-41fd-b2f9-539c59bc8f83"/>
+					<box leftPadding="5"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="12"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{prod_desc}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="263" y="26" width="309" height="20" backcolor="#DDE4FF" uuid="d886ec8e-7e0a-44cc-841b-ef1eb9ec09dd"/>
+					<box leftPadding="5"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="12"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{model_no}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="263" y="52" width="309" height="20" backcolor="#DDE4FF" uuid="26ae9f24-9f36-4729-b694-241cb8815d18"/>
+					<box leftPadding="5"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="12"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{dia_shape}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="263" y="78" width="309" height="20" backcolor="#DDE4FF" uuid="d84c24c5-91ae-42d1-8f88-4b8bee638ee6"/>
+					<box leftPadding="5"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="12"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{dia_weight}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="263" y="104" width="309" height="20" backcolor="#DDE4FF" uuid="b6bc1b29-3310-4752-ac9a-526d0e91dd02"/>
+					<box leftPadding="5"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="12"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{color_clarity}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="263" y="130" width="309" height="20" backcolor="#DDE4FF" uuid="bdd662aa-a194-4722-a0f3-277d009f0ab4"/>
+					<box leftPadding="5"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="12"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{metal_type}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="263" y="156" width="309" height="20" backcolor="#DDE4FF" uuid="3ac813e5-5c6a-4bc3-b916-974156a8758c"/>
+					<box leftPadding="5"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="12"/>
+					</textElement>
+					<textFieldExpression><![CDATA["$ " + $F{price}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="0" y="192" width="170" height="20" uuid="70869e28-9672-420f-bdfc-40d944e70630"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="12" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Guest Name:]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="170" y="192" width="402" height="20" backcolor="#DDE4FF" uuid="3a74cf09-afed-46e2-85ef-531bc1e9354d"/>
+					<box leftPadding="5">
+						<pen lineColor="#999999"/>
+						<topPen lineColor="#999999"/>
+						<leftPen lineColor="#999999"/>
+						<bottomPen lineWidth="1.5" lineColor="#999999"/>
+						<rightPen lineColor="#999999"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="12"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{guest_name}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="230" splitType="Stretch">
+				<staticText>
+					<reportElement x="0" y="190" width="350" height="20" uuid="58c36185-a2ff-4597-84d9-8f00ad8c2755"/>
+					<textElement textAlignment="Justified" verticalAlignment="Middle">
+						<font fontName="Arial" size="14" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Aseem Singh, Brand Owner]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="210" width="350" height="20" uuid="4d71b1dc-224b-4c5c-97a5-449a0dc59b0a"/>
+					<textElement textAlignment="Justified" verticalAlignment="Middle">
+						<font fontName="Arial" size="14" isBold="true"/>
+					</textElement>
+					<text><![CDATA[TrueLove Diamonds]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="0" width="336" height="190" uuid="c6c48c42-1ff7-47b0-983f-53c9bf69431a"/>
+					<box topPadding="5" leftPadding="5" bottomPadding="5" rightPadding="5"/>
+					<textElement textAlignment="Justified" verticalAlignment="Top">
+						<font size="11"/>
+					</textElement>
+					<text><![CDATA[TrueLove guarantees that our diamonds and gemstones are conflict free based on personal knowledge and/or written guarantees provided by our suppliers. We require our diamond suppliers to subscribe to the Kimberly Process warranty system. All jewelry is manufactured in the USA, India and China. When product is imported from India and China, all custom duties have been paid for by TrueLove Diamonds.]]></text>
+				</staticText>
+				<image hAlign="Center" onErrorType="Icon">
+					<reportElement x="350" y="0" width="222" height="210" uuid="8bbd2f5f-f4fe-42c3-a886-0835a04f3ad8"/>
+					<box>
+						<topPen lineWidth="1.5" lineColor="#CCCCCC"/>
+						<leftPen lineWidth="1.5" lineColor="#CCCCCC"/>
+						<bottomPen lineWidth="1.5" lineColor="#CCCCCC"/>
+						<rightPen lineWidth="1.5" lineColor="#CCCCCC"/>
+					</box>
+					<imageExpression><![CDATA[$F{image_url}]]></imageExpression>
+				</image>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+</jasperReport>

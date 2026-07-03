@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SkUMaster" pageWidth="840" pageHeight="842" columnWidth="830" leftMargin="5" rightMargin="5" topMargin="5" bottomMargin="5" isIgnorePagination="true" uuid="e46e22ca-9416-4007-b33f-e330bb6818a5">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="tenant" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'NA'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA["E:\\Development\\source-code\\jew-trade-service\\src\\main\\resources\\jasper\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="i_sku_id" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select s.sku_id,
+	s.sku_no,
+	d.design_no,
+	to_char(s.created_dt,'dd/MM/yyyy') created_dt,
+	pt.product_type_name,
+	f.factory_name,
+	ps.product_size,
+	l.lot_code,
+	s.metal_weight,
+	col.collection_name,
+	pr.parameter_name category,	concat('/home/ubuntu/tekfilo/jewtrade/uploads/',$P{tenant},'comp',s.company_id,'/sku/',s.sku_id,s.image_url) image_url
+from
+	tbl_sku s
+	inner join tbl_product_type pt on s.product_type_id = pt.product_type_id
+	left join tbl_lot l on s.metal_id = l.lot_id
+	left join tbl_design d on s.design_id = d.design_id
+	left join tbl_factory f on s.factory_id = f.factory_id
+	left join tbl_global_parameter pr on pr.parameter_group = 'CATEGORY'
+		and pr.is_deleted = 0
+		and s.category = pr.parameter_code
+	left join tbl_collection col on s.collection_id = col.collection_id
+	left join tbl_product_size ps on s.product_size_id = ps.size_id
+where
+	s.sku_id = $P!{i_sku_id}]]>
+	</queryString>
+	<field name="sku_id" class="java.lang.Integer"/>
+	<field name="sku_no" class="java.lang.String"/>
+	<field name="design_no" class="java.lang.String"/>
+	<field name="created_dt" class="java.lang.String"/>
+	<field name="product_type_name" class="java.lang.String"/>
+	<field name="factory_name" class="java.lang.String"/>
+	<field name="product_size" class="java.lang.String"/>
+	<field name="lot_code" class="java.lang.String"/>
+	<field name="metal_weight" class="java.math.BigDecimal"/>
+	<field name="collection_name" class="java.lang.String"/>
+	<field name="category" class="java.lang.String"/>
+	<field name="image_url" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="307">
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="48" width="71" height="20" backcolor="#F9F5F5" uuid="d2278762-ad9c-4cd4-9703-6bbc6712ea63"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[SKU No]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="71" y="48" width="118" height="20" isPrintWhenDetailOverflows="true" uuid="5f68319f-6cbf-4f77-aaeb-e0100b357e55"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sku_no}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="16" width="71" height="20" backcolor="#F9F5F5" uuid="391f962e-916f-404b-9799-c5e440fd1a0a"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="71" y="16" width="118" height="20" uuid="fc3f3bcb-22ba-4530-ae3d-f2040ad1ef61"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{created_dt}]]></textFieldExpression>
+			</textField>
+			<image hAlign="Center" vAlign="Top" isUsingCache="true" onErrorType="Icon">
+				<reportElement x="415" y="4" width="150" height="150" uuid="bf1e73be-8f9a-4358-acdc-7b22e516f989"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<imageExpression><![CDATA[$F{image_url}]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="128" width="71" height="20" backcolor="#F9F5F5" uuid="10c74263-0fef-4f68-803f-5b8dd155051d"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Size]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="71" y="128" width="118" height="20" uuid="701aee63-f449-4077-b9d7-6b21ac1991c4"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{product_size}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="88" width="71" height="20" backcolor="#F9F5F5" uuid="4af5bde0-e2be-4317-9827-450198ed1d81"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Category]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="108" width="71" height="20" backcolor="#F9F5F5" uuid="8d9f5437-0e52-49d1-8591-8456bf6bcd84"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Collection]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="71" y="88" width="118" height="20" isPrintWhenDetailOverflows="true" uuid="8094240a-f0b5-42f3-bda1-f1da7f6f268e"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{category}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="71" y="108" width="118" height="20" uuid="a47a9880-4f30-4869-9918-4a34ab328c9f"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{collection_name}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="80" y="197" width="115" height="20" backcolor="#F9F5F5" uuid="fe2b8a4f-4d6f-410f-bd74-aff9813a1bdb"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Commmodity]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="195" y="197" width="80" height="20" backcolor="#F9F5F5" uuid="6314e24a-b661-49bc-8c83-e026fcc25e06"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Shape]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="415" y="197" width="70" height="20" backcolor="#F9F5F5" uuid="a74b4be2-d4f6-427e-b845-5e623e5d1b33"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Sieve Size]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="485" y="197" width="70" height="20" backcolor="#F9F5F5" uuid="35f44239-a4ef-4858-8a5c-5fdb5877d813"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[MM Size]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="595" y="197" width="70" height="20" backcolor="#F9F5F5" uuid="1eaca27d-fea4-44b7-a54f-07da96467eff"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total Wt (CTS)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="555" y="197" width="40" height="20" backcolor="#F9F5F5" uuid="80458142-f178-4f59-9608-3638fea9e917"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PCS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="735" y="197" width="40" height="20" backcolor="#F9F5F5" uuid="93b28c49-2587-43c4-9584-a1d6cd3a07e6"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Center]]></text>
+			</staticText>
+			<subreport>
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="217" width="830" height="90" uuid="d5ec06d0-eef3-42f6-9708-e7bdc87b5cfa"/>
+				<subreportParameter name="sku_id">
+					<subreportParameterExpression><![CDATA[$P{i_sku_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "SKUComponentDTN.jasper"]]></subreportExpression>
+			</subreport>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="68" width="71" height="20" backcolor="#F9F5F5" uuid="e30539e8-5480-431d-ae85-a4e6b1371467"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Design No]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="71" y="68" width="118" height="20" isPrintWhenDetailOverflows="true" uuid="6eb683f3-ded2-4c41-8b34-bc3214b4c8bb"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{design_no}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="665" y="197" width="70" height="20" backcolor="#F9F5F5" uuid="b6fcf7b9-65bc-476c-bd4b-c97a9eb9a5bf"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PC Wt (CTS)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="345" y="197" width="70" height="20" backcolor="#F9F5F5" uuid="6b9ed462-9023-4e11-b745-bbfbe07f4b85"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Clarity]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="275" y="197" width="70" height="20" backcolor="#F9F5F5" uuid="e4076382-4e80-4434-a65e-7ac5fe37e92f"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Color]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="197" width="80" height="20" backcolor="#F9F5F5" uuid="372704fc-3de3-446a-842d-0068d09777d9"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Lot No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="177" width="195" height="20" uuid="79ce7979-0176-47f9-8523-95d49f726baa"/>
+				<textElement>
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Commodity]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="775" y="197" width="55" height="20" backcolor="#F9F5F5" uuid="bd2d94cf-dd4c-4927-8827-1479892e3895"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Setting Type]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+</jasperReport>

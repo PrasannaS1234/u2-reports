@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="LabelSticker" pageWidth="170" pageHeight="93" columnWidth="166" leftMargin="2" rightMargin="2" topMargin="0" bottomMargin="0" isTitleNewPage="true" uuid="b36743b0-36b6-484f-abd8-bbe0d7ea16a2">
+	<property name="ireport.zoom" value="6.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="i_bag_no" class="java.lang.String">
+		<defaultValueExpression><![CDATA["' '"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+	max(t.jew_id) jew_id,
+	max(concat(t.jew_type, t.jew_no)) job_type_no,
+	bag.bag_id job_id,
+	max(concat(bag.bag_type, bag.bag_no)) bag_type_no,
+	max(bag.customer_bag_no) customer_bag_order_no,
+	max(so.reference_no) customer_ref_no,
+ 	max(concat(c.customer_name, nullif(concat(' - ',cst.store_name),' - '))) customer_name,
+	max(mfi.bag_gross_wt) gross_wt,
+	max(bag.customer_bag_order_no) customer_order_no,
+    max(lt.lot_code) lot_code,
+	round(sum(case when cmg.commodity_group_type in ('DIAMOND','CVD','CERTDIAMOND','LOOSEDIAMOND') and ltt.lot_type = 'STONE' then mfc.consumed_qty1 end),3) dia_cts,
+	round(sum(case when cmg.commodity_group_type in ('DIAMOND','CVD','CERTDIAMOND','LOOSEDIAMOND') and ltt.lot_type = 'STONE' then mfc.consumed_qty2 end),2
+) dia_pcs,
+	round(sum(case when cmg.commodity_group_type not in ('DIAMOND','CVD','CERTDIAMOND','LOOSEDIAMOND') and ltt.lot_type = 'STONE' then mfc.consumed_qty1 end),3) cs_cts,
+	round(sum(case when cmg.commodity_group_type not in ('DIAMOND','CVD','CERTDIAMOND','LOOSEDIAMOND') and ltt.lot_type = 'STONE' then mfc.consumed_qty2 end),2) cs_pcs
+from
+	tbl_jewellery t
+	inner join tbl_mfg_bag bag on t.jew_id= bag.job_id
+		and bag.is_deleted = 0
+	inner join tbl_lot lt on t.metal_id = lt.lot_id
+	inner join tbl_mfg_factory_invoice_det mfi on mfi.bag_id = bag.bag_id
+	    and mfi.is_deleted = 0
+	inner join tbl_mfg_factory_invoice_main mf on mfi.inv_id = mf.inv_id
+		and mf.is_deleted = 0
+    inner join tbl_mfg_factory_invoice_component mfc on mfi.bag_id = mfc.bag_id
+	    and mfi.inv_id = mfc.inv_id
+		and mf.inv_id = mfc.inv_id
+		and mfc.inv_det_id = mfi.inv_det_id
+		and mfc.is_deleted = 0
+    inner join tbl_sales_order_main so on t.sales_order_id = so.sales_order_id
+    inner join tbl_sales_order_det sod on so.sales_order_id = sod.sales_order_id
+		and t.sales_order_det_id = sod.sales_order_det_id
+    left join tbl_customer c on mf.customer_id = c.customer_id
+		and c.is_deleted = 0
+    inner join tbl_lot ltt on mfc.lot_id = ltt.lot_id
+    left join tbl_commodity cm ON ltt.commodity_id = cm.commodity_id
+	left join tbl_commodity_group cmg ON cm.commodity_group_id = cmg.commodity_group_id
+    left join tbl_customer_store cst on sod.store_id = cst.store_id
+where concat(bag.bag_type, bag.bag_no) in ($P!{i_bag_no})
+group by
+     bag.bag_id
+order by
+     bag.bag_id]]>
+	</queryString>
+	<field name="jew_id" class="java.lang.Integer"/>
+	<field name="job_type_no" class="java.lang.String"/>
+	<field name="job_id" class="java.lang.Integer"/>
+	<field name="bag_type_no" class="java.lang.String"/>
+	<field name="customer_bag_order_no" class="java.lang.String"/>
+	<field name="customer_ref_no" class="java.lang.String"/>
+	<field name="customer_name" class="java.lang.String"/>
+	<field name="gross_wt" class="java.math.BigDecimal"/>
+	<field name="customer_order_no" class="java.lang.String"/>
+	<field name="lot_code" class="java.lang.String"/>
+	<field name="dia_cts" class="java.math.BigDecimal"/>
+	<field name="dia_pcs" class="java.math.BigDecimal"/>
+	<field name="cs_cts" class="java.math.BigDecimal"/>
+	<field name="cs_pcs" class="java.math.BigDecimal"/>
+	<group name="BAG" isStartNewPage="true">
+		<groupExpression><![CDATA[$F{bag_type_no}]]></groupExpression>
+		<groupHeader>
+			<band height="42">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="34" y="0" width="40" height="12" uuid="78c56a27-b3b8-47e3-b56f-bcb172a116cc"/>
+					<box leftPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Narrow" size="7" isBold="false" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{bag_type_no}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="4" y="28" width="70" height="14" isPrintWhenDetailOverflows="true" uuid="6d2cef24-4e99-47cc-88c4-691abdc05d53"/>
+					<box>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial Narrow" size="5" isBold="false" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{customer_name}]]></textFieldExpression>
+				</textField>
+				<image>
+					<reportElement x="4" y="0" width="28" height="28" uuid="ff2f23e3-4265-434d-91a7-8824324125b3"/>
+					<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(      new com.google.zxing.qrcode.QRCodeWriter().encode(         $F{bag_type_no},          com.google.zxing.BarcodeFormat.QR_CODE, 800, 800))]]></imageExpression>
+				</image>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="34" y="12" width="40" height="12" uuid="68741571-8f31-4f79-a5b7-1029e78ce992"/>
+					<box leftPadding="5">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial Narrow" size="7" isBold="false" isUnderline="true" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA["M"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="105" y="0" width="27" height="8" uuid="29bb62b6-59aa-4a7e-b52b-e22587eacccc"/>
+					<box leftPadding="1" rightPadding="1">
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font fontName="Arial Narrow" size="6" isBold="false" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{gross_wt}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="137" y="0" width="24" height="8" uuid="06a11235-6a84-4ccf-83a7-03ce137da3c0"/>
+					<box leftPadding="0">
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial Narrow" size="6" isBold="false" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{lot_code}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="81" y="0" width="22" height="8" uuid="11643aba-0e14-428d-81e5-b8f61b8f000e"/>
+					<textElement verticalAlignment="Top" markup="none">
+						<font fontName="Arial Narrow" size="6" isBold="false" isUnderline="false" pdfFontName="Helvetica"/>
+					</textElement>
+					<text><![CDATA[G.WT]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="81" y="8" width="22" height="8" uuid="47bed57f-ef36-480b-8909-d09d21801cec"/>
+					<textElement verticalAlignment="Top" markup="none">
+						<font fontName="Arial Narrow" size="6" isBold="false" isUnderline="false" pdfFontName="Helvetica"/>
+					</textElement>
+					<text><![CDATA[DIA.WT]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" x="81" y="16" width="22" height="8" uuid="d53d719a-2c7d-45fe-840b-fea4b93f18bb"/>
+					<textElement verticalAlignment="Top" markup="none">
+						<font fontName="Arial Narrow" size="6" isBold="false" isUnderline="false" pdfFontName="Helvetica"/>
+					</textElement>
+					<text><![CDATA[CS.WT]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="105" y="8" width="27" height="8" uuid="4f8baeef-347d-4fbf-8b23-38d1430de4f5"/>
+					<box leftPadding="1" rightPadding="1">
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font fontName="Arial Narrow" size="6" isBold="false" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{dia_cts}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="137" y="8" width="24" height="8" uuid="f57ab78a-8e14-4c8a-af3b-1a01cca0ae09"/>
+					<box>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial Narrow" size="6" isBold="false" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{dia_pcs}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="137" y="16" width="24" height="8" uuid="49d0d86a-00ae-47cd-85c0-161e8d71bb7d"/>
+					<box>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial Narrow" size="6" isBold="false" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{cs_pcs}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="105" y="16" width="27" height="8" uuid="21d52b85-96f1-4e4c-b5fa-fd6cc9fa193c"/>
+					<box leftPadding="1" rightPadding="1">
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font fontName="Arial Narrow" size="6" isBold="false" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{cs_cts}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="132" y="8" width="5" height="8" uuid="9b851c71-df28-4be5-b665-768fee73186b"/>
+					<box>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial Narrow" size="6" isBold="false" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA["/ "]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="132" y="16" width="5" height="8" uuid="354a9ae6-04cf-4555-b402-9a4346ac5ed1"/>
+					<box>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial Narrow" size="6" isBold="false" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA["/ "]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="132" y="0" width="5" height="8" uuid="8c30f54a-1a9d-465d-a7b2-c24a37fb68a4"/>
+					<box>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial Narrow" size="6" isBold="false" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA["/ "]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="81" y="21" width="80" height="12" uuid="7559b407-faeb-44df-9a0c-3ab8c69675ce"/>
+					<box topPadding="1">
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial Narrow" size="6" isBold="false" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{customer_bag_order_no}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="81" y="29" width="80" height="12" uuid="0c64c146-98ac-4595-87cc-7ebdb0cc35ec"/>
+					<box topPadding="1">
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial Narrow" size="6" isBold="false" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{customer_order_no}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="103" y="0" width="2" height="8" uuid="e793a2e6-4595-469e-86e4-03010bc04a70"/>
+					<box>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial Narrow" size="6" isBold="false" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[": "]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="103" y="8" width="2" height="8" uuid="58c06d79-3a34-4ac4-9b4d-740a2c3e3993"/>
+					<box>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial Narrow" size="6" isBold="false" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[": "]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="103" y="16" width="2" height="8" uuid="bab79d76-affd-44b6-8570-1d4b702396f4"/>
+					<box>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial Narrow" size="6" isBold="false" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[": "]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+</jasperReport>

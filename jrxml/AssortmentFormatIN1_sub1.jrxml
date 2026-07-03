@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="AssortmentFormatIN1" pageWidth="770" pageHeight="840" columnWidth="770" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="61fcc04f-329c-4f00-b3f6-941874fefd1c">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="i_inv_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'-1'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA["E:\\Development\\source-code\\jew-trade-service\\src\\main\\resources\\jasper\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="i_grp_2" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'NA'"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+ tx.inv_id, tx.grp_1
+from
+(
+select
+	row_number() over (partition by t.inv_id order by t.inv_id, d.assort_qty1 ) sno,
+	t.sales_order_id,
+	t.inv_id,
+	d.inv_det_id,
+	col.color_name,
+	cla.clarity_name,
+	d.customer_bag_no,
+	d.stone_size,
+	d.assort_qty1,
+	d.assort_qty2,
+	d.bag_id,
+	concat(round(sum(d.assort_qty2) over (partition by t.inv_id, d.assort_qty1, d.assort_qty2 order by 1),0),'D/',
+	round(sum(d.assort_qty1) over (partition by t.inv_id, d.assort_qty1, d.assort_qty2 order by 1),3)) grp_1,
+	concat(round(sum(d.assort_qty2) over (partition by t.inv_id order by 1),0),'D/',
+	round(sum(d.assort_qty1) over (partition by t.inv_id order by 1),3)) grp_2
+from
+	tbl_mfg_stone_assortment_bagging t
+	inner join tbl_mfg_stone_assortment_bagging_det d on t.inv_id = d.inv_id
+		and d.is_deleted = 0
+	inner join tbl_lot l on d.lot_id = l.lot_id
+	left join tbl_color col on l.color_id = col.color_id
+	left join tbl_clarity cla on l.clarity_id = cla.clarity_id
+where
+	t.is_deleted = 0
+	and t.inv_id = $P!{i_inv_id}
+order by
+	t.inv_id, d.assort_qty1
+)tx
+inner join tbl_sales_order_main so on tx.sales_order_id = so.sales_order_id
+left join tbl_mfg_bag bag on tx.bag_id = bag.bag_id
+left join tbl_jewellery j on bag.job_id = j.jew_id
+left join tbl_sales_order_det sod on j.sales_order_det_id = sod.sales_order_det_id
+	and tx.sales_order_id = sod.sales_order_id
+	and sod.is_deleted = 0
+left join tbl_sku sku on bag.sku_id = sku.sku_id
+
+where tx.grp_2 = $P{i_grp_2}
+group by tx.inv_id, tx.grp_1
+order by min(sno)]]>
+	</queryString>
+	<field name="inv_id" class="java.lang.Integer"/>
+	<field name="grp_1" class="java.lang.String"/>
+	<group name="G1" keepTogether="true">
+		<groupExpression><![CDATA[$F{grp_1}]]></groupExpression>
+		<groupHeader>
+			<band height="20" splitType="Prevent">
+				<textField isStretchWithOverflow="true">
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" isPrintRepeatedValues="false" x="330" y="0" width="50" height="20" uuid="75053ed8-1194-4ec4-9817-af23818163a5"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{grp_1}]]></textFieldExpression>
+				</textField>
+				<subreport>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="330" height="20" isPrintWhenDetailOverflows="true" uuid="00f74a97-9da1-41d4-9704-b80728270364"/>
+					<subreportParameter name="SUBREPORT_DIR">
+						<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="i_grp_2">
+						<subreportParameterExpression><![CDATA[$P{i_grp_2}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="i_inv_id">
+						<subreportParameterExpression><![CDATA[$F{inv_id}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="i_grp_1">
+						<subreportParameterExpression><![CDATA[$F{grp_1}.toString()]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "AssortmentFormatIN1_sub2.jasper"]]></subreportExpression>
+				</subreport>
+			</band>
+		</groupHeader>
+	</group>
+</jasperReport>

@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="InvoiceBankLetter" pageWidth="594" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="554" leftMargin="20" rightMargin="20" topMargin="50" bottomMargin="20" uuid="c77f7cdd-f3a0-446c-9002-ab96fc3ebcf4">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="225"/>
+	<parameter name="i_inv_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="tenant" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'NA'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dateFormat" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new String("dd-Mon-yyyy")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="bank_id" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+    max(tcomp.company_name) company_name,
+          COALESCE(max(tcomp.city),'') comp_city,
+	max(im.inv_id) inv_id,
+fn_get_customer_invoice_no(max(im.inv_type),max(im.inv_id)) cus_doc_type,
+	max(im.inv_type) inv_type,
+	max(im.inv_type||'-'||im.inv_no) inv_type_no,
+	to_char(max(im.inv_dt), 'dd/mm/yyyy') inv_dt,
+	to_char(max(im.inv_due_dt), 'dd/mm/yyyy')     inv_due_dt,
+	max(COALESCE(bank.bank_name,'')) bank_name,
+          'Account No : ' ||max(COALESCE(bank.bank_account_number,'')) acc_no,
+		  max(COALESCE(bank.beneficiary_name,'')) beneficiary,
+		  max(COALESCE(bank.bank_address,'')) bank_add,
+          'IFSC Code : ' ||max(COALESCE(bank.ifsc_code,'')) ifsc_code,
+          max(im.total_invoice_qty1) qty1,
+           max(im.total_invoice_amount) total_amt,
+           max(im.inv_type||'-'||im.inv_no) inv_type_no,
+           COALESCE(max(tcomp.ie_code_no),'') comp_ie_code_no,
+           COALESCE(max(c.carrier_name),'') carrier,
+           to_char(max(tcomp.iec_date), 'dd/mm/yyyy') comp_iec_date,
+           ROUND(MAX(im.total_invoice_amount) / NULLIF(MAX(im.exchange_rate),0), 2) AS total_amt_usd
+from
+	tbl_memo_sales_invoice_main im
+	inner join tbl_company tcomp on im.company_id = tcomp.company_id
+	inner join tbl_memo_sales_invoice_det id on im.inv_id = id.inv_id
+		and id.is_deleted = 0
+          left join tbl_company_bank bank on ($P!{bank_id}) = bank.map_id
+          left join tbl_carrier c on im.carrier_id = c.carrier_id
+where
+	im.is_deleted = 0
+	and im.inv_id in ($P!{i_inv_id})
+group by
+	im.inv_id,
+	im.inv_type]]>
+	</queryString>
+	<field name="company_name" class="java.lang.String"/>
+	<field name="comp_city" class="java.lang.String"/>
+	<field name="inv_id" class="java.lang.Integer"/>
+	<field name="cus_doc_type" class="java.lang.String"/>
+	<field name="inv_type" class="java.lang.String"/>
+	<field name="inv_type_no" class="java.lang.String"/>
+	<field name="inv_dt" class="java.lang.String"/>
+	<field name="inv_due_dt" class="java.lang.String"/>
+	<field name="bank_name" class="java.lang.String"/>
+	<field name="acc_no" class="java.lang.String"/>
+	<field name="beneficiary" class="java.lang.String"/>
+	<field name="bank_add" class="java.lang.String"/>
+	<field name="ifsc_code" class="java.lang.String"/>
+	<field name="qty1" class="java.math.BigDecimal"/>
+	<field name="total_amt" class="java.math.BigDecimal"/>
+	<field name="comp_ie_code_no" class="java.lang.String"/>
+	<field name="carrier" class="java.lang.String"/>
+	<field name="comp_iec_date" class="java.lang.String"/>
+	<field name="total_amt_usd" class="java.math.BigDecimal"/>
+	<group name="BAG" keepTogether="true">
+		<groupExpression><![CDATA[$F{inv_id}]]></groupExpression>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="458">
+			<staticText>
+				<reportElement x="0" y="42" width="39" height="20" uuid="f09683cf-a797-4b3e-811b-7138cad43ca8"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date : ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="39" y="42" width="100" height="20" uuid="aead290b-8713-467c-a0a3-7dc995c38f99"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{inv_dt}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="164" y="64" width="235" height="20" uuid="c3a992c4-0c0e-4f1b-9b96-95d278ae5662"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[EXPORT UNDER CONSIGNMENT BASIS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="84" width="39" height="20" uuid="d6fd313f-9da5-44ba-9f42-bac08cd88b10"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[TO,]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="104" width="225" height="16" uuid="8d0176ca-f8e1-42c3-b4aa-9d57ce5c86be"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[The Manager,]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="120" width="554" height="16" uuid="222e0fb9-4048-4e84-bcb9-ce1fb5765c2b"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bank_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="136" width="554" height="16" uuid="36e12400-e670-4943-b7c3-51da9d511df9"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bank_add}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="176" width="554" height="15" uuid="50719acd-46cc-45c3-86a0-8983352d2dbc"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="191" width="554" height="15" uuid="2215ddc1-c99a-4206-b1d0-d22c818a41fa"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Dear Sir/ Madam,"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="206" width="554" height="10" uuid="e480a80c-2021-4681-9977-7b38af166037"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="216" width="554" height="43" uuid="61b79a6b-87ac-4302-83d9-ec84dcf3a9e9"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["We would like to inform you that we are exporting cut and polished diamonds on consignment basis in terms of para 4.53 of FTP & Para 4.93 of HBP 2015-20 under the Invoice number "+$F{cus_doc_type}+" and Invoice Date : "+ $F{inv_dt} +" ,Total Carats :"+$F{qty1} +" valuing US$ "+$F{total_amt_usd}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="259" width="554" height="20" uuid="0060d580-832c-4f8b-9818-6823382d6a94"/>
+				<textElement markup="none">
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["IEC CODE :"+$F{comp_ie_code_no}+"; ISSUE DATE :"+$F{comp_iec_date}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="279" width="554" height="20" uuid="999b3eb2-1c1c-4ad8-a149-a66201cb0840"/>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isBold="true" isUnderline="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["We undertake that:-"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="299" width="554" height="20" uuid="389a1731-e95b-4592-902a-a1228f894dee"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["i) We shall produce relative Bill of Entry within one month of re-import into India of the unsold items."]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="319" width="554" height="30" uuid="c7ee0ae0-37be-4879-9d5f-c30b2375a9de"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ii) The sale proceeds of the items sold shall be repatriated to India in accordance with the Foreign Exchange Management (Realization, Repatriation, and Surrender of Foreign Exchange) Regulations, 2000."]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="349" width="554" height="30" uuid="6cbb65b4-369f-4d2c-b318-293c5c9bc65e"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["iii) We shall report to the AD Category - I banks the method of disposal of all items exported, as well as the repatriation proceeds to India."]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="379" width="554" height="16" isPrintWhenDetailOverflows="true" uuid="71b4ac63-c9ff-4849-9854-72404aab58c9"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["iv) Door tO Door  Insurance Covered By "+$F{carrier}+ " in INDIA."]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="395" width="554" height="16" isPrintWhenDetailOverflows="true" uuid="834afc76-803e-460f-9969-b8719372696e"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["v) UnSold Goods will be re-imported on the expiry of 180 days from the date of export."]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="554" height="42" uuid="ca6e088c-45d7-4dbe-806e-775de68c40f8"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="443" width="554" height="15" uuid="4170fb4e-089c-4179-9233-252cbacdecbb"/>
+				<textFieldExpression><![CDATA[" as per Regulatory guidelines."]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="411" width="554" height="16" isPrintWhenDetailOverflows="true" uuid="01560611-a763-4ae4-9a34-2933d54b9241"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["vi) We undertake to provide Insurance certificate and Transport document evidencing Insurance and Freight being arranged in"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="427" width="303" height="16" isPrintWhenDetailOverflows="true" uuid="6ac99069-f956-447f-a415-9133121b45ea"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["India for consignment shipment under Invoice / Delivery Challan no."]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="303" y="427" width="251" height="16" uuid="b9ac4a16-b622-44fb-9173-99ced2960eae"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Invoice No " +$F{cus_doc_type} +" Dt. "+$F{inv_dt}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<summary>
+		<band height="286" splitType="Immediate">
+			<staticText>
+				<reportElement x="0" y="0" width="225" height="20" uuid="e7f6e750-8131-4ba4-af0b-37d3a3baf157"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[DECLARATION-cum-UNDERTAKING]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="20" width="554" height="20" uuid="c82f14f9-187e-47c7-b38d-efd20ac55588"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[(Under Section 10(5), Chapter III of The Foreign Exchange Management Act, 1999)
+
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="40" width="554" height="43" uuid="f50ba42f-3d16-410b-b7fe-94aeee781d46"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[I/We hereby declare that the transaction the details of which are specifically mentioned in the Schedule hereunder does not involve, and is not designed for the purpose of any contravention or evasion of the provisions of the aforesaid Act or of any rule, regulation, notification, direction or order made there under.
+
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="83" width="554" height="30" uuid="340afe4e-3198-45e5-93b2-af0190e38228"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[I/We also hereby agree and undertake to give such information/documents as will reasonably satisfy you about this transaction in terms of the above declaration.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="113" width="554" height="63" isPrintWhenDetailOverflows="true" uuid="41252c6a-fa4f-47a5-bad9-1ce1e283fcc4"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2"/>
+				<textElement verticalAlignment="Top">
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[I/We also understand that if I/We refuse to comply with any such requirement or make only unsatisfactory compliance therewith, the Bank shall refuse in writing to undertake the transaction and shall if it has reason to believe that any contravention/evasion is contemplated by me/us report the matter to Reserve Bank of India.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="176" width="554" height="30" uuid="82f273ab-c491-4cde-bb6c-989be82eaf25"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[I/We further declare that the undersigned has/have the authority to give this declaration and undertaking on behalf of the firm/company.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="216" width="39" height="20" uuid="49cbaa41-f602-4418-a6ee-b036ca34e7cc"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Place :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="39" y="216" width="100" height="20" uuid="1092fbb0-fa9b-42b9-9b24-a79a41ec2f6c"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{comp_city}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="39" y="251" width="100" height="20" uuid="34f6b693-d7bf-404b-bb58-f400bd7b678f"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{inv_dt}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="251" width="39" height="20" uuid="6f931445-30c9-4c52-a969-fe761ced03a0"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date : ]]></text>
+			</staticText>
+			<textField>
+				<reportElement key="staticText-6" positionType="FixRelativeToBottom" x="282" y="266" width="272" height="20" uuid="a3f6a40a-b80b-4057-b65d-e370a6656183"/>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="10" isBold="true" pdfFontName="Helvetica-Bold" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Signature of the Account Holder / Authorized Signatory"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement key="staticText-6" positionType="FixRelativeToBottom" x="282" y="251" width="272" height="15" uuid="e3370e42-50e8-47d7-a11b-28920989d91e"/>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="10" isBold="true" pdfFontName="Helvetica-Bold" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Partner/ Const. Attorney,"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" stretchType="RelativeToTallestObject" mode="Transparent" x="282" y="206" width="272" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="0c4cf864-2578-4ac4-b4cb-da3586a3120d"/>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Top" rotation="None" markup="none">
+					<font fontName="Arial" size="10" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica-Bold" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA["For "+$F{company_name}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" mode="Transparent" x="282" y="224" width="272" height="10" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF" uuid="0317aae8-96ae-400b-92ca-6bc9f9680c4f"/>
+				<box topPadding="2" leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Top" rotation="None" markup="none">
+					<font fontName="Arial" size="6" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single" lineSpacingSize="1.0"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Formarly ALTR (INDIA) PRIVATE LIMITED"]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

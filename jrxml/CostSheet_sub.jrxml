@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="OrderDetailsSub" pageWidth="500" pageHeight="800" columnWidth="500" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="41f0b751-4f50-47aa-a424-779d8d66a782">
+	<property name="ireport.zoom" value="1.5026296018031553"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="inv_det_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="customer_id" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA["'-1'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="currency" class="java.lang.String">
+		<defaultValueExpression><![CDATA["INR"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+    CASE
+        WHEN lot.lot_type = 'METAL'
+             AND pc.consumed_qty1 > 0
+        THEN com.commodity_name
+    END AS commodity_name,
+
+    SUM(pc.consumed_qty1) AS wt,
+
+    MAX(pc.pp_rate) AS pp_rate,
+
+    SUM(pc.consumed_qty1 * pc.pp_rate) AS amount,
+
+    0 AS sales_rate,
+    0 AS sales_amt
+
+FROM tbl_proforma_factory_invoice_component pc
+
+JOIN tbl_lot lot
+    ON pc.lot_id = lot.lot_id
+   AND lot.is_deleted = 0
+
+JOIN tbl_commodity com
+    ON lot.commodity_id = com.commodity_id
+   AND com.is_deleted = 0
+
+WHERE pc.is_deleted = 0
+  AND lot.lot_type = 'METAL'
+  AND pc.inv_det_id IN ($P!{inv_det_id})
+
+GROUP BY 1
+
+UNION ALL
+
+SELECT
+    CONCAT(com.commodity_name, ' LOSS') AS commodity_name,
+
+    SUM(pc.loss_qty1) AS wt,
+
+    MAX(pc.pp_rate) AS pp_rate,
+
+    SUM(pc.loss_qty1 * pc.pp_rate) AS amount,
+
+    0 AS sales_rate,
+    0 AS sales_amt
+
+FROM tbl_proforma_factory_invoice_component pc
+
+LEFT JOIN tbl_lot lot
+    ON pc.lot_id = lot.lot_id
+   AND lot.is_deleted = 0
+
+LEFT JOIN tbl_commodity com
+    ON lot.commodity_id = com.commodity_id
+   AND com.is_deleted = 0
+
+WHERE pc.is_deleted = 0
+  AND pc.inv_det_id IN ($P!{inv_det_id})
+  AND pc.loss_qty1 > 0
+  AND lot.lot_type = 'METAL'
+
+GROUP BY com.commodity_id, com.commodity_name
+
+UNION ALL
+
+-- CAD
+
+SELECT
+    'CAD' AS commodity_name,
+
+    SUM(pl.qty) AS wt,
+
+    MAX(pl.rate) AS pp_rate,
+
+    SUM(pl.amount) AS amount,
+
+    SUM(COALESCE(fr.rate, 0)) AS sales_rate,
+
+    SUM(COALESCE(fr.rate * pl.qty, 0)) AS sales_amt
+
+FROM tbl_proforma_factory_invoice_labour pl
+
+LEFT JOIN tbl_process pro
+    ON pl.process_id = pro.process_id
+
+LEFT JOIN LATERAL
+    f_get_customer_labour_rate(
+        $P{currency}::text,
+        $P!{customer_id},
+        pro.process_id
+    ) fr
+ON TRUE
+
+WHERE pl.is_deleted = 0
+  AND pl.inv_det_id IN ($P!{inv_det_id})
+  AND UPPER(pro.process_name) LIKE '%CAD%'
+
+UNION ALL
+
+-- Labour
+
+SELECT
+    'Labour' AS commodity_name,
+
+    SUM(pl.qty) AS wt,
+
+    MAX(pl.rate) AS pp_rate,
+
+    SUM(pl.amount) AS amount,
+
+    SUM(COALESCE(fr.rate, 0)) AS sales_rate,
+
+    SUM(COALESCE(fr.rate * pl.qty, 0)) AS sales_amt
+
+FROM tbl_proforma_factory_invoice_labour pl
+
+LEFT JOIN tbl_process pro
+    ON pl.process_id = pro.process_id
+
+LEFT JOIN LATERAL
+    f_get_customer_labour_rate(
+        $P{currency}::text,
+        $P!{customer_id},
+        pro.process_id
+    ) fr
+ON TRUE
+
+WHERE pl.is_deleted = 0
+  AND pl.inv_det_id IN ($P!{inv_det_id})
+  AND UPPER(pro.process_name) NOT LIKE '%CAD%'
+
+HAVING COUNT(*) > 0
+
+UNION ALL
+
+-- STONE
+
+SELECT
+    CASE
+        WHEN pc.consumed_qty1 > 0
+             AND lot.lot_type = 'STONE'
+             AND com.metal_type = 'DIAMOND'
+        THEN 'DIA'
+
+        WHEN pc.consumed_qty1 > 0
+             AND lot.lot_type = 'STONE'
+             AND com.metal_type != 'DIAMOND'
+        THEN CONCAT(
+                com.commodity_code,
+
+                CASE
+                    WHEN shape.shape_name IS NOT NULL
+                         AND shape.shape_name != ''
+                         AND shape.shape_name != 'NA'
+                    THEN CONCAT('.', shape.shape_name)
+                    ELSE ''
+                END,
+
+                CASE
+                    WHEN pc.stone_size IS NOT NULL
+                         AND pc.stone_size != ''
+                         AND pc.stone_size != 'NA'
+                    THEN CONCAT('.', pc.stone_size)
+                    ELSE ''
+                END,
+
+                '@',
+                lot.lot_code
+             )
+    END AS commodity_name,
+
+    SUM(pc.consumed_qty1) AS wt,
+
+    SUM(pc.consumed_qty1 * pc.pp_rate)
+        / NULLIF(SUM(pc.consumed_qty1), 0) AS pp_rate,
+
+    SUM(pc.consumed_qty1 * pc.pp_rate) AS amount,
+
+    0 AS sales_rate,
+    0 AS sales_amt
+
+FROM tbl_proforma_factory_invoice_component pc
+
+JOIN tbl_lot lot
+    ON pc.lot_id = lot.lot_id
+   AND lot.is_deleted = 0
+
+LEFT JOIN tbl_shape shape
+    ON pc.shape_id = shape.shape_id
+   AND shape.is_deleted = 0
+
+JOIN tbl_commodity com
+    ON lot.commodity_id = com.commodity_id
+   AND com.is_deleted = 0
+
+WHERE pc.is_deleted = 0
+  AND lot.lot_type = 'STONE'
+  AND pc.inv_det_id IN ($P!{inv_det_id})
+
+GROUP BY 1]]>
+	</queryString>
+	<field name="commodity_name" class="java.lang.String"/>
+	<field name="wt" class="java.math.BigDecimal"/>
+	<field name="pp_rate" class="java.math.BigDecimal"/>
+	<field name="amount" class="java.math.BigDecimal"/>
+	<field name="sales_rate" class="java.math.BigDecimal"/>
+	<field name="sales_amt" class="java.math.BigDecimal"/>
+	<variable name="AMT" class="java.lang.Integer" calculation="Sum">
+		<variableExpression><![CDATA[$F{amount}]]></variableExpression>
+	</variable>
+	<variable name="QTY" class="java.lang.Integer" calculation="Sum">
+		<variableExpression><![CDATA[$F{wt}]]></variableExpression>
+	</variable>
+	<variable name="sales_amt_1" class="java.math.BigDecimal" resetType="Column" calculation="Sum">
+		<variableExpression><![CDATA[$F{sales_amt}]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="16" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="150" height="16" uuid="ee16b1e6-2cf3-4846-aeaf-2b6395bd8bde"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{commodity_name}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.000" isBlankWhenNull="true">
+				<reportElement x="150" y="0" width="70" height="16" isPrintWhenDetailOverflows="true" uuid="135c5e1e-4e22-41ff-9c0a-fef8277edcf7"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{wt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.00" isBlankWhenNull="true">
+				<reportElement x="220" y="0" width="70" height="16" isPrintWhenDetailOverflows="true" uuid="e719c28b-1166-46d1-9b04-9eb48abb351d"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{pp_rate}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="290" y="0" width="70" height="16" isPrintWhenDetailOverflows="true" uuid="e9d36b44-40a2-44c2-8581-efd367e6da83"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{amount}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.00" isBlankWhenNull="true">
+				<reportElement x="360" y="0" width="70" height="16" isPrintWhenDetailOverflows="true" uuid="7ab03cb5-95e8-45c6-a0fc-ce9db57015f4"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{sales_rate}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="430" y="0" width="70" height="16" isPrintWhenDetailOverflows="true" uuid="81b0a592-ece3-4fd1-a9c2-eeef8ca83609"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{sales_amt}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="25">
+			<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="290" y="0" width="70" height="25" isPrintWhenDetailOverflows="true" uuid="dffe36cf-0c51-4203-9223-93fd76e1ef2a"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{AMT}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.000" isBlankWhenNull="true">
+				<reportElement x="150" y="0" width="70" height="25" isPrintWhenDetailOverflows="true" uuid="21c3bb7f-20c7-4ed7-a6a4-41fa74362077"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{QTY}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="150" height="25" uuid="22d9f454-9003-4f37-a4de-ec8df007fad4"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="220" y="0" width="70" height="25" uuid="20deb8d4-5b38-4bba-82d1-6e6a0d5081e1"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[ ]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="###0.00" isBlankWhenNull="true">
+				<reportElement x="360" y="0" width="70" height="25" isPrintWhenDetailOverflows="true" uuid="71bc5b15-9079-4870-9237-b0a93ac54168"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="430" y="0" width="70" height="25" isPrintWhenDetailOverflows="true" uuid="4749a001-9adb-4fb3-a101-b72aa3d716f9"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{sales_amt_1}]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnFooter>
+</jasperReport>

@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="FGSalesVoucherwithImageSuraj_subreport1" pageWidth="146" pageHeight="802" whenNoDataType="AllSectionsNoDetail" columnWidth="146" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="661cb92b-5302-4194-b114-351c2bf3e4d9">
+	<property name="ireport.zoom" value="4.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="i_inv_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="jewId" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT *
+FROM (
+
+    SELECT
+        comp.jew_id,
+        comp.component_id,
+        c.commodity_id,
+        comp.consumed_qty1,
+        c.commodity_name AS stone,
+        des.description
+
+    FROM tbl_jewellery_component comp
+
+    LEFT JOIN tbl_lot l
+           ON comp.lot_id = l.lot_id
+          AND l.is_deleted = 0
+
+    LEFT JOIN (
+        WITH cert_data AS (
+            SELECT
+                lc.lot_id,
+                CONCAT(
+                    ROW_NUMBER() OVER (
+                        PARTITION BY lc.lot_id
+                        ORDER BY lc.certificate_id
+                    ), '. ',
+                    COALESCE(lc.lab_name,''),
+                    COALESCE(', '||lc.certificate_no,''),
+                    COALESCE(', '||clr.color_name,''),
+                    COALESCE(','||cla.clarity_name,'')
+                ) AS cert_string
+            FROM tbl_lot_certificate lc
+            LEFT JOIN tbl_color clr
+                   ON lc.color_id = clr.color_id
+                  AND clr.is_deleted = 0
+            LEFT JOIN tbl_clarity cla
+                   ON lc.clarity_id = cla.clarity_id
+                  AND cla.is_deleted = 0
+            WHERE lc.is_deleted = 0
+        )
+        SELECT
+            lot_id,
+            STRING_AGG(cert_string, E'\n') AS description
+        FROM cert_data
+        GROUP BY lot_id
+    ) des
+        ON l.lot_id = des.lot_id
+
+    LEFT JOIN tbl_commodity c
+        ON comp.commodity_id = c.commodity_id
+
+    WHERE
+        comp.jew_id = $P!{jewId}
+        AND c.metal_type IN ('GEMSTONE','COLORSTONE')
+        AND comp.is_deleted = 0
+
+
+    UNION ALL
+
+    SELECT
+        $P!{jewId}      AS jew_id,
+        NULL            AS component_id,
+        NULL            AS commodity_id,
+        NULL            AS consumed_qty1,
+        ''              AS stone,
+        ''              AS description
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM tbl_jewellery_component comp
+        LEFT JOIN tbl_commodity c
+            ON comp.commodity_id = c.commodity_id
+        WHERE comp.jew_id = $P!{jewId}
+          AND c.metal_type IN ('DIAMOND')
+          AND comp.is_deleted = 0
+    )
+
+) final_data
+
+ORDER BY component_id NULLS LAST;]]>
+	</queryString>
+	<field name="jew_id" class="java.lang.Integer"/>
+	<field name="component_id" class="java.lang.Integer"/>
+	<field name="commodity_id" class="java.lang.Integer"/>
+	<field name="consumed_qty1" class="java.math.BigDecimal"/>
+	<field name="stone" class="java.lang.String"/>
+	<field name="description" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="56" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="35" height="56" isPrintWhenDetailOverflows="true" uuid="e3dcee93-ab19-480a-ab31-7e882e76fb50"/>
+				<box topPadding="3" leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{stone}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.000" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="35" y="0" width="41" height="56" isPrintWhenDetailOverflows="true" uuid="ffe1cf31-e4be-46ae-9ba6-eb8ba822a128"/>
+				<box topPadding="3" leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{consumed_qty1}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="76" y="0" width="70" height="56" isPrintWhenDetailOverflows="true" uuid="a7c0b93d-2331-456d-940c-e50ab8382b90"/>
+				<box topPadding="3" leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{description}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="FGMemoSalesInvoiceFormatUniRich_subreport1" pageWidth="87" pageHeight="802" columnWidth="87" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="6f957234-ae31-4d97-9eed-1feebf634912">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="i_jew_id" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+	tx.jew_id,
+	tx.commodity_name || ' ' || tx.weight group_name
+from
+(
+	select
+		j.jew_id,
+		max(ml.lot_code) commodity_name,
+		0 sort_seq,
+		round(sum(c.consumed_qty1),3) ||' GMS' weight
+	from
+		tbl_jewellery j
+		inner join tbl_jewellery_component c on j.jew_id = c.jew_id
+			and c.is_deleted = 0
+		inner join tbl_lot l on c.lot_id = l.lot_id
+		inner join tbl_commodity com on c.commodity_id = com.commodity_id
+		inner join tbl_lot ml on j.metal_id = ml.lot_id
+	where
+		j.jew_id = $P!{i_jew_id}
+	group by j.jew_id
+	union all
+	select
+		j.jew_id,
+		max(coalesce(com.tag_print_code, com.commodity_name)) commodity_name,
+		max(c.sort_seq) + 1 sort_seq,
+		round(sum(c.consumed_qty2),0) || ' PCS ' || round(sum(c.consumed_qty1),3) ||' CT' weight
+	from
+		tbl_jewellery j
+		inner join tbl_jewellery_component c on j.jew_id = c.jew_id
+			and c.is_deleted = 0
+		inner join tbl_commodity com on c.commodity_id = com.commodity_id
+			and com.commodity_group_id in
+			(select commodity_group_id from tbl_commodity_group where commodity_group_type <>'METAL')
+			and com.commodity_name <> 'Total Cost'
+	where
+		j.jew_id = $P!{i_jew_id}
+	group by j.jew_id, c.commodity_id
+)tx
+order by jew_id, sort_seq]]>
+	</queryString>
+	<field name="jew_id" class="java.lang.Integer"/>
+	<field name="group_name" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="10" splitType="Stretch">
+			<textField>
+				<reportElement mode="Transparent" x="0" y="0" width="87" height="10" backcolor="#3333FF" uuid="a2d6c120-71bf-4046-8d97-fe2b814e689e"/>
+				<box leftPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{group_name}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

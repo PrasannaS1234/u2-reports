@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="TagPrintingBQR" pageWidth="520" pageHeight="200" whenNoDataType="AllSectionsNoDetail" columnWidth="520" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="02027e40-71e4-4e93-a943-a3c8419ca5ce">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<parameter name="companyName" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["'KGK Jewellery Mfg.Ltd'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="areaName" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["'China'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="subAreaName" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["'Panyu'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="firstName" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["'Sathish'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dateFormat" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new String("'dd/mm/yyyy'")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LocalPrintTime" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="reportTitle" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["'Report Title'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="contNos" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["' '"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="styleNos" class="java.lang.String">
+		<defaultValueExpression><![CDATA["' '"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="reporttype" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["xls"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="subAreaId" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new String("15")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="cscID" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new String("27")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="binId" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="priceType" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'S'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="showBin" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'N'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="cscId" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select
+    10001	cont_id,
+    'J000001'	cont_type_no,
+    'STY-00001'	style_no,
+    'STY-00002'	 style_no_l1,
+    'STY-00003'	 style_no_l2,
+    5000 ocpgm_intl,
+    8000 tag_price,
+    '18KY' metal,
+    'Diamond Studded 18K Jewellery' tag_desc,
+    'LBL-000002'	label_no,
+    'STOCK BIN'	 bin_code,
+	'J000001' jid,
+	'J000001' qr_code,
+	'STY-REF-01'	style_reference_no_l1,
+	'STY-REF-02'	style_reference_no_l2]]>
+	</queryString>
+	<field name="cont_id" class="java.lang.Integer"/>
+	<field name="cont_type_no" class="java.lang.String"/>
+	<field name="style_no" class="java.lang.String"/>
+	<field name="style_no_l1" class="java.lang.String"/>
+	<field name="style_no_l2" class="java.lang.String"/>
+	<field name="ocpgm_intl" class="java.lang.Integer"/>
+	<field name="tag_price" class="java.lang.Integer"/>
+	<field name="metal" class="java.lang.String"/>
+	<field name="tag_desc" class="java.lang.String"/>
+	<field name="label_no" class="java.lang.String"/>
+	<field name="bin_code" class="java.lang.String"/>
+	<field name="jid" class="java.lang.String"/>
+	<field name="qr_code" class="java.lang.String"/>
+	<field name="style_reference_no_l1" class="java.lang.String"/>
+	<field name="style_reference_no_l2" class="java.lang.String"/>
+	<variable name="area_subarea" class="java.lang.String">
+		<variableExpression><![CDATA[$P{areaName}.concat(" - ").concat( $P{subAreaName} ).replace("'","")]]></variableExpression>
+		<initialValueExpression><![CDATA[$P{areaName}.concat(" - ").concat( $P{subAreaName} ).replace("'","")]]></initialValueExpression>
+	</variable>
+	<variable name="reportTitle" class="java.lang.String">
+		<variableExpression><![CDATA[$P{reportTitle}]]></variableExpression>
+		<initialValueExpression><![CDATA[$P{reportTitle}]]></initialValueExpression>
+	</variable>
+	<variable name="Company_name" class="java.lang.String">
+		<variableExpression><![CDATA[$P{companyName}.replace("'","")]]></variableExpression>
+		<initialValueExpression><![CDATA[$P{companyName}.replace("'","")]]></initialValueExpression>
+	</variable>
+	<variable name="V_firstName" class="java.lang.String">
+		<initialValueExpression><![CDATA[($P{firstName}.replace( "'", "" ))]]></initialValueExpression>
+	</variable>
+	<variable name="V_DISPLAY_BIN" class="java.lang.String">
+		<variableExpression><![CDATA[]]></variableExpression>
+		<initialValueExpression><![CDATA[]]></initialValueExpression>
+	</variable>
+	<background>
+		<band splitType="Prevent"/>
+	</background>
+	<title>
+		<band/>
+	</title>
+	<pageHeader>
+		<band/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Prevent"/>
+	</columnHeader>
+	<detail>
+		<band height="200" splitType="Prevent">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="520" height="200" isPrintWhenDetailOverflows="true" uuid="912b7b2c-6103-4b7e-85c4-82b8f508f2da"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans Mono" size="12" pdfFontName="Courier"/>
+				</textElement>
+				<textFieldExpression><![CDATA["^XA\n" +
+"^PW600\n" +
+"^FO0,08^A0,23,22^FD" + $F{style_no_l1} + "^FS\n" +
+"^FO0,28^A0,23,22^FD" + $F{style_no_l2} + "^FS\n" +
+"^FO155,28^A0,23,22^FD" + "" + "^FS\n" +
+"^FO0,50^A0,23,22^FD" + $F{tag_desc} + "^FS\n" +
+"^FO0,70^A0,23,22^FD" + $F{metal} + "^FS\n" +
+"^FO155,70^A0,23,22^FD" + $F{bin_code} + "^FS\n" +
+"^FO0,92^A0,23,22^FD" + $F{tag_price} + "^FS\n" +
+"^FO155,92^A0,23,22^FD" + $F{ocpgm_intl} + "^FS\n" +
+"^FO260,08^A0,25,24^FD" + $F{label_no} + "^FS\n" +
+"^FO260,35^BY1^BCN,40,N,N,N^FD" + $F{cont_type_no} + "^FS\n" +
+"^FO260,85^A0,25,24^FD" + $F{cont_type_no} + "^FS\n" +
+"^XZ\n"]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="135">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="520" height="135" isPrintWhenDetailOverflows="true" uuid="50728a98-cf1e-4715-bc60-dd819651999d"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans Mono" size="12" pdfFontName="Courier"/>
+				</textElement>
+				<textFieldExpression><![CDATA["^XA\n" +
+"^PW600\n" +
+"^FO70,10^BQN,2,3\n"+
+"^FDMA,"+$F{qr_code}+"/^FS\n"+
+"^FO260,08^A0,23,22^FD" + $F{style_reference_no_l1} + "^FS\n" +
+"^FO260,28^A0,23,22^FD" + $F{style_reference_no_l2} + "^FS\n" +
+"^FO260,42^BY1^BCN,40,N,N,N^FD" + $F{jid} + "^FS\n" +
+"^FO260,94^A0,25,24^FD" + $F{jid} + "^FS\n" +
+"^XZ\n"]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Prevent"/>
+	</columnFooter>
+	<summary>
+		<band splitType="Prevent"/>
+	</summary>
+</jasperReport>

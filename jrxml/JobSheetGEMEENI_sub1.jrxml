@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="AssortmentFormatIN1_sub" pageWidth="770" pageHeight="840" whenNoDataType="AllSectionsNoDetail" columnWidth="770" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="61fcc04f-329c-4f00-b3f6-941874fefd1c">
+	<property name="ireport.zoom" value="4.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="i_jew_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'-1'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="i_grp_1" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'NA'"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+    l.lot_code,
+    a.accessory_name,
+    a.weight,
+    a.pcs
+FROM
+    tbl_jewellery j
+INNER JOIN tbl_sales_order_det d
+    ON j.sales_order_det_id = d.sales_order_det_id
+    AND d.is_deleted = 0
+INNER JOIN tbl_sales_order_accessories a
+    ON j.sales_order_det_id = a.sales_order_det_id
+    AND a.is_deleted = 0
+INNER JOIN tbl_lot l
+    ON a.lot_id = l.lot_id
+WHERE
+    j.jew_id = $P!{i_jew_id}
+    AND j.job_category = 'Normal';]]>
+	</queryString>
+	<field name="lot_code" class="java.lang.String"/>
+	<field name="accessory_name" class="java.lang.String"/>
+	<field name="weight" class="java.math.BigDecimal"/>
+	<field name="pcs" class="java.math.BigDecimal"/>
+	<columnHeader>
+		<band height="15">
+			<staticText>
+				<reportElement x="0" y="0" width="105" height="15" uuid="dd1aabb7-ecbf-4b02-9d2c-01e13aa20b23"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ACCESSORIES]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="105" y="0" width="40" height="15" uuid="bcb340c9-6d5b-4ae3-bdbc-9faa828e8ab1"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[GM]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="145" y="0" width="40" height="15" uuid="6748f1f6-2c26-48f6-8e68-96418f8e2492"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PCS]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Prevent">
+			<textField>
+				<reportElement x="0" y="0" width="105" height="15" uuid="7f03447b-e819-4d6b-b1d0-6f604732a15e"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lot_code}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="105" y="0" width="40" height="15" uuid="8a0cf6ab-5cc5-481f-bac7-92948c4a0219"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{weight}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="145" y="0" width="40" height="15" uuid="7a22f889-ce5f-4aa2-8dcf-f096138c3ea9"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{pcs}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

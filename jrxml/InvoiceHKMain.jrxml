@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="InvoiceHK" pageWidth="1500" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="1460" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="c61a544a-3e23-400a-89f7-2b62d256624e">
+	<property name="ireport.zoom" value="0.9313819845887338"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="number_color">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$F{total_metal_wt}.doubleValue() < 0]]></conditionExpression>
+			<style forecolor="#FF0000">
+				<pen lineColor="#000000"/>
+			</style>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$F{total_metal_wt}.doubleValue() >= 0]]></conditionExpression>
+			<style/>
+		</conditionalStyle>
+	</style>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA["C:\\tekfilo-java\\tekfilo-connectx-service\\src\\main\\resources\\jasper\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="invId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="customerName" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'Simon G'"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+		t1.inv_id,
+		t1.inv_group,
+		coalesce(max(t1.inv_no),max(main.inv_no)) inv_no,
+		concat(t1.inv_id,'-',t1.inv_group) report_group
+	FROM tbl_invoice_hk_summary t1
+	inner join tbl_invoice_hk_main main on t1.inv_id = main.inv_id
+	where
+	t1.is_deleted = 0
+	and t1.inv_id = $P!{invId}
+	and t1.customer_name = $P!{customerName}
+	group by
+		t1.inv_id,
+		t1.inv_group
+	order by t1.inv_id, max(t1.inv_group_sort_seq) asc]]>
+	</queryString>
+	<field name="inv_id" class="java.lang.Integer"/>
+	<field name="inv_group" class="java.lang.String"/>
+	<field name="inv_no" class="java.lang.String"/>
+	<field name="report_group" class="java.lang.String"/>
+	<group name="invId" isStartNewPage="true">
+		<groupExpression><![CDATA[$F{inv_id}]]></groupExpression>
+		<groupHeader>
+			<band height="100">
+				<subreport>
+					<reportElement x="0" y="0" width="1460" height="100" uuid="3e05ab5b-c688-4d02-815b-db099d4b08e7"/>
+					<subreportParameter name="invNo">
+						<subreportParameterExpression><![CDATA[$F{inv_no}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="SUBREPORT_DIR">
+						<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="customerName">
+						<subreportParameterExpression><![CDATA[$P{customerName}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="invId">
+						<subreportParameterExpression><![CDATA[$P{invId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="invGroup">
+						<subreportParameterExpression><![CDATA[$F{inv_group}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "InvoiceHK.jasper"]]></subreportExpression>
+				</subreport>
+			</band>
+		</groupHeader>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+</jasperReport>

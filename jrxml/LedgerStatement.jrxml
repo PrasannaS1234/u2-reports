@@ -1,0 +1,1139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="LedgerStatement" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="565" leftMargin="15" rightMargin="15" topMargin="15" bottomMargin="15" whenResourceMissingType="Empty" uuid="9082cacc-504e-4f0c-bf8b-360bbb80e8e3">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="1.100000000000002"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="ireport.callouts" value="##Mon Oct 24 18:28:42 CST 2016"/>
+	<property name="net.sf.jasperreports.export.xls.exclude.origin.band.1" value="pageHeader"/>
+	<property name="net.sf.jasperreports.export.xlsx.exclude.origin.band.1" value="pageHeader"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 2">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 2_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 2_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 2_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 3">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 3_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 3_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 3_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 4">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 4_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 4_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 4_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 5">
+		<box>
+			<pen lineWidth="1.0" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<style name="table 5_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<style name="table 5_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<style name="table 5_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineColor="#000000"/>
+			<leftPen lineColor="#000000"/>
+			<bottomPen lineColor="#000000"/>
+			<rightPen lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<style name="table 6">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 6_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 6_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 6_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 7">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 7_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 7_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 7_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 8">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 8_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 8_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 8_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 9">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 9_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 9_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 9_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 10">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 10_TH" mode="Opaque" backcolor="#F8F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 10_CH" mode="Opaque" backcolor="#BFBFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 10_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="Opening Balance" uuid="838ef377-8381-45c6-b937-95cb5177ee28">
+		<parameter name="fromDate" class="java.lang.String">
+			<defaultValueExpression><![CDATA["01/05/2026"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="accountId" class="java.lang.String">
+			<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="dateFormat" class="java.lang.String">
+			<defaultValueExpression><![CDATA["dd/mm/yyyy"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="currency" class="java.lang.String">
+			<defaultValueExpression><![CDATA["'USD'"]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[WITH bal AS
+(
+    SELECT
+        CASE
+            WHEN TRIM(lower($P!{currency})) LIKE 'usd' THEN
+                SUM(
+                    CASE
+                        WHEN d.dr_cr = 'D' THEN d.amount_usd
+                        WHEN d.dr_cr = 'C' THEN -d.amount_usd
+                    END
+                )
+            WHEN TRIM(lower($P!{currency})) <> 'usd' THEN
+                SUM(
+                    CASE
+                        WHEN d.dr_cr = 'D' THEN d.amount
+                        WHEN d.dr_cr = 'C' THEN -d.amount
+                    END
+                )
+        END AS net_amt
+    FROM tbl_account_posting_main m
+    INNER JOIN tbl_account_posting_det d
+        ON d.posting_id = m.posting_id
+       AND d.is_deleted = 0
+    INNER JOIN tbl_account ac
+        ON ac.account_id = d.account_id
+    WHERE
+        m.is_deleted = 0
+        AND ac.account_id = $P!{accountId}
+        AND m.inv_dt < TO_DATE($P{fromDate}, $P{dateFormat})
+)
+
+SELECT
+    CASE
+        WHEN net_amt >= 0 THEN net_amt
+        ELSE NULL
+    END AS debit_amt,
+
+    CASE
+        WHEN net_amt < 0 THEN ABS(net_amt)
+        ELSE NULL
+    END AS credit_amt,
+
+    TO_DATE($P{fromDate}, $P{dateFormat}) AS date
+
+FROM bal;]]>
+		</queryString>
+		<field name="debit_amt" class="java.math.BigDecimal"/>
+		<field name="credit_amt" class="java.math.BigDecimal"/>
+		<field name="date" class="java.sql.Date"/>
+	</subDataset>
+	<subDataset name="Closing Balance" uuid="c0896559-fe99-4bd1-bcfa-b7e0613698ef">
+		<parameter name="toDate" class="java.lang.String">
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="account_id" class="java.lang.String">
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="dateFormat" class="java.lang.String">
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="currency" class="java.lang.String">
+			<defaultValueExpression><![CDATA["'USD'"]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT
+CASE WHEN $P{currency}= 'USD' THEN
+  case when (sum(CASE WHEN d.dr_cr = 'D' THEN d.amount_usd * 1 WHEN d.dr_cr = 'C' THEN d.amount_usd * -1 END)) >= 0
+  then (sum(CASE WHEN d.dr_cr = 'D' THEN d.amount_usd * 1 WHEN d.dr_cr = 'C' THEN d.amount_usd * -1 END)) else null end
+  ELSE
+  case when (sum(CASE WHEN d.dr_cr = 'D' THEN d.amount * 1 WHEN d.dr_cr = 'C' THEN d.amount * -1 END)) >= 0
+  then (sum(CASE WHEN d.dr_cr = 'D' THEN d.amount * 1 WHEN d.dr_cr = 'C' THEN d.amount * -1 END)) else null end
+  END AS debit_amt,
+
+
+  CASE WHEN $P{currency}= 'USD' THEN
+  case when (sum(CASE WHEN d.dr_cr = 'D' THEN d.amount_usd * 1 WHEN d.dr_cr = 'C' THEN d.amount_usd * -1 END)) < 0
+  then (sum(CASE WHEN d.dr_cr = 'D' THEN d.amount_usd * 1 WHEN d.dr_cr = 'C' THEN d.amount_usd * -1 END)*-1) else null end
+  ELSE
+  case when (sum(CASE WHEN d.dr_cr = 'D' THEN d.amount * 1 WHEN d.dr_cr = 'C' THEN d.amount * -1 END)) < 0
+  then (sum(CASE WHEN d.dr_cr = 'D' THEN d.amount * 1 WHEN d.dr_cr = 'C' THEN d.amount * -1 END)*-1)
+  else null end
+  end AS credit_amt,
+
+ to_date($P{toDate},$P{dateFormat}) as date
+
+FROM tbl_account_posting_main m
+INNER JOIN tbl_account_posting_det d
+    ON d.posting_id = m.posting_id
+   AND d.is_deleted = 0
+INNER JOIN tbl_account ac
+    ON ac.account_id = d.account_id
+WHERE
+  m.is_deleted = 0
+  AND m.inv_dt <= to_date($P{toDate},$P{dateFormat})
+  AND ac.account_id = $P!{account_id}]]>
+		</queryString>
+		<field name="debit_amt" class="java.math.BigDecimal"/>
+		<field name="credit_amt" class="java.math.BigDecimal"/>
+		<field name="date" class="java.sql.Date"/>
+	</subDataset>
+	<subDataset name="OTHER BANKS" uuid="e1747b28-69ee-412d-9ebc-cbc8d1c5e759">
+		<parameter name="postingId" class="java.lang.Integer">
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="accountId" class="java.lang.Integer">
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="currency" class="java.lang.String">
+			<defaultValueExpression><![CDATA["'INR'"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="companyId" class="java.lang.Integer">
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[select
+    d.account_id,
+    max(ac.account_name) account_name,
+
+    case
+    when $P!{currency} != 'USD' then
+        sum(case when d.dr_cr = 'D'  and d.amount > 0 then d.amount else null end)
+    else
+        sum(case when d.dr_cr = 'D' and d.amount_usd > 0 then d.amount_usd else null end)
+    end as debit_amt,
+
+    case when
+        (
+            case when $P!{currency} != 'USD' then
+                sum(case when d.dr_cr = 'D' then d.amount else null end)
+            else
+                sum(case when d.dr_cr = 'D' then d.amount_usd else null end)
+            end
+        ) <> 0
+    then 'Dr'
+    end as dr,
+
+    case when $P!{currency} != 'USD' then
+        sum(case when d.dr_cr = 'C' and d.amount > 0 then  d.amount else null end)
+    else
+        sum(case when d.dr_cr = 'C'  and d.amount_usd > 0  then d.amount_usd else null end)
+    end as credit_amt,
+
+    case when
+        (
+            case when $P!{currency} = 'USD' then
+                sum(case when d.dr_cr = 'C' then d.amount_usd else null end)
+            else
+                sum(case when d.dr_cr = 'C' then d.amount else null end)
+            end
+        ) <> 0
+    then 'Cr'
+    end as cr
+
+from tbl_account_posting_main m
+inner join tbl_account_posting_det d
+    on d.posting_id = m.posting_id
+    and d.is_deleted = 0
+inner join tbl_account ac
+    on ac.account_id = d.account_id
+
+where
+    m.company_id = $P!{companyId}
+    and m.is_deleted = 0
+    and m.posting_id = $P!{postingId}
+    and ac.account_id != $P!{accountId}
+
+group by
+    d.account_id;]]>
+		</queryString>
+		<field name="account_id" class="java.lang.Integer"/>
+		<field name="account_name" class="java.lang.String"/>
+		<field name="debit_amt" class="java.math.BigDecimal"/>
+		<field name="dr" class="java.lang.String"/>
+		<field name="credit_amt" class="java.math.BigDecimal"/>
+		<field name="cr" class="java.lang.String"/>
+	</subDataset>
+	<parameter name="i_inv_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="schema" class="java.lang.String">
+		<defaultValueExpression><![CDATA["public"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ReportPrintDateTime" class="java.lang.String"/>
+	<parameter name="ReportPrintedBy" class="java.lang.String"/>
+	<parameter name="tenant" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["E:\\jasper-reports\\jrxml\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="toDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'22/12/2025'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="fromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'22/12/2025'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="companyId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="accountId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dateFormat" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'dd/mm/yyyy'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="currency" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'USD'"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+    MAX(m.inv_dt)                                         AS inv_dt,
+    MAX(m.inv_type)                                       AS inv_type,
+    COALESCE(NULLIF(fn_get_customer_invoice_no(inv_type, inv_id), ''), concat(inv_type, '-', inv_no)) as inv_no,
+    MAX(ac.account_name)                                  AS acc_name,
+    MAX(ac.account_id)                                    AS acc_id,
+    MAX(comp.display_name)                                AS company_name,
+    MAX(m.posting_id)                                     AS posting_id,
+    CONCAT(
+        COALESCE(MAX(comp.street), ''), ' , ',
+        COALESCE(MAX(comp.area),   '')
+    )                                                     AS add1,
+    CONCAT(
+        COALESCE(MAX(comp.city), ''), ' , ',
+        COALESCE(MAX(comp.state), '')
+    )                                                     AS add2,
+    CONCAT('E-Mail : ', MAX(comp.email))                  AS email,
+   CASE
+    WHEN $P!{currency} ='USD'
+    THEN SUM(CASE WHEN d.dr_cr = 'D' and d.amount_usd > 0 THEN d.amount_usd ELSE null END)
+    ELSE SUM(CASE WHEN d.dr_cr = 'D' and d.amount > 0 THEN d.amount ELSE null END)
+    END AS debit_amt,
+    CASE
+    WHEN $P!{currency} ='USD'
+    THEN SUM(CASE WHEN d.dr_cr = 'C' and  d.amount_usd > 0 THEN d.amount_usd ELSE null END)
+	ELSE SUM(CASE WHEN d.dr_cr = 'C' and d.amount > 0 THEN d.amount ELSE null END)
+	END AS credit_amt,
+    to_date($P!{toDate},$P!{dateFormat}) as toDate,
+    to_date($P!{fromDate},$P!{dateFormat}) fromDate,
+    COALESCE(sum(opn.opening_debit), 0)                        AS opening_debit,
+
+    COALESCE(sum(opn.opening_credit), 0)                       AS opening_credit,
+    'Dr' as dr,
+    'Cr' as cr,
+    $P!{currency} as currency,
+    max(d.narration) as narration
+FROM tbl_account_posting_main m
+INNER JOIN tbl_account_posting_det d
+    ON d.posting_id = m.posting_id
+   AND d.is_deleted = 0
+INNER JOIN tbl_account ac
+    ON ac.account_id = d.account_id
+INNER JOIN tbl_company comp
+    ON comp.company_id = m.company_id
+LEFT JOIN (
+    SELECT
+        d.account_id,
+
+        CASE
+            WHEN SUM(
+                CASE
+                    WHEN d.dr_cr = 'D' THEN d.amount
+                    WHEN d.dr_cr = 'C' THEN -d.amount
+                END
+            ) >= 0
+            THEN SUM(
+                CASE
+                    WHEN d.dr_cr = 'D' THEN d.amount
+                    WHEN d.dr_cr = 'C' THEN -d.amount
+                END
+            )
+        END AS opening_debit,
+
+        CASE
+            WHEN SUM(
+                CASE
+                    WHEN d.dr_cr = 'D' THEN d.amount
+                    WHEN d.dr_cr = 'C' THEN -d.amount
+                END
+            ) < 0
+            THEN ABS(SUM(
+                CASE
+                    WHEN d.dr_cr = 'D' THEN d.amount
+                    WHEN d.dr_cr = 'C' THEN -d.amount
+                END
+            ))
+        END AS opening_credit
+
+    FROM tbl_account_posting_main m
+    INNER JOIN tbl_account_posting_det d
+           ON d.posting_id = m.posting_id
+          AND d.is_deleted = 0
+    WHERE m.is_deleted = 0
+      AND m.inv_dt < to_date($P!{fromDate},$P!{dateFormat})
+      AND m.company_id = $P!{companyId}
+    GROUP BY d.account_id
+) opn
+ON opn.account_id = ac.account_id
+WHERE m.company_id = $P!{companyId}
+  AND m.is_deleted = 0
+  AND ac.account_id = $P!{accountId}
+  AND m.inv_dt >= to_date($P!{fromDate},$P!{dateFormat})
+  AND m.inv_dt <= to_date($P!{toDate},$P!{dateFormat})
+GROUP BY
+    m.posting_id
+ORDER BY
+    m.inv_dt]]>
+	</queryString>
+	<field name="inv_dt" class="java.sql.Date"/>
+	<field name="inv_type" class="java.lang.String"/>
+	<field name="inv_no" class="java.lang.String"/>
+	<field name="acc_name" class="java.lang.String"/>
+	<field name="acc_id" class="java.lang.Integer"/>
+	<field name="company_name" class="java.lang.String"/>
+	<field name="posting_id" class="java.lang.Integer"/>
+	<field name="add1" class="java.lang.String"/>
+	<field name="add2" class="java.lang.String"/>
+	<field name="email" class="java.lang.String"/>
+	<field name="debit_amt" class="java.math.BigDecimal"/>
+	<field name="credit_amt" class="java.math.BigDecimal"/>
+	<field name="todate" class="java.sql.Date"/>
+	<field name="fromdate" class="java.sql.Date"/>
+	<field name="opening_debit" class="java.math.BigDecimal"/>
+	<field name="opening_credit" class="java.math.BigDecimal"/>
+	<field name="dr" class="java.lang.String"/>
+	<field name="cr" class="java.lang.String"/>
+	<field name="currency" class="java.lang.String"/>
+	<field name="narration" class="java.lang.String"/>
+	<variable name="total_debit" class="java.lang.Number" calculation="Sum">
+		<variableExpression><![CDATA[$F{opening_debit}]]></variableExpression>
+	</variable>
+	<variable name="total_credit" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{opening_credit}]]></variableExpression>
+	</variable>
+	<group name="Invoice" isStartNewPage="true">
+		<groupHeader>
+			<band height="21">
+				<componentElement>
+					<reportElement x="0" y="0" width="565" height="20" uuid="f4a116cc-b91e-424e-b9b2-dd34588710f0"/>
+					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+						<datasetRun subDataset="Opening Balance" uuid="f0183a93-104f-4246-9f70-d8487152a5bb">
+							<datasetParameter name="fromDate">
+								<datasetParameterExpression><![CDATA[$P{fromDate}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="accountId">
+								<datasetParameterExpression><![CDATA[$P{accountId}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="dateFormat">
+								<datasetParameterExpression><![CDATA[$P{dateFormat}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="currency">
+								<datasetParameterExpression><![CDATA[$P{currency}]]></datasetParameterExpression>
+							</datasetParameter>
+							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						</datasetRun>
+						<jr:column width="53" uuid="2f8a7923-00ac-4b49-844d-bd574f3cd27f">
+							<jr:detailCell height="21" rowSpan="1">
+								<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="53" height="21" uuid="4df8e5d7-7d07-4fd4-a4df-203430770750"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{date}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="217" uuid="7f3310bf-b8ec-4c1b-be73-331f41ea39e7">
+							<jr:detailCell height="21" rowSpan="1">
+								<textField>
+									<reportElement x="0" y="0" width="217" height="21" uuid="715e7a92-2061-4983-a452-c38d73f6024d"/>
+									<textElement verticalAlignment="Middle">
+										<font size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA["Opening Balance"]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="61" uuid="fe3ac3eb-206a-4788-8c2a-1778eb50099d">
+							<jr:detailCell height="21" rowSpan="1">
+								<textField>
+									<reportElement x="0" y="0" width="61" height="21" uuid="8fc45d79-9248-4c9f-905f-53f11710c479"/>
+									<textElement>
+										<font size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[" "]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="130" uuid="ec97f1bf-c34f-4ae8-8ccf-a5115e188387">
+							<jr:detailCell height="21" rowSpan="1">
+								<textField>
+									<reportElement x="0" y="0" width="130" height="21" uuid="0f0edfe6-ddb3-42a7-9b0c-c8e5a0abd94f"/>
+									<textElement>
+										<font size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[" "]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="52" uuid="6ef331eb-6594-4176-ab2d-b9ec35dce589">
+							<jr:detailCell height="21" rowSpan="1">
+								<textField pattern="#,##0.00" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="52" height="21" uuid="aa39c73c-1fda-423e-ab41-700ba8e82c50"/>
+									<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{debit_amt}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="52" uuid="77e43687-6ee8-405a-af22-494017d9fe6d">
+							<jr:detailCell height="21" rowSpan="1">
+								<textField pattern="#,##0.00" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="52" height="21" uuid="ab6abe27-1727-439f-9250-771086b1bc9d"/>
+									<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{credit_amt}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+					</jr:table>
+				</componentElement>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="20">
+				<componentElement>
+					<reportElement key="table 11" x="0" y="0" width="565" height="20" uuid="a0b199a8-0c83-4fcc-9bcb-01b1ddeedea6"/>
+					<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+						<datasetRun subDataset="Closing Balance" uuid="9e0ae207-0ef2-484d-8afc-b42421db3ccd">
+							<datasetParameter name="toDate">
+								<datasetParameterExpression><![CDATA[$P{toDate}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="account_id">
+								<datasetParameterExpression><![CDATA[$F{acc_id}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="dateFormat">
+								<datasetParameterExpression><![CDATA[$P{dateFormat}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="currency">
+								<datasetParameterExpression><![CDATA[$F{currency}]]></datasetParameterExpression>
+							</datasetParameter>
+							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						</datasetRun>
+						<jr:column width="53" uuid="503f7773-e704-4e2b-bef4-e99ea948fbab">
+							<jr:detailCell height="20" rowSpan="1">
+								<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="53" height="20" uuid="a1b2c3d4-e5f6-7890-abcd-111111111111"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{date}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="217" uuid="a9af2f10-0284-433c-b2bc-45a27d16f424">
+							<jr:detailCell height="20" rowSpan="1">
+								<textField>
+									<reportElement x="0" y="0" width="217" height="20" uuid="11111111-1111-1111-1111-111111111111"/>
+									<textElement verticalAlignment="Middle">
+										<font size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA["Closing Balance"]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="61" uuid="5251f112-f306-42ff-8dc9-058b082bc487">
+							<jr:detailCell height="20" rowSpan="1">
+								<textField>
+									<reportElement x="0" y="0" width="61" height="20" uuid="22222222-2222-2222-2222-222222222222"/>
+									<textElement>
+										<font size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[""]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="130" uuid="ad4cf5da-0862-47f2-8ec4-21105aa8d76d">
+							<jr:detailCell height="20" rowSpan="1">
+								<textField>
+									<reportElement x="0" y="0" width="130" height="20" uuid="33333333-3333-3333-3333-333333333333"/>
+									<textElement>
+										<font size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[""]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="52" uuid="9fce9a3e-d296-4b5e-8f39-a43bc7178dfa">
+							<jr:detailCell height="20" rowSpan="1">
+								<textField pattern="#,##0.00" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="52" height="20" uuid="44444444-4444-4444-4444-444444444444"/>
+									<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{debit_amt}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="52" uuid="cdef40ff-0812-451e-9da4-4cc7e3a32043">
+							<jr:detailCell height="20" rowSpan="1">
+								<textField pattern="#,##0.00" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="52" height="20" uuid="55555555-5555-5555-5555-555555555555"/>
+									<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{credit_amt}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+					</jr:table>
+				</componentElement>
+			</band>
+		</groupFooter>
+	</group>
+	<title>
+		<band height="146">
+			<staticText>
+				<reportElement key="" stretchType="RelativeToTallestObject" x="0" y="104" width="565" height="18" isPrintWhenDetailOverflows="true" uuid="27573120-3318-4b97-a24c-13307f1d5ae1"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="false" isUnderline="false" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Ledger Account]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="565" height="28" forecolor="#000000" uuid="5800f5d5-0650-47fc-ae11-7e0c7d0cf410"/>
+				<box topPadding="4" bottomPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="14" isBold="true" isItalic="false" isUnderline="false" pdfFontName="Helvetica-Bold" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{company_name}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="28" width="565" height="19" forecolor="#000000" uuid="056678c4-51ec-4134-ace5-b497934056d0"/>
+				<box topPadding="4" bottomPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="false" isItalic="false" isUnderline="false" pdfFontName="Helvetica-Bold" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{add1}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="47" width="565" height="19" forecolor="#000000" uuid="6453ff11-296f-4c31-814b-05addea16876"/>
+				<box topPadding="4" bottomPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="false" isItalic="false" isUnderline="false" pdfFontName="Helvetica-Bold" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{add2}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="66" width="565" height="19" forecolor="#000000" uuid="a5e027e3-aec2-4e7d-8161-6b6dfc28e158"/>
+				<box topPadding="4" bottomPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false" isItalic="false" isUnderline="false" pdfFontName="Helvetica-Bold" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{email}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="85" width="565" height="19" forecolor="#000000" uuid="0e5518a5-06ad-4dfe-9bb3-3e4b5f3a5608"/>
+				<box topPadding="4" bottomPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true" isItalic="false" isUnderline="false" pdfFontName="Helvetica-Bold" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{acc_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="482" y="122" width="83" height="24" uuid="ea610c5e-babe-4a66-aacd-9be334cdecbf"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="1"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="393" y="122" width="89" height="24" isPrintWhenDetailOverflows="true" uuid="1b032d03-e11e-464d-993d-c623e59d9459"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="1"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{currency}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="227" y="122" width="59" height="24" forecolor="#000000" uuid="12f0fe4d-0ebc-47e9-8f6f-4db7d303d733"/>
+				<box topPadding="0" bottomPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="false" isItalic="false" isUnderline="false" pdfFontName="Helvetica-Bold" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fromdate}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="EEEEE dd MMMMM yyyy" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="286" y="122" width="17" height="24" forecolor="#000000" uuid="1f59ec89-8ce2-4ee2-9a30-0471b0f99396"/>
+				<box topPadding="0" bottomPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="false" isItalic="false" isUnderline="false" pdfFontName="Helvetica-Bold" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" to "]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="303" y="122" width="90" height="24" forecolor="#000000" uuid="9e6b1329-47a5-438c-9ca7-05024ef5b285"/>
+				<box topPadding="0" bottomPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="false" isItalic="false" isUnderline="false" pdfFontName="Helvetica-Bold" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{todate}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="43">
+			<printWhenExpression><![CDATA[$V{PAGE_NUMBER} > 1]]></printWhenExpression>
+			<textField>
+				<reportElement x="430" y="24" width="135" height="19" uuid="52631d02-3d48-4fdc-b92b-6444b5f1f4ed"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="565" height="24" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="35eb892f-0d54-4883-89fd-80c9c4241794"/>
+				<box topPadding="4" bottomPadding="2"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Arial" isBold="true" isItalic="false" isUnderline="false" pdfFontName="Helvetica-Bold" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{company_name}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="24" width="137" height="19" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="50a82536-264c-4bb9-9b60-3668e644c66c"/>
+				<box bottomPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" isBold="false" isItalic="false" isUnderline="false" pdfFontName="Helvetica-Bold" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{acc_name}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="" stretchType="RelativeToTallestObject" x="137" y="24" width="90" height="18" isPrintWhenDetailOverflows="true" uuid="4bc3677f-a2bc-4980-8e51-34ae8d71ea5e"/>
+				<box bottomPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="false" isUnderline="false" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Ledger Account   :]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="303" y="24" width="90" height="18" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="19f3f921-f1b9-4fd2-8915-6759d374fb27"/>
+				<box topPadding="0" bottomPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" isBold="false" isItalic="false" isUnderline="false" pdfFontName="Helvetica-Bold" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{todate}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="227" y="25" width="59" height="18" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="06256811-fd0f-45b5-823e-553d1d4357ef"/>
+				<box topPadding="0" bottomPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="false" isItalic="false" isUnderline="false" pdfFontName="Helvetica-Bold" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fromdate}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="EEEEE dd MMMMM yyyy" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="286" y="24" width="17" height="18" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="cefc8e5a-7155-47b2-99d6-e9ca5be01b28"/>
+				<box topPadding="0" bottomPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="false" isItalic="false" isUnderline="false" pdfFontName="Helvetica-Bold" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" to "]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="18">
+			<printWhenExpression><![CDATA[$V{PAGE_NUMBER} == 1]]></printWhenExpression>
+			<staticText>
+				<reportElement key="" stretchType="RelativeToTallestObject" x="270" y="0" width="61" height="18" isPrintWhenDetailOverflows="true" uuid="259e5ac7-bd87-48e9-bb9f-a3509d22bfc6"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true" isUnderline="false" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Vch Type]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="" stretchType="RelativeToTallestObject" x="461" y="0" width="52" height="18" isPrintWhenDetailOverflows="true" uuid="3209075c-6be8-4e35-9856-11ef7265af62"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true" isUnderline="false" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Debit]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="" stretchType="RelativeToTallestObject" x="513" y="0" width="52" height="18" isPrintWhenDetailOverflows="true" uuid="cfa9049f-f298-4238-ba74-ecb3c12046ba"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true" isUnderline="false" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Credit]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="" stretchType="RelativeToTallestObject" x="331" y="0" width="130" height="18" isPrintWhenDetailOverflows="true" uuid="5d0fb6b0-bf18-4c8b-81f2-e80844392895"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true" isUnderline="false" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Vch No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="" stretchType="RelativeToTallestObject" x="53" y="0" width="217" height="18" isPrintWhenDetailOverflows="true" uuid="a8b24eeb-a132-469f-87d9-0f944e7f072d"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true" isUnderline="false" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Particulars]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="" stretchType="RelativeToTallestObject" x="0" y="0" width="53" height="18" isPrintWhenDetailOverflows="true" uuid="43e25a9d-5ae8-43ab-a849-6624a67d5393"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true" isUnderline="false" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Date]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="23" splitType="Prevent">
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="53" height="22" isPrintWhenDetailOverflows="true" uuid="1637d197-8e39-4628-8f66-457826151c18"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{inv_dt}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="53" y="0" width="217" height="22" isPrintWhenDetailOverflows="true" uuid="922c8903-2fd0-41b6-b980-3ad6012234bd"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{acc_name}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="270" y="0" width="61" height="22" isPrintWhenDetailOverflows="true" uuid="dd2fa65f-c939-4763-8f15-6e80c827d97b"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{inv_type}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="331" y="0" width="130" height="22" isPrintWhenDetailOverflows="true" uuid="1c9f51e1-6bb2-4b23-94fd-f7f654c77018"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{inv_no}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="461" y="0" width="52" height="22" isPrintWhenDetailOverflows="true" uuid="bca3c53c-656b-4bf6-b895-2fb643158c27"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{debit_amt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="513" y="1" width="52" height="22" isPrintWhenDetailOverflows="true" uuid="7339caac-3b85-49e1-9992-a112b1c2efbe"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{credit_amt}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="18">
+			<componentElement>
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" mode="Transparent" x="53" y="0" width="217" height="18" isPrintWhenDetailOverflows="true" uuid="acee27ec-c209-4c88-a704-2655a3b2c67c"/>
+				<jr:list xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" printOrder="Vertical">
+					<datasetRun subDataset="OTHER BANKS" uuid="bb4e06c4-00b6-4220-aaf0-55634539a1a3">
+						<datasetParameter name="accountId">
+							<datasetParameterExpression><![CDATA[$P{accountId}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="postingId">
+							<datasetParameterExpression><![CDATA[$F{posting_id}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="companyId">
+							<datasetParameterExpression><![CDATA[$P{companyId}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="currency">
+							<datasetParameterExpression><![CDATA[$P{currency}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:listContents height="18" width="217">
+						<textField isBlankWhenNull="true">
+							<reportElement x="0" y="0" width="101" height="18" uuid="de99529d-db84-4d80-af07-8b56f8e346fa"/>
+							<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2"/>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Arial" size="7" isBold="false" isItalic="true"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$F{account_name}]]></textFieldExpression>
+						</textField>
+						<textField pattern="#,##0.00" isBlankWhenNull="true">
+							<reportElement x="158" y="0" width="47" height="18" uuid="4743c531-0d47-4038-a092-6e0070158547"/>
+							<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2"/>
+							<textElement textAlignment="Right" verticalAlignment="Middle">
+								<font fontName="Arial" size="7" isItalic="true"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$F{credit_amt}]]></textFieldExpression>
+						</textField>
+						<textField pattern="#,##0.00" isBlankWhenNull="true">
+							<reportElement x="101" y="0" width="44" height="18" uuid="2ae17b9f-7fdc-40a6-bd19-ac444bca220f"/>
+							<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2"/>
+							<textElement textAlignment="Right" verticalAlignment="Middle">
+								<font fontName="Arial" size="7" isItalic="true"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$F{debit_amt}]]></textFieldExpression>
+						</textField>
+						<textField pattern="#,##0.00" isBlankWhenNull="true">
+							<reportElement x="145" y="0" width="13" height="18" uuid="2c1f6a23-50ae-4a2d-a2aa-adaa35ac7646"/>
+							<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2"/>
+							<textElement textAlignment="Right" verticalAlignment="Middle">
+								<font fontName="Arial" size="7" isItalic="true"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$F{dr}]]></textFieldExpression>
+						</textField>
+						<textField pattern="#,##0.00" isBlankWhenNull="true">
+							<reportElement x="204" y="0" width="13" height="18" uuid="3e5e6e9a-4b6c-4e16-82f8-36630161a787"/>
+							<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2"/>
+							<textElement textAlignment="Right" verticalAlignment="Middle">
+								<font fontName="Arial" size="7" isItalic="true"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$F{cr}]]></textFieldExpression>
+						</textField>
+					</jr:listContents>
+				</jr:list>
+			</componentElement>
+		</band>
+		<band height="20">
+			<textField isBlankWhenNull="true">
+				<reportElement x="85" y="0" width="185" height="20" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="2959b1dd-56dc-4eb4-8faa-8efa01106bf6"/>
+				<box topPadding="4" leftPadding="2" bottomPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{narration}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="36"/>
+	</summary>
+</jasperReport>

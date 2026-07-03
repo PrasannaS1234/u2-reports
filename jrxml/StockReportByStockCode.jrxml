@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="StockReportByStockCode" pageWidth="650" pageHeight="595" orientation="Landscape" whenNoDataType="BlankPage" columnWidth="610" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isIgnorePagination="true" uuid="c77f7cdd-f3a0-446c-9002-ab96fc3ebcf4">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="schema" class="java.lang.String">
+		<defaultValueExpression><![CDATA["public"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="toDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA["01/01/2020"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dateFormat" class="java.lang.String">
+		<defaultValueExpression><![CDATA["DD/MM/YYYY"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="loginCompanyId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="departmentId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="binId" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA["E:\\Development\\source-code\\jew-trade-service\\src\\main\\resources\\jasper\\"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+	row_number() over (partition by grp order by grp, stock_code) sno,
+	tx.grp,
+	tx.company_name,
+	tx.factory_name,
+	tx.department_name,
+	tx.lot_code,
+	tx.stock_code,
+	tx.job_no,
+	tx.bag_no,
+	sum(tx.qty1) qty1,
+	sum(tx.qty2) qty2
+from (
+select
+coalesce(nullif(concat(j.jew_type,j.jew_no,bag.bag_type,bag.bag_no),''), coalesce(l.custom_no, l.lot_code))  grp,
+c.company_name,
+f.factory_name,
+d.department_name,
+l.lot_code,
+coalesce(l.custom_no, l.lot_code) stock_code,
+b.bin_name,
+concat(j.jew_type,j.jew_no) job_no,
+bag.bag_id,
+concat(bag.bag_type,bag.bag_no) bag_no,
+t.qty1,
+t.qty2
+from
+(
+	select row_number() over (order by 1) sno, tx.*,
+coalesce(case when row_number() over (partition by tx.bag_id order by 1) = 1 then (round(bg.bag_qty,0)) else 0 end,0) bag_qty
+from (
+select
+	t.company_id,
+	t.factory_id,
+	t.department_id,
+	t.employee_id,
+	t.lot_id,
+	t.bin_id,
+	t.stone_size,
+	t.job_id,
+	t.bag_id,
+	t.sales_order_id,
+	sum(t.in_out_flag * t.qty1) qty1,
+	sum(t.in_out_flag * t.qty2) qty2
+from
+	tbl_mfg_lot_stock_trans t
+where
+	t.is_deleted = 0
+	and t.inv_dt <= to_date($P{toDate}, $P{dateFormat})
+	and t.department_id in ($P!{departmentId})
+	and t.bin_id in ($P!{binId})
+group by
+	t.company_id,
+	t.factory_id,
+	t.department_id,
+	t.employee_id,
+	t.lot_id,
+	t.bin_id,
+	t.stone_size,
+	t.job_id,
+	t.sales_order_id,
+	t.bag_id
+having
+	sum(t.in_out_flag * t.qty1) <> 0
+)tx
+LEFT JOIN tbl_mfg_bag bg on tx.bag_id = bg.bag_id
+) t
+inner join tbl_company c on t.company_id = c.company_id
+inner join tbl_factory f on t.factory_id = f.factory_id
+inner join tbl_department d on t.department_id = d.department_id
+inner join tbl_employee e on t.employee_id = e.employee_id
+inner join tbl_lot l on t.lot_id = l.lot_id
+inner join tbl_commodity comm on l.commodity_id = comm.commodity_id
+inner join tbl_bin b on t.bin_id = b.bin_id
+and b.bin_type not in ('RECUT_ISSUE','BROKEN_BIN','NET_LOSS_BIN','DUST_BIN','RECUT_LOSS_BIN',
+					   'GROSS_LOSS_BIN','REFINING_BIN','LOSS_BIN','GROSS_LOSS_BIN_OLD')
+left join tbl_jewellery j on t.job_id = j.jew_id
+left join tbl_mfg_bag bag on t.bag_id = bag.bag_id
+left join tbl_sku s on bag.sku_id = s.sku_id
+where 1 = 1
+and
+(qty1 > 0)
+and t.company_id in ($P!{loginCompanyId})
+order by
+t.factory_id,
+t.department_id,
+t.job_id,
+t.bag_id,
+coalesce(l.custom_no, l.lot_code),
+t.lot_id,
+t.stone_size
+)tx
+
+where
+	tx.bag_id not in (select bag_id from tbl_mfg_factory_invoice_det where is_deleted = 0)
+group by
+tx.grp,
+tx.company_name,
+tx.factory_name,
+tx.department_name,
+tx.lot_code,
+tx.stock_code,
+tx.job_no,
+tx.bag_no
+order by
+tx.bag_no,
+tx.job_no,
+tx.grp,
+tx.stock_code,
+tx.lot_code]]>
+	</queryString>
+	<field name="sno" class="java.lang.Long"/>
+	<field name="grp" class="java.lang.String"/>
+	<field name="company_name" class="java.lang.String"/>
+	<field name="factory_name" class="java.lang.String"/>
+	<field name="department_name" class="java.lang.String"/>
+	<field name="lot_code" class="java.lang.String"/>
+	<field name="stock_code" class="java.lang.String"/>
+	<field name="job_no" class="java.lang.String"/>
+	<field name="bag_no" class="java.lang.String"/>
+	<field name="qty1" class="java.math.BigDecimal"/>
+	<field name="qty2" class="java.math.BigDecimal"/>
+	<variable name="inv_qty1_1" class="java.math.BigDecimal" resetType="Group" resetGroup="GRP-2" calculation="Sum">
+		<variableExpression><![CDATA[$F{qty1}]]></variableExpression>
+	</variable>
+	<variable name="inv_qty2_1" class="java.math.BigDecimal" resetType="Group" resetGroup="GRP-2" calculation="Sum">
+		<variableExpression><![CDATA[$F{qty2}]]></variableExpression>
+	</variable>
+	<group name="GRP-1">
+		<groupExpression><![CDATA[$F{grp}]]></groupExpression>
+		<groupFooter>
+			<band height="1">
+				<line>
+					<reportElement x="0" y="0" width="560" height="1" uuid="e2637484-7f1a-42ec-a1cd-7aa7f027b176"/>
+				</line>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="GRP-2">
+		<groupExpression><![CDATA[$F{stock_code}]]></groupExpression>
+		<groupFooter>
+			<band height="20">
+				<textField pattern="###0.000" isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="400" y="0" width="80" height="20" backcolor="#ECECEC" uuid="afe8aa0a-57fc-4f21-92ca-0b9b4145aafe"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{inv_qty1_1}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement mode="Opaque" x="200" y="0" width="200" height="20" backcolor="#ECECEC" uuid="8b176c2d-7ccc-42f3-8d70-4a3bf311ea7c"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{stock_code} + " Total "]]></textFieldExpression>
+				</textField>
+				<textField pattern="###0.000" isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="480" y="0" width="80" height="20" backcolor="#ECECEC" uuid="f8a1cadb-c944-4fd3-a7cf-5eafe1e02a1e"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{inv_qty2_1}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="40">
+			<staticText>
+				<reportElement x="0" y="20" width="100" height="20" uuid="1c322ff0-0f31-41b1-b497-5898d741aea9"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Job No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="100" y="20" width="100" height="20" uuid="83d6a970-edeb-4898-8202-0661e8ce1bd0"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Bag No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="200" y="20" width="100" height="20" uuid="c910d01b-6610-4a24-a989-d34cd956eb07"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Stock Code]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="300" y="20" width="100" height="20" uuid="8ca06535-1ac3-46ee-a905-d887b05aaf3e"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Lot Code]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="400" y="20" width="80" height="20" uuid="b59046da-c863-43a3-9b7d-edeb1b547e95"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Wt (GM/PCS)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="480" y="20" width="80" height="20" uuid="e3f484cf-71da-40b6-a841-5fe4b2eabf6d"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PCS]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="0" width="560" height="20" uuid="578fb1e5-72af-4c8e-8fb8-c5185da36089"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{department_name} + " Department's Stock As on Date " + $P{toDate}.replaceAll( "'", "" )]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="100" y="0" width="100" height="20" uuid="7955190f-2ffd-44bf-b30d-42a20051c871">
+					<printWhenExpression><![CDATA[$F{sno}.toString().equals( "1") ? true : false]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bag_no}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="100" height="20" uuid="2475d0a2-f574-46d0-be4f-f8430f1265fd">
+					<printWhenExpression><![CDATA[$F{sno}.toString().equals( "1") ? true : false]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{job_no}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="200" y="0" width="100" height="20" uuid="b6237939-e0c4-41d1-b9c2-1b588b3357b2"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{stock_code}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="300" y="0" width="100" height="20" uuid="1905770e-3c5a-4d94-98cc-4665459bee40"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lot_code}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.000" isBlankWhenNull="true">
+				<reportElement x="400" y="0" width="80" height="20" uuid="d365532b-6a98-481c-a548-50891cf5a4b0"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qty1}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.000" isBlankWhenNull="true">
+				<reportElement x="480" y="0" width="80" height="20" uuid="2cdcc91a-5fea-4418-9536-c73a5e6f90fd"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qty2}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="50">
+			<staticText>
+				<reportElement x="0" y="0" width="560" height="10" uuid="6d4160cf-8bc7-41f0-8969-df353f3d575e"/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<subreport>
+				<reportElement stretchType="RelativeToTallestObject" x="300" y="30" width="260" height="20" isPrintWhenDetailOverflows="true" uuid="7417f5db-d9af-45c0-ac21-96ae05cbf4b4"/>
+				<subreportParameter name="schema">
+					<subreportParameterExpression><![CDATA[$P{schema}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="binId">
+					<subreportParameterExpression><![CDATA[$P{binId}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="loginCompanyId">
+					<subreportParameterExpression><![CDATA[$P{loginCompanyId}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="dateFormat">
+					<subreportParameterExpression><![CDATA[$P{dateFormat}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="departmentId">
+					<subreportParameterExpression><![CDATA[$P{departmentId}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="toDate">
+					<subreportParameterExpression><![CDATA[$P{toDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "StockReportByCode_sub1.jasper"]]></subreportExpression>
+			</subreport>
+			<staticText>
+				<reportElement x="300" y="10" width="100" height="20" uuid="beeb73eb-86c8-4885-964d-9b0a8029fe71"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Stock Code]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="400" y="10" width="80" height="20" uuid="b4480192-49d5-43b4-a210-64712663d8a2"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Wt (GM/PCS)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="480" y="10" width="80" height="20" uuid="2edcad66-5d48-4c87-99ca-125cd83dfb3f"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PCS]]></text>
+			</staticText>
+		</band>
+	</summary>
+</jasperReport>

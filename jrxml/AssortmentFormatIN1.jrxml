@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="AssortmentFormatIN1" pageWidth="770" pageHeight="840" columnWidth="760" leftMargin="5" rightMargin="5" topMargin="10" bottomMargin="10" whenResourceMissingType="Empty" isIgnorePagination="true" uuid="61fcc04f-329c-4f00-b3f6-941874fefd1c">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="i_inv_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'-1'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA["E:\\Development\\source-code\\jew-trade-service\\src\\main\\resources\\jasper\\"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+	distinct tx.inv_id, tx.grp_2
+from
+(
+select
+	row_number() over (partition by t.inv_id order by t.inv_id, d.assort_qty1 ) sno,
+	t.sales_order_id,
+	t.inv_id,
+	d.inv_det_id,
+	col.color_name,
+	cla.clarity_name,
+	d.customer_bag_no,
+	d.stone_size,
+	d.assort_qty1,
+	d.assort_qty2,
+	d.bag_id,
+	concat( round (sum (d.assort_qty2 ) over (partition by t.inv_id, d.assort_qty1, d.assort_qty2 order by 1),0),'D/',
+	round(sum(d.assort_qty1) over (partition by t.inv_id, d.assort_qty1, d.assort_qty2 order by 1),3)) grp_1,
+	concat(round(sum(d.assort_qty2) over (partition by t.inv_id order by 1),0),'D/',
+	round(sum(d.assort_qty1) over (partition by t.inv_id order by 1),3)) grp_2
+from
+	tbl_mfg_stone_assortment_bagging t
+	inner join tbl_mfg_stone_assortment_bagging_det d on t.inv_id = d.inv_id
+		and d.is_deleted = 0
+	inner join tbl_lot l on d.lot_id = l.lot_id
+	left join tbl_color col on l.color_id = col.color_id
+	left join tbl_clarity cla on l.clarity_id = cla.clarity_id
+where
+	t.is_deleted = 0
+	and t.inv_id IN ( $P!{i_inv_id} )
+order by
+	t.inv_id, d.assort_qty1
+)tx
+inner join tbl_sales_order_main so on tx.sales_order_id = so.sales_order_id
+left join tbl_mfg_bag bag on tx.bag_id = bag.bag_id
+left join tbl_jewellery j on bag.job_id = j.jew_id
+left join tbl_sales_order_det sod on j.sales_order_det_id = sod.sales_order_det_id
+	and tx.sales_order_id = sod.sales_order_id
+	and sod.is_deleted = 0
+left join tbl_sku sku on bag.sku_id = sku.sku_id
+
+
+]]>
+	</queryString>
+	<field name="inv_id" class="java.lang.Integer"/>
+	<field name="grp_2" class="java.lang.String"/>
+	<group name="G1" isStartNewPage="true" minHeightToStartNewPage="100" keepTogether="true">
+		<groupExpression><![CDATA[$F{inv_id}]]></groupExpression>
+		<groupHeader>
+			<band height="20" splitType="Prevent">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" isPrintRepeatedValues="false" x="380" y="0" width="50" height="20" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="1c800248-07cf-4982-9529-80e91eb89487"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{grp_2}]]></textFieldExpression>
+				</textField>
+				<subreport>
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="380" height="20" isPrintWhenDetailOverflows="true" uuid="00f74a97-9da1-41d4-9704-b80728270364"/>
+					<subreportParameter name="SUBREPORT_DIR">
+						<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="i_grp_2">
+						<subreportParameterExpression><![CDATA[$F{grp_2}.toString()]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="i_inv_id">
+						<subreportParameterExpression><![CDATA[$F{inv_id}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "AssortmentFormatIN1_sub1.jasper"]]></subreportExpression>
+				</subreport>
+			</band>
+		</groupHeader>
+	</group>
+	<title>
+		<band height="40" splitType="Prevent">
+			<staticText>
+				<reportElement x="0" y="0" width="730" height="20" uuid="36c24ba4-7420-4247-907b-1fef3d13288e"/>
+				<textElement textAlignment="Center">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Assortment]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="20" width="30" height="20" uuid="2a816cf7-2fc4-46ad-bbcb-aa6baa323387"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[sno]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="30" y="20" width="50" height="20" uuid="650e3437-45dd-4e84-a5de-013b2067e350"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Color]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="80" y="20" width="50" height="20" uuid="5accd096-a10f-4228-9e9f-bf253666c2fd"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Clarity]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="130" y="20" width="60" height="20" uuid="e530441a-a02b-4819-952e-4eb4085baee6"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Bag No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="190" y="20" width="40" height="20" uuid="41bcd5d5-a5e2-4795-a447-468b0ab505b6"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Size]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="230" y="20" width="50" height="20" uuid="7833d1f4-8792-4900-a704-53725dbd56e5"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="280" y="20" width="50" height="20" uuid="5b30aa33-96d0-4a4f-87d5-346f602cb6b0"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PCS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="330" y="20" width="50" height="20" uuid="b1fbffb0-f9c7-4579-9762-ff8c77ec004c"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="380" y="20" width="50" height="20" uuid="50bceed7-f66e-4985-92bf-28aed2406101"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="430" y="20" width="100" height="20" uuid="9b50e45f-0bce-4979-b4b2-3d1a3726de6d"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[SKU No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="530" y="20" width="100" height="20" uuid="ee7f66ca-bf91-47c7-a198-3a3580f5afc1"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Stamping]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="630" y="20" width="100" height="20" uuid="acab9be4-b7c2-4051-9928-ec87ad199925"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Remarks]]></text>
+			</staticText>
+		</band>
+	</title>
+</jasperReport>

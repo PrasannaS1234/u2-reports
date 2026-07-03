@@ -1,0 +1,866 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="HKDeliveryNote" pageWidth="1000" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="960" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="c61a544a-3e23-400a-89f7-2b62d256624e">
+	<property name="ireport.zoom" value="1.0245201830476058"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="Table Dataset 1" uuid="47953aba-163e-4687-97c0-70005d8b17dd">
+		<parameter name="invId" class="java.lang.Integer"/>
+		<queryString>
+			<![CDATA[select
+	tp.grp,
+	sum(tp.net_wt)	net_wt,
+	sum(tp.pcs) pcs,
+	sum(tp.unit_amt)		unit_amt
+from
+(
+select
+	im.items	grp,
+	max(im.cref)	jobno,
+	sum(im.total_gross_wt)	net_wt,
+	sum(1.0) pcs,
+	sum(round(im.total_amount * 0.60,2))		unit_amt
+from
+	tbl_invoice_summary im
+where
+	im.inv_id = $P!{invId}
+	and im.is_deleted = 0
+group by
+im.items,
+im.cref
+) tp group by tp.grp]]>
+		</queryString>
+		<field name="grp" class="java.lang.String"/>
+		<field name="net_wt" class="java.math.BigDecimal"/>
+		<field name="pcs" class="java.math.BigDecimal"/>
+		<field name="unit_amt" class="java.math.BigDecimal"/>
+		<variable name="v_tot_net_wt" class="java.math.BigDecimal" calculation="Sum">
+			<variableExpression><![CDATA[$F{net_wt}]]></variableExpression>
+		</variable>
+		<variable name="v_tot_pcs" class="java.math.BigDecimal" calculation="Sum">
+			<variableExpression><![CDATA[$F{pcs}]]></variableExpression>
+		</variable>
+		<variable name="v_tot_amt" class="java.math.BigDecimal" calculation="Sum">
+			<variableExpression><![CDATA[$F{unit_amt}]]></variableExpression>
+		</variable>
+	</subDataset>
+	<parameter name="invId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+	row_number() over(order by im.items,im.style_no,im.cref) sr_no,
+	im.cref jobno,
+	(im.style_no) styleno,
+	concat(im.metal, 'T ', im.items, ' SET WITH DIAMOND') description,
+	(total_gross_wt) gross_wt,
+	1.0 qty,
+	round(im.total_amount * 0.60,2)	unit_price,
+	round(im.total_amount * 0.60,2)	unit_amt,
+  	'Total Weight  goldt.(gms.)' total_met_desc,
+	inv_main.inv_no,
+           to_char(inv_main.inv_dt,'DD-Mon-YYYY') inv_dt,
+          im.inv_id,
+          spellnumericvalue(sum(round(im.total_amount * 0.60,2)) over(), 'USD') words,
+	inv_main.customer_name
+from
+	tbl_invoice_summary im
+	inner join tbl_invoice_main inv_main on im.inv_id = inv_main.inv_id
+where
+	im.inv_id = $P!{invId} order by im.items,im.style_no,im.cref]]>
+	</queryString>
+	<field name="sr_no" class="java.lang.Long"/>
+	<field name="jobno" class="java.lang.String"/>
+	<field name="styleno" class="java.lang.String"/>
+	<field name="description" class="java.lang.String"/>
+	<field name="gross_wt" class="java.math.BigDecimal"/>
+	<field name="qty" class="java.math.BigDecimal"/>
+	<field name="unit_price" class="java.math.BigDecimal"/>
+	<field name="unit_amt" class="java.math.BigDecimal"/>
+	<field name="total_met_desc" class="java.lang.String"/>
+	<field name="inv_no" class="java.lang.String"/>
+	<field name="inv_dt" class="java.lang.String"/>
+	<field name="inv_id" class="java.lang.Integer"/>
+	<field name="words" class="java.lang.String"/>
+	<field name="customer_name" class="java.lang.String"/>
+	<variable name="gross_wt_1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{gross_wt}]]></variableExpression>
+	</variable>
+	<variable name="qty_1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{qty}]]></variableExpression>
+	</variable>
+	<variable name="unit_amt_1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{unit_amt}]]></variableExpression>
+	</variable>
+	<group name="invoiceno" isStartNewPage="true" isResetPageNumber="true">
+		<groupExpression><![CDATA[$F{inv_id}]]></groupExpression>
+		<groupHeader>
+			<band height="245">
+				<staticText>
+					<reportElement mode="Transparent" x="0" y="209" width="75" height="18" forecolor="#000000" backcolor="#000000" uuid="e21e458f-9c09-437b-8636-5ba28e6bc898"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[INVOICE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="75" y="209" width="75" height="18" forecolor="#000000" backcolor="#000000" uuid="f24958c0-106f-48cc-a0ee-cd4cbf9283b1"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[JOB NO.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="150" y="209" width="75" height="18" forecolor="#000000" backcolor="#000000" uuid="0f5442d9-61ca-4ccc-9212-f70fd06dd4b0"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[STYLE NO.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="225" y="209" width="92" height="18" forecolor="#000000" backcolor="#000000" uuid="ec8d1062-b8fb-4300-af8a-5b9d008bc91d"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[TYPE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="388" y="209" width="74" height="18" forecolor="#000000" backcolor="#000000" uuid="8b258de0-a69f-4d6e-a527-48bc5c09a366"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[WEIGHT]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="462" y="227" width="74" height="18" forecolor="#000000" backcolor="#000000" uuid="26c6ef3d-ae43-42e8-8b72-7efe259c2e2a"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[(CTS)]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="738" y="209" width="74" height="18" forecolor="#000000" backcolor="#000000" uuid="9fc1e48d-f193-494e-8118-81c9bc2d24b6"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[QTY.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="812" y="209" width="91" height="18" forecolor="#000000" backcolor="#000000" uuid="213f72a2-3f56-4e4a-ad3e-4f6d9da58226"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Amount US$]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="536" y="85" width="276" height="18" uuid="50a75050-ae13-40b2-9d3e-97a0e862e1ba"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="14" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Delivery Note No.:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="536" y="103" width="276" height="18" uuid="5d0142f0-7629-4aa5-8442-2ca3c0e916a9"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="14" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Delivery Date:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="536" y="121" width="276" height="18" uuid="fd4ce95c-ccf5-44b3-9103-8cee35e77ebe"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="14" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Country origin:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="536" y="139" width="276" height="18" uuid="30627dc7-1a0c-44ed-97c6-009df8a0a9bf"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="14" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[HAWB:]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="812" y="85" width="91" height="18" isPrintWhenDetailOverflows="true" uuid="40315db3-da19-4c1a-8ef1-1224c8d3d057"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="14" isBold="false" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{inv_no}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="812" y="103" width="91" height="18" isPrintWhenDetailOverflows="true" uuid="12515d65-b26d-4563-a3bc-1726ac3cb30f"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="14" isBold="false" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{inv_dt}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="812" y="121" width="91" height="18" isPrintWhenDetailOverflows="true" uuid="f2193b22-3c76-4672-b92f-549594ce2a33"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="14" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["CHINA"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="812" y="139" width="91" height="18" isPrintWhenDetailOverflows="true" uuid="45c9ae74-c9d1-4102-821c-f3d3b56510db"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="14" isBold="false" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="0" y="85" width="75" height="18" uuid="2a009e7c-d260-4e46-9136-c56992030670"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="14" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Messers: ]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="75" y="85" width="461" height="18" isPrintWhenDetailOverflows="true" uuid="96e3a808-9a38-4e9f-989c-549742eb91d0"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="14" isBold="false" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{customer_name}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="75" y="103" width="461" height="18" isPrintWhenDetailOverflows="true" uuid="974cee7a-9111-4b1d-b97b-b2098a4a3f05"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="14" isBold="false" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["528 State Street"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="75" y="121" width="461" height="18" isPrintWhenDetailOverflows="true" uuid="62d3b9e5-f285-4786-a456-0a068f8a8768"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="14" isBold="false" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Glendale, CA91203, USA"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="75" y="139" width="461" height="18" isPrintWhenDetailOverflows="true" uuid="46f134d4-14ef-4b10-8963-1b37da907dee"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="14" isBold="false" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["(800) 627-2661         Fax: (818) 500-9697"]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="0" y="157" width="903" height="34" uuid="627e73a2-716b-4d73-80f7-bf04ae26034a"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="24" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Delivery Note]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="51" width="225" height="14" uuid="498117c8-874d-4c9f-bd8b-9959fc53e525"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="65" width="903" height="20" uuid="9480cd37-8936-41ff-b879-c68448ef691d"/>
+					<box leftPadding="2">
+						<topPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Trebuchet MS" size="13" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="493" y="51" width="43" height="14" uuid="4f2306e5-2c71-4671-9cf9-bf19a1f5771f"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Fax:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="225" y="51" width="93" height="14" uuid="9022f560-4b7c-4a8b-abe0-49b1b359a787"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Tel:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="536" y="51" width="367" height="14" uuid="ce22961f-a004-4bec-b0e6-d0946d3042b9"/>
+					<box leftPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[852 2723 6180]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="318" y="51" width="175" height="14" uuid="d3b2a95a-1e89-43a0-bf65-75ff1c3f4816"/>
+					<box leftPadding="2"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[852 2723 2337]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="31" width="903" height="20" uuid="4e266ce6-4a39-46e3-abe1-ec57fe8e8ad4"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isItalic="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Unit 01 & 10, 16th Floor, Multifield Plaza, 3-7A Prat Avenue, Tsim Sha Tsui, Kowloon, Hong Kong, SAR.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="0" width="903" height="31" uuid="4b55392e-a595-4612-969f-78037eaaa9c4"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="24" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[H & M Design Global Ltd.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="103" width="75" height="18" uuid="fcc93e61-61eb-4b23-ab9f-4d156aff8bf9"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="14" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Address: ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="121" width="75" height="18" uuid="6947da6d-b384-40d5-aa49-1f3aaca006cd"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Trebuchet MS" size="10" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="139" width="75" height="18" uuid="eae96995-917a-412b-9a8f-af4dd9d48ec1"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="14" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Tel: ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="317" y="209" width="71" height="18" forecolor="#000000" backcolor="#000000" uuid="944ce9fc-445b-41b9-8698-ae3168fae57f"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[GOLD]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="462" y="209" width="74" height="18" forecolor="#000000" backcolor="#000000" uuid="135b9c85-bc8e-4992-a109-9f7e85301872"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[DIAMOND]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="536" y="209" width="128" height="18" forecolor="#000000" backcolor="#000000" uuid="687983c1-f3b9-45d9-8871-9bca26ee2407"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[SEMI-PRECIOUS]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="664" y="209" width="74" height="18" forecolor="#000000" backcolor="#000000" uuid="5fdb1672-07bc-439b-add1-5013735e9f2c"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[CZ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="536" y="227" width="128" height="18" forecolor="#000000" backcolor="#000000" uuid="120d3be3-3b7c-4444-b8c1-de5f1816c718"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[(TYPE)]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="664" y="227" width="74" height="18" forecolor="#000000" backcolor="#000000" uuid="06462dbd-957f-48dd-bd0d-997ce0f72e32"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[(PCS)]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="462" y="191" width="276" height="18" forecolor="#000000" backcolor="#000000" uuid="5b53e54d-9182-447b-9bfc-4ee534298441"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[DESCRIPTION]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="0" y="227" width="75" height="18" forecolor="#000000" backcolor="#000000" uuid="bf355b99-cf7f-4846-a437-85b2a06c768e"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[NO.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="75" y="227" width="75" height="18" forecolor="#000000" backcolor="#000000" uuid="a9d9d655-0e84-4f5b-9517-ec0b3945ef39"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="150" y="227" width="75" height="18" forecolor="#000000" backcolor="#000000" uuid="219c214b-d2b6-48b1-bd66-7c274e5ae323"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="225" y="227" width="92" height="18" forecolor="#000000" backcolor="#000000" uuid="a0a77732-09bd-4404-98ca-9e7c9a838cdc"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="317" y="227" width="71" height="18" forecolor="#000000" backcolor="#000000" uuid="94b363ef-9cf9-4f8b-a0aa-36cb01ffff1e"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="388" y="227" width="74" height="18" forecolor="#000000" backcolor="#000000" uuid="4ddbd99e-a857-4656-afba-982f108c00f5"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="150" y="191" width="75" height="18" forecolor="#000000" backcolor="#000000" uuid="792b388a-ffe3-432d-ac81-884f2bb64096"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="0" y="191" width="75" height="18" forecolor="#000000" backcolor="#000000" uuid="8e25745f-06ae-4c74-8ef4-2abf4937f408"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="225" y="191" width="92" height="18" forecolor="#000000" backcolor="#000000" uuid="9eed5383-8fea-494c-a636-73cbcc88fa9c"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="75" y="191" width="75" height="18" forecolor="#000000" backcolor="#000000" uuid="c8c3cbb1-751a-4ce3-977a-a125d37fd4d4"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="317" y="191" width="71" height="18" forecolor="#000000" backcolor="#000000" uuid="00d1f93a-e912-4901-8f18-561cfd82bd4b"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="388" y="191" width="74" height="18" forecolor="#000000" backcolor="#000000" uuid="de22ec4c-aea1-4640-b52b-d73fbd35b3ea"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="738" y="227" width="74" height="18" forecolor="#000000" backcolor="#000000" uuid="b3121b32-ec76-4d52-ac32-09e9e3c192ed"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="812" y="227" width="91" height="18" forecolor="#000000" backcolor="#000000" uuid="81696fcc-3125-40ae-8f34-a7e19b97e5bb"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="738" y="191" width="74" height="18" forecolor="#000000" backcolor="#000000" uuid="7b4dd061-8aab-4af6-ae2c-503b0b84360b"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="812" y="191" width="91" height="18" forecolor="#000000" backcolor="#000000" uuid="7f158303-ad32-4c00-a0b5-9c593c315229"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Book Antiqua" size="12" isBold="true" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="123"/>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="20">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="75" height="20" isPrintWhenDetailOverflows="true" uuid="310bf8f4-a229-4bbb-ad05-bb17314deef6"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sr_no}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="75" y="0" width="75" height="20" isPrintWhenDetailOverflows="true" uuid="48df5532-11b3-49f9-b093-9b0caa1753de"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{jobno}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="150" y="0" width="75" height="20" isPrintWhenDetailOverflows="true" uuid="9da2c3bf-9f18-4465-9464-961ca66191fe"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{styleno}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="225" y="0" width="93" height="20" isPrintWhenDetailOverflows="true" uuid="de52d489-ffcf-4a84-8792-7a4cd157d706"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{description}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+				<reportElement x="318" y="0" width="70" height="20" isPrintWhenDetailOverflows="true" uuid="be9818b7-3148-4be8-8cee-b27a2bc4e564"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{gross_wt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(-#,##0)" isBlankWhenNull="true">
+				<reportElement x="388" y="0" width="74" height="20" isPrintWhenDetailOverflows="true" uuid="6ba36bfc-87d3-4812-9097-2bd4b3e729d8"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qty}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;#,##0.00-" isBlankWhenNull="true">
+				<reportElement x="738" y="0" width="74" height="20" isPrintWhenDetailOverflows="true" uuid="26278100-68d9-4467-94db-47523b06a24c"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{unit_price}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
+				<reportElement x="812" y="0" width="91" height="20" isPrintWhenDetailOverflows="true" uuid="6075e9b7-bafc-4161-aa1b-b1009f623e0e"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{unit_amt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(-#,##0)" isBlankWhenNull="true">
+				<reportElement x="462" y="0" width="74" height="20" isPrintWhenDetailOverflows="true" uuid="2db5a4cb-18de-41e6-b8be-4c66f07f2d26"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qty}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(-#,##0)" isBlankWhenNull="true">
+				<reportElement x="536" y="0" width="128" height="20" isPrintWhenDetailOverflows="true" uuid="fb08d702-9c13-4d45-90e4-c46b135cd318"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qty}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(-#,##0)" isBlankWhenNull="true">
+				<reportElement x="664" y="0" width="74" height="20" isPrintWhenDetailOverflows="true" uuid="d4b34569-6177-4e6c-90e5-173f4c0563fc"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qty}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

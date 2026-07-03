@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="InvoiceHKSummary" pageWidth="523" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="523" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="c61a544a-3e23-400a-89f7-2b62d256624e">
+	<property name="ireport.zoom" value="0.9313819845887338"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="number_color">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$F{total_metal_wt}.doubleValue() < 0]]></conditionExpression>
+			<style forecolor="#FF0000">
+				<pen lineColor="#000000"/>
+			</style>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$F{total_metal_wt}.doubleValue() >= 0]]></conditionExpression>
+			<style/>
+		</conditionalStyle>
+	</style>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA["C:\\tekfilo-java\\tekfilo-connectx-service\\src\\main\\resources\\jasper\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="invId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="customerName" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'Simon G'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="invGroup" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="jewType" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+	case when summ.metal_kt = '18K' then
+		concat(summ.metal_kt,' Gold ', round(sum(summ.wt),2) ,' grams to 24K Gold @ 75.10% = ',
+			round(sum(case when summ.metal_kt = '18K' then (0.751 * summ.wt) end),2), ' grams')
+
+	when summ.metal_kt = '14K' then
+		concat(summ.metal_kt,' Gold ', round(sum(summ.wt),2)  ,' grams to 24K Gold @ 58.60% = ',
+			round(sum(case when summ.metal_kt = '14K' then (0.586 * summ.wt)
+			 end),2), ' grams')
+
+when summ.metal_kt = '22K' then
+		concat(summ.metal_kt,' Gold ', round(sum(summ.wt),2)  ,' grams to 24K Gold @ 91.60% = ',
+			round(sum(case
+			 when summ.metal_kt = '22K' then (0.9166 * summ.wt)
+			 end),2), ' grams')
+
+else  concat(summ.metal_kt, ' Gold ', (sum(summ.wt)) , ' grams')
+end metal_desc
+from
+(
+	SELECT
+		round(t1.wt,2) wt,
+		case
+			when (upper(t1.commodity) like '%18K%') and t1.is_factory_supplied = 0 then '18K'
+			when (upper(t1.commodity) like '%14K%') and t1.is_factory_supplied = 0 then '14K'
+			when (upper(t1.commodity) like '%22K%') and t1.is_factory_supplied = 0 then '22K'
+
+			when (upper(t1.commodity) like '%18K%') and t1.is_factory_supplied = 1 then 'FSG-18K'
+			when (upper(t1.commodity) like '%14K%') and t1.is_factory_supplied = 1 then 'FSG-14K'
+			when (upper(t1.commodity) like '%22K%') and t1.is_factory_supplied = 1 then 'FSG-22K'
+
+			when (upper(t1.commodity) like '%PT950%') and t1.is_factory_supplied = 0 then 'PT950'
+			when (upper(t1.commodity) like '%PT925%') and t1.is_factory_supplied = 0 then 'PT925'
+			when (upper(t1.commodity) like '%PT%') and t1.is_factory_supplied = 0  then 'PT950'
+			when (upper(t1.commodity) like '%PT950%') and t1.is_factory_supplied = 1 then 'FSG-PT950'
+			when (upper(t1.commodity) like '%PT925%') and t1.is_factory_supplied = 1 then 'FSG-PT925'
+			when (upper(t1.commodity) like '%PT%') and t1.is_factory_supplied = 1  then 'FSG-PT950'
+
+			when (upper(t1.commodity) like '%SIL950%') and t1.is_factory_supplied = 0 then 'SIL950'
+			when (upper(t1.commodity) like '%SIL925%') and t1.is_factory_supplied = 0 then 'SIL925'
+			when (upper(t1.commodity) like '%SIL%') and t1.is_factory_supplied = 0  then 'SIL950'
+			when (upper(t1.commodity) like '%SIL950%') and t1.is_factory_supplied = 1 then 'FSG-SIL950'
+			when (upper(t1.commodity) like '%SIL925%') and t1.is_factory_supplied = 1 then 'FSG-SIL925'
+			when (upper(t1.commodity) like '%SIL%') and t1.is_factory_supplied = 1  then 'FSG-SIL950'
+		end metal_kt
+	FROM
+		tbl_invoice_hk_breakup t1
+		inner join tbl_invoice_hk_summary t2 on t1.inv_id = t2.inv_id
+			and t1.job_no = t2.job_no
+			and t1.jew_type = t2.jew_type
+			and t1.jdb_job_sheet = t2.jdb_job_sheet
+	where
+		t1.is_deleted = 0
+		and t1.inv_id = $P!{invId}
+ 		and trim(t2.inv_group) = trim($P{invGroup})
+		and t2.customer_name = $P!{customerName}
+		and t1.metal_type = 'M'
+		and t1.is_part = 0
+) summ
+group by
+	summ.metal_kt
+order by
+	case when summ.metal_kt = '18K' then 1
+	when summ.metal_kt = '14K' then 2
+	when summ.metal_kt = '22K' then 3
+	when summ.metal_kt = 'PT950' then 4
+	when summ.metal_kt = 'PT925' then 5
+	when summ.metal_kt = 'SIL950' then 6
+	when summ.metal_kt = 'SIL925' then 7
+	else 8 end]]>
+	</queryString>
+	<field name="metal_desc" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="22">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="523" height="22" isPrintWhenDetailOverflows="true" uuid="48df5532-11b3-49f9-b093-9b0caa1753de"/>
+				<box leftPadding="2" rightPadding="0">
+					<topPen lineWidth="0.25" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.25" lineStyle="Dotted"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial Narrow" size="12" pdfFontName="Helvetica" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{metal_desc}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

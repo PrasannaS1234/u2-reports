@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="JobSheet_SubReport02" pageWidth="288" pageHeight="200" columnWidth="288" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="164787d2-0b5e-42a4-8bf7-81dda9657bd8">
+	<property name="ireport.zoom" value="1.5026296018031553"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="bagId" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[with v_data as
+(
+	select
+		tp.recusrive_level,
+		tp.lot_code,
+		tp.commodity_name,
+		tp.shape_name,
+		tp.stone_size,
+		tp.tot_qty,
+		tp.qty1,
+		tp.qty2,
+		count(*) over(partition by tp.sales_order_id) cnt
+	from
+	(
+		SELECT
+			 row_number() over (order by tsc.component_id) recusrive_level,
+			 l.lot_code,
+			 c.commodity_name,
+			 sh.shape_name,
+			 (case when length(tsc.mm_size) > 0 then tsc.mm_size else tsc.sieve end) stone_size,
+			 (bag.bag_qty * tsc.tot_qty) tot_qty,
+			 (bag.bag_qty * tsc.qty1) qty1,
+			 (bag.bag_qty * tsc.qty2) qty2,
+			 tsc.sales_order_id
+		FROM
+			 tbl_sales_order_component tsc
+			 inner join tbl_sales_order_det tsd on tsc.sales_order_det_id = tsd.sales_order_det_id
+				and tsd.is_deleted = 0
+			inner join tbl_jewellery j on tsd.sales_order_det_id = j.sales_order_det_id
+				and tsd.is_deleted = 0
+			inner join tbl_mfg_bag bag on j.jew_id = bag.job_id
+			left join tbl_lot l on tsc.lot_id = l.lot_id
+			left join tbl_commodity c on tsc.commodity_id  = c.commodity_id
+			left join tbl_shape sh on tsc.shape_id = sh.shape_id
+		WHERE
+			 tsc.is_deleted = 0
+			 and j.job_category = 'Normal'
+			 and bag.bag_id = $P!{bagId}
+		union all
+		SELECT
+			 row_number() over (order by tsc.component_id) recusrive_level,
+			 l.lot_code,
+			 c.commodity_name,
+			 sh.shape_name,
+			 (case when length(tsc.mm_size) > 0 then tsc.mm_size else tsc.sieve end) stone_size,
+			 (bag.bag_qty * tsc.tot_qty) tot_qty,
+			 (bag.bag_qty * tsc.qty1) qty1,
+			 (bag.bag_qty * tsc.qty2) qty2,
+			 tsc.repair_order_id sales_order_id
+		FROM
+			 tbl_repair_order_component tsc
+			 inner join tbl_repair_order_det tsd on tsc.repair_order_det_id = tsd.repair_order_det_id
+				and tsd.is_deleted = 0
+			inner join tbl_jewellery j on tsd.repair_order_det_id = j.sales_order_det_id
+				and tsd.is_deleted = 0
+			inner join tbl_mfg_bag bag on j.jew_id = bag.job_id
+			left join tbl_lot l on tsc.lot_id = l.lot_id
+			left join tbl_commodity c on tsc.commodity_id  = c.commodity_id
+			left join tbl_shape sh on tsc.shape_id = sh.shape_id
+		WHERE
+			 tsc.is_deleted = 0
+			 and j.job_category = 'Repair'
+			 and bag.bag_id = $P!{bagId}
+	) tp
+)
+select
+	vt.*
+from
+	v_data vt
+where
+	recusrive_level between 6 and 10
+union all
+select
+ 			0	recusrive_level,
+			 null	lot_code,
+			 null	commodity_name,
+			 null	shape_name,
+			 ''	stone_size,
+			 null	tot_qty,
+			 null	qty1,
+			 null	qty2,
+			 0		cnt
+from
+	(
+		select
+			coalesce(max(dt.cnt),0) records
+		from
+			v_data dt
+		where
+			recusrive_level between 6 and 10
+	) rec
+	inner join generate_series(6,10-rec.records) on 1 = 1]]>
+	</queryString>
+	<field name="recusrive_level" class="java.lang.Long"/>
+	<field name="lot_code" class="java.lang.String"/>
+	<field name="commodity_name" class="java.lang.String"/>
+	<field name="shape_name" class="java.lang.String"/>
+	<field name="stone_size" class="java.lang.String"/>
+	<field name="tot_qty" class="java.math.BigDecimal"/>
+	<field name="qty1" class="java.math.BigDecimal"/>
+	<field name="qty2" class="java.math.BigDecimal"/>
+	<field name="cnt" class="java.lang.Long"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="70" height="15" isPrintWhenDetailOverflows="true" uuid="b84cedfc-8d4a-4332-b515-382d3dd7eaa4"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" pdfEncoding="Cp1252" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lot_code}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="70" y="0" width="63" height="15" isPrintWhenDetailOverflows="true" uuid="6dd3439f-4745-4082-9438-5a72bec3627a"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" pdfEncoding="Cp1252" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{commodity_name}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="254" y="0" width="34" height="15" isPrintWhenDetailOverflows="true" uuid="ebfcd4ef-273e-4bad-9fd9-672fc73b804a"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" pdfEncoding="Cp1252" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qty2}.doubleValue() == 0.00 ? null : $F{qty2}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.000" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="216" y="0" width="38" height="15" isPrintWhenDetailOverflows="true" uuid="4d9c5581-6a55-45a0-a2c6-0694cea5fbca"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" pdfEncoding="Cp1252" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{tot_qty}.doubleValue() == 0.00 ? null : $F{tot_qty}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="133" y="0" width="45" height="15" isPrintWhenDetailOverflows="true" uuid="e4135550-59cf-4535-865b-2f21bef154e1"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" pdfEncoding="Cp1252" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{shape_name}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="178" y="0" width="38" height="15" isPrintWhenDetailOverflows="true" uuid="41dcdb9d-7b96-425e-8502-080c8fb69117"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" pdfEncoding="Cp1252" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{stone_size}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

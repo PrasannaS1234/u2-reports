@@ -1,0 +1,87 @@
+name: U2 Megha - Jasper EBS Terraform + Deploy
+
+on:
+  push:
+    branches:
+      - u2-improvements
+
+env:
+  TF_WORKING_DIR: .aws/jasper-ebs
+  AWS_REGION: ap-south-1
+  JASPER_MOUNT_PATH: /opt/jasper-reports
+
+jobs:
+  terraform:
+    name: Terraform Apply (Jasper EBS)
+    runs-on: ubuntu-latest
+    outputs:
+      ec2_instance_id: ${{ steps.tf_outputs.outputs.ec2_instance_id }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.U2_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.U2_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform apply -auto-approve tfplan
+
+      - name: Terraform Outputs
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform output
+
+      - name: Get EC2 Instance ID
+        id: tf_outputs
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          EC2_ID=$(terraform output -raw ec2_instance_id)
+          echo "ec2_instance_id=$EC2_ID" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: Deploy Jasper Reports to EC2
+    runs-on: ubuntu-latest
+    needs: terraform
+    if: needs.terraform.outputs.ec2_instance_id != '' && needs.terraform.outputs.ec2_instance_id != 'null'
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Deploy .jasper files to EBS mount
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.U2_SSH_HOST }}
+          username: ${{ secrets.U2_SSH_USER }}
+          password: ${{ secrets.U2_SSH_PASSWORD }}
+          source: "jasper/*"
+          target: "${{ env.JASPER_MOUNT_PATH }}/"
+          strip_components: 1
+
+      - name: Deploy .jrxml files to EBS mount
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.U2_SSH_HOST }}
+          username: ${{ secrets.U2_SSH_USER }}
+          password: ${{ secrets.U2_SSH_PASSWORD }}
+          source: "jrxml/*"
+          target: "${{ env.JASPER_MOUNT_PATH }}/jrxml/"
+          strip_components: 1

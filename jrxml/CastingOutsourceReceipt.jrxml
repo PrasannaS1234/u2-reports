@@ -1,0 +1,860 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="CastingMouldReceipt" pageWidth="700" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="675" leftMargin="15" rightMargin="10" topMargin="10" bottomMargin="10" uuid="994b5161-1c97-4377-8335-10ca4d4a4a3a">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="80"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#FFBFBF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<parameter name="PM_SUB_REPORT_PATH" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="i_inv_id" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA["7700"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dateFormat" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new String("dd-Mon-yyyy")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="tenant" class="java.lang.String">
+		<defaultValueExpression><![CDATA["''"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+    combined_data.inv_id,
+    combined_data.display_name || '-' || combined_data.commodity_name AS supplier_commodity,
+    combined_data.display_name AS supplier,
+    combined_data.inv_type || '-' || combined_data.inv_no AS inv_no,
+    combined_data.inv_dt,
+    MAX(main.reference_no) AS reference_no,
+    MAX(main.remarks) AS remarks,
+    MAX(sa.supplier_name) AS supplier_name,
+    MAX(f.factory_name) AS factory_name,
+    MAX(d.department_name) AS department_name,
+    MAX(combined_data.sales_order_no) AS sales_order_no,
+    MAX(UPPER(comp.company_name)) AS comp_off_name,
+    MAX(CONCAT(comp.street, ',', comp.area)) AS comp_area,
+    MAX(CONCAT(comp.city, ',', UPPER(st.state_name), ',', UPPER(tc.country_name), ' - ', comp.pin_code)) AS comp_state_name,
+    combined_data.bag_type_no,
+    combined_data.customer_bag_no,
+    combined_data.sku_no,
+    combined_data.lot_code,
+    combined_data.commodity_name,
+    SUM(CASE WHEN combined_data.ctype = 'Mounting' THEN combined_data.qty1 END) AS Mounting,
+    SUM(CASE WHEN combined_data.ctype = 'RM' THEN combined_data.qty1 END) AS RM,
+    SUM(CASE WHEN combined_data.ctype = 'Loss' THEN combined_data.qty1 END) AS Loss,
+    COALESCE(SUM(CASE WHEN combined_data.ctype = 'Mounting' THEN combined_data.qty1 END), 0) +
+    COALESCE(SUM(CASE WHEN combined_data.ctype = 'RM' THEN combined_data.qty1 END), 0) +
+    COALESCE(SUM(CASE WHEN combined_data.ctype = 'Loss' THEN combined_data.qty1 END), 0) AS Total,
+    ROUND(
+        COALESCE(SUM(CASE WHEN combined_data.ctype = 'Mounting' THEN combined_data.pure_wt END), 0) +
+        COALESCE(SUM(CASE WHEN combined_data.ctype = 'RM' THEN combined_data.pure_wt END), 0) +
+        COALESCE(SUM(CASE WHEN combined_data.ctype = 'Loss' THEN combined_data.pure_wt END), 0), 2
+    ) AS pure_wt
+FROM (
+    SELECT
+        rm.inv_id,
+        sup.display_name,
+        'Mounting' AS ctype,
+        rm.inv_type,
+        rm.inv_no,
+        rm.inv_dt,
+        bg.bag_type_no,
+        bg.customer_bag_no,
+        sku.sku_no,
+        so.sales_order_type || '-' || so.sales_order_no AS sales_order_no,
+        cm.commodity_name,
+        l.lot_code,
+        rc.qty1,
+        rc.qty1 * l.impure_to_pure_conv_factor AS pure_wt
+    FROM
+        tbl_mfg_casting_mould_receipt rm
+        INNER JOIN tbl_mfg_casting_mould_receipt_det rd ON rm.inv_id = rd.inv_id AND rd.is_deleted = 0
+        INNER JOIN tbl_mfg_bag bg ON rd.bag_id = bg.bag_id
+        INNER JOIN tbl_mfg_casting_mould_receipt_component rc ON rd.inv_det_id = rc.inv_det_id AND rc.is_deleted = 0
+        INNER JOIN tbl_lot l ON rc.lot_id = l.lot_id
+        LEFT JOIN tbl_sku sku ON bg.sku_id = sku.sku_id
+        LEFT JOIN tbl_jewellery jew ON bg.job_id = jew.jew_id
+        LEFT JOIN tbl_sales_order_main so ON jew.sales_order_id = so.sales_order_id
+        INNER JOIN tbl_commodity cm ON l.commodity_id = cm.commodity_id
+        INNER JOIN tbl_supplier sup ON rm.supplier_id = sup.supplier_id
+    WHERE rm.is_deleted = 0
+
+    UNION ALL
+
+    SELECT
+        rm.inv_id,
+        sup.display_name,
+        'Loss' AS ctype,
+        rm.inv_type,
+        rm.inv_no,
+        rm.inv_dt,
+        bg.bag_type_no,
+        bg.customer_bag_no,
+        sku.sku_no,
+        so.sales_order_type || '-' || so.sales_order_no AS sales_order_no,
+        cm.commodity_name,
+        l.lot_code,
+        rc.al_wt AS qty1,
+        rc.al_wt * l.impure_to_pure_conv_factor AS pure_wt
+    FROM
+        tbl_mfg_casting_mould_receipt rm
+        INNER JOIN tbl_mfg_casting_mould_receipt_det rd ON rm.inv_id = rd.inv_id AND rd.is_deleted = 0
+        INNER JOIN tbl_mfg_bag bg ON rd.bag_id = bg.bag_id
+        INNER JOIN tbl_mfg_casting_mould_receipt_component rc ON rd.inv_det_id = rc.inv_det_id AND rc.is_deleted = 0
+        INNER JOIN tbl_lot l ON rc.lot_id = l.lot_id
+        LEFT JOIN tbl_sku sku ON bg.sku_id = sku.sku_id
+        LEFT JOIN tbl_jewellery jew ON bg.job_id = jew.jew_id
+        LEFT JOIN tbl_sales_order_main so ON jew.sales_order_id = so.sales_order_id
+        INNER JOIN tbl_commodity cm ON l.commodity_id = cm.commodity_id
+        INNER JOIN tbl_supplier sup ON rm.supplier_id = sup.supplier_id
+    WHERE rm.is_deleted = 0 AND rc.al_wt <> 0
+
+    UNION ALL
+
+    SELECT
+        rm.inv_id,
+        sup.display_name,
+        'RM' AS ctype,
+        rm.inv_type,
+        rm.inv_no,
+        rm.inv_dt,
+        NULL,
+        NULL,
+        NULL,
+        NULL AS sales_order_no,
+        cm.commodity_name,
+        l.lot_code,
+        rf.qty1,
+        rf.qty1 * l.impure_to_pure_conv_factor AS pure_wt
+    FROM
+        tbl_mfg_casting_mould_receipt rm
+        INNER JOIN tbl_mfg_casting_mould_receipt_finding_det rf ON rm.inv_id = rf.inv_id AND rf.is_deleted = 0
+        INNER JOIN tbl_lot l ON rf.lot_id = l.lot_id
+        INNER JOIN tbl_commodity cm ON l.commodity_id = cm.commodity_id
+        INNER JOIN tbl_supplier sup ON rm.supplier_id = sup.supplier_id
+    WHERE rm.is_deleted = 0
+
+    UNION ALL
+
+    SELECT
+        rm.inv_id,
+        sup.display_name,
+        'Loss' AS ctype,
+        rm.inv_type,
+        rm.inv_no,
+        rm.inv_dt,
+        NULL,
+        NULL,
+        NULL,
+        NULL AS sales_order_no,
+        cm.commodity_name,
+        l.lot_code,
+        al.qty1,
+        al.qty1 * l.impure_to_pure_conv_factor AS pure_wt
+    FROM
+        tbl_mfg_casting_mould_receipt rm
+        INNER JOIN tbl_mfg_casting_mould_receipt_allow_loss al ON rm.inv_id = al.inv_id AND al.is_deleted = 0
+        INNER JOIN tbl_lot l ON al.lot_id = l.lot_id
+        INNER JOIN tbl_commodity cm ON l.commodity_id = cm.commodity_id
+        INNER JOIN tbl_supplier sup ON rm.supplier_id = sup.supplier_id
+    WHERE rm.is_deleted = 0
+) AS combined_data
+INNER JOIN tbl_mfg_casting_mould_receipt main ON combined_data.inv_id = main.inv_id
+INNER JOIN tbl_supplier sa ON main.supplier_id = sa.supplier_id
+INNER JOIN tbl_factory f ON main.factory_id = f.factory_id
+INNER JOIN tbl_department d ON main.department_id = d.department_id
+INNER JOIN tbl_company comp ON main.company_id = comp.company_id
+LEFT JOIN tbl_country tc ON comp.country_id = tc.country_id
+LEFT JOIN tbl_state st ON comp.state = st.state_code
+WHERE combined_data.inv_id = $P!{i_inv_id}
+GROUP BY
+    combined_data.inv_id,
+    combined_data.display_name,
+    combined_data.inv_type,
+    combined_data.inv_no,
+    combined_data.inv_dt,
+    combined_data.bag_type_no,
+    combined_data.customer_bag_no,
+    combined_data.sku_no,
+    combined_data.lot_code,
+    combined_data.commodity_name
+ORDER BY
+    combined_data.display_name,
+    combined_data.inv_type,
+    combined_data.inv_no,
+    combined_data.inv_dt,
+    combined_data.bag_type_no,
+    combined_data.customer_bag_no,
+    combined_data.sku_no,
+    combined_data.commodity_name,
+    combined_data.lot_code;
+]]>
+	</queryString>
+	<field name="inv_id" class="java.lang.Integer"/>
+	<field name="supplier_commodity" class="java.lang.String"/>
+	<field name="supplier" class="java.lang.String"/>
+	<field name="inv_no" class="java.lang.String"/>
+	<field name="inv_dt" class="java.sql.Date"/>
+	<field name="reference_no" class="java.lang.String"/>
+	<field name="remarks" class="java.lang.String"/>
+	<field name="supplier_name" class="java.lang.String"/>
+	<field name="factory_name" class="java.lang.String"/>
+	<field name="department_name" class="java.lang.String"/>
+	<field name="sales_order_no" class="java.lang.String"/>
+	<field name="comp_off_name" class="java.lang.String"/>
+	<field name="comp_area" class="java.lang.String"/>
+	<field name="comp_state_name" class="java.lang.String"/>
+	<field name="bag_type_no" class="java.lang.String"/>
+	<field name="customer_bag_no" class="java.lang.String"/>
+	<field name="sku_no" class="java.lang.String"/>
+	<field name="lot_code" class="java.lang.String"/>
+	<field name="commodity_name" class="java.lang.String"/>
+	<field name="mounting" class="java.math.BigDecimal"/>
+	<field name="rm" class="java.math.BigDecimal"/>
+	<field name="loss" class="java.math.BigDecimal"/>
+	<field name="total" class="java.math.BigDecimal"/>
+	<field name="pure_wt" class="java.math.BigDecimal"/>
+	<variable name="v_mounting" class="java.math.BigDecimal" resetType="Group" resetGroup="invIdGroup" calculation="Sum">
+		<variableExpression><![CDATA[$F{mounting}]]></variableExpression>
+	</variable>
+	<variable name="v_accessories" class="java.math.BigDecimal" resetType="Group" resetGroup="invIdGroup" calculation="Sum">
+		<variableExpression><![CDATA[$F{rm}]]></variableExpression>
+	</variable>
+	<variable name="v_allow_loss" class="java.math.BigDecimal" resetType="Group" resetGroup="invIdGroup" calculation="Sum">
+		<variableExpression><![CDATA[$F{loss}]]></variableExpression>
+	</variable>
+	<variable name="v_total" class="java.math.BigDecimal" resetType="Group" resetGroup="invIdGroup" calculation="Sum">
+		<variableExpression><![CDATA[$F{total}]]></variableExpression>
+	</variable>
+	<variable name="v_pure_wt" class="java.math.BigDecimal" resetType="Group" resetGroup="invIdGroup" calculation="Sum">
+		<variableExpression><![CDATA[$F{pure_wt}]]></variableExpression>
+	</variable>
+	<group name="invIdGroup" isStartNewPage="true" isResetPageNumber="true" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{inv_id}]]></groupExpression>
+		<groupHeader>
+			<band height="145" splitType="Prevent">
+				<staticText>
+					<reportElement key="staticText-12" x="0" y="46" width="675" height="13" uuid="25c8403f-ae18-42a7-baa8-6c29713ae43e"/>
+					<box leftPadding="1" rightPadding="1"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[CASTING OUTSOURCE RECEIPT]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-13" mode="Transparent" x="0" y="59" width="450" height="13" forecolor="#000000" backcolor="#473427" uuid="303b3826-4116-4f12-acf5-46a4ec91111e"/>
+					<box leftPadding="2" rightPadding="2">
+						<leftPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Supplier:]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="0" y="72" width="450" height="16" isPrintWhenDetailOverflows="true" uuid="4ef9c001-a522-4845-ac6d-bd8e139aa9ee"/>
+					<box leftPadding="2" rightPadding="2">
+						<leftPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="7" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{supplier_name}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="MM/dd/yyyy" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="0" y="34" width="675" height="12" isPrintWhenDetailOverflows="true" uuid="feb2bc94-b9f6-4ebd-89de-51d134225abb"/>
+					<box leftPadding="20"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="7" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{comp_state_name}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-102" mode="Transparent" x="0" y="120" width="60" height="25" forecolor="#000000" backcolor="#473427" uuid="4fdbb31b-a6ad-455f-b5e4-62ee36559f74"/>
+					<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[BAG NO]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-104" stretchType="RelativeToTallestObject" mode="Transparent" x="60" y="120" width="60" height="25" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#473427" uuid="b468af0a-9abf-4a40-a690-4b2c5b592b88"/>
+					<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[CUSTOMER BAG NO]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-45" stretchType="RelativeToTallestObject" x="0" y="0" width="675" height="22" forecolor="#000000" uuid="65423431-5c7f-4982-bc3f-98fb88506388"/>
+					<box leftPadding="10"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="18" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{comp_off_name}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-105" mode="Transparent" x="168" y="120" width="60" height="25" forecolor="#000000" backcolor="#473427" uuid="6ed0bd58-2c75-43ee-8b98-58f32c23bbd8"/>
+					<box topPadding="2" leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[SKU NO]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" pattern="MM/dd/yyyy" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="0" y="22" width="675" height="12" isPrintWhenDetailOverflows="true" uuid="48131dc2-d280-4741-98ca-b1252d7a7883"/>
+					<box leftPadding="20"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="7" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{comp_area}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-13" mode="Transparent" x="450" y="72" width="60" height="16" forecolor="#000000" backcolor="#473427" uuid="236e7fbb-ac00-4bde-9dbc-4911d15a9372"/>
+					<box leftPadding="2" rightPadding="2">
+						<leftPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[REF NO:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-13" mode="Transparent" x="450" y="88" width="60" height="16" forecolor="#000000" backcolor="#473427" uuid="2e623daf-9424-446a-8076-d7388301ed4d"/>
+					<box leftPadding="2" rightPadding="2">
+						<leftPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[DATE:]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="510" y="72" width="165" height="16" isPrintWhenDetailOverflows="true" uuid="7ce4ccc6-cd30-42ca-88cf-3e1304c99ef5"/>
+					<box leftPadding="2" rightPadding="2">
+						<leftPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="7" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{reference_no}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="510" y="88" width="165" height="16" isPrintWhenDetailOverflows="true" uuid="36810dc1-b012-41d2-8a5c-dc07a50b920b"/>
+					<box leftPadding="2" rightPadding="2">
+						<leftPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="7" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{inv_dt}.toString().replaceAll("'","")]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-13" mode="Transparent" x="450" y="59" width="60" height="13" forecolor="#000000" backcolor="#473427" uuid="7d58bc5a-1cfe-4ce0-8d9f-547d0f29af2a"/>
+					<box leftPadding="2" rightPadding="2">
+						<leftPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[INVOICE #]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="510" y="59" width="165" height="13" isPrintWhenDetailOverflows="true" uuid="87eaa73b-faf5-4a19-8974-457ca00de5a3"/>
+					<box leftPadding="2" rightPadding="2">
+						<leftPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="7" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{inv_no}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="0" y="88" width="450" height="16" isPrintWhenDetailOverflows="true" uuid="7b8697cb-289f-4906-9d97-2caf0590c9db"/>
+					<box leftPadding="2" rightPadding="2">
+						<leftPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="7" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{remarks}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-13" mode="Transparent" x="450" y="104" width="60" height="16" forecolor="#000000" backcolor="#473427" uuid="74459f05-f8b6-436e-9abd-7e26e355b706"/>
+					<box leftPadding="2" rightPadding="2">
+						<leftPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[DEPARTMENT:]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" stretchType="RelativeToTallestObject" x="510" y="104" width="165" height="16" isPrintWhenDetailOverflows="true" uuid="f7a1e705-305a-4da2-b280-7de96478ac71"/>
+					<box leftPadding="2" rightPadding="2">
+						<leftPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="7" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{department_name}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-105" mode="Transparent" x="228" y="120" width="80" height="25" forecolor="#000000" backcolor="#473427" uuid="9f8f6349-3875-40df-96a4-1f908d8c6ab4"/>
+					<box topPadding="2" leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[COMMODITY]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-105" mode="Transparent" x="308" y="120" width="70" height="25" forecolor="#000000" backcolor="#473427" uuid="f2131232-2b72-4309-a520-189ff784435f"/>
+					<box topPadding="2" leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[LOT CODE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-105" mode="Transparent" x="378" y="120" width="60" height="25" forecolor="#000000" backcolor="#473427" uuid="3fd1f306-4046-4a8d-a9a0-bfcafed48536"/>
+					<box topPadding="2" leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[MOUNTING]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-105" mode="Transparent" x="438" y="120" width="60" height="25" forecolor="#000000" backcolor="#473427" uuid="a0ffcaa9-0c56-4057-9ec2-380516fc639d"/>
+					<box topPadding="2" leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[ACCESSORIES]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-105" mode="Transparent" x="498" y="120" width="60" height="25" forecolor="#000000" backcolor="#473427" uuid="8091b06c-34f1-41c9-a83c-e9157e222d4c"/>
+					<box topPadding="2" leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[ALLOW LOSS]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-105" mode="Transparent" x="558" y="120" width="60" height="25" forecolor="#000000" backcolor="#473427" uuid="7affb252-52be-45e7-9b30-a23229e9f719"/>
+					<box topPadding="2" leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[TOTAL]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-105" mode="Transparent" x="618" y="120" width="57" height="25" forecolor="#000000" backcolor="#473427" uuid="54c68de0-ca6a-4561-9466-c632acbb2b7f"/>
+					<box topPadding="2" leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[PURE WT]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-104" stretchType="RelativeToTallestObject" mode="Transparent" x="120" y="120" width="48" height="25" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#473427" uuid="a22fde0f-1ff3-4bf1-9f37-d8dad4517777"/>
+					<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineColor="#000000"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[SALES ORDER NO]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="15" splitType="Prevent">
+				<staticText>
+					<reportElement key="staticText-38" stretchType="RelativeToTallestObject" x="0" y="0" width="378" height="15" isPrintWhenDetailOverflows="true" uuid="89d2d16b-d3b1-4dcd-97cd-807558f2bab9"/>
+					<box rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="false" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[TOTAL ]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="378" y="0" width="60" height="15" isPrintWhenDetailOverflows="true" uuid="02308328-82d2-4a85-88ff-4dc827b26a3f"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{v_mounting}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="438" y="0" width="60" height="15" isPrintWhenDetailOverflows="true" uuid="1870d52d-b26b-4711-b8fb-29e26ee89567"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{v_accessories}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="498" y="0" width="60" height="15" isPrintWhenDetailOverflows="true" uuid="86b672ba-31c7-4c51-b1f9-d1e2a58387eb"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{v_allow_loss}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="558" y="0" width="60" height="15" isPrintWhenDetailOverflows="true" uuid="e16c7ed0-a949-4cf3-9b8a-199fa34e1b2b"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{v_total}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.000;(#,##0.000)" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="618" y="0" width="57" height="15" isPrintWhenDetailOverflows="true" uuid="fadb1c94-a479-45da-888b-ef7c42573024"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{v_pure_wt}]]></textFieldExpression>
+				</textField>
+			</band>
+			<band height="128">
+				<textField>
+					<reportElement key="staticText-21" x="0" y="43" width="170" height="25" uuid="d63649e9-ff7e-40ad-804b-625397be6437"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="10" isBold="true" isItalic="false" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{comp_off_name}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-21" x="442" y="114" width="185" height="14" uuid="2ed0c08f-c12b-4dfa-8ab4-d23f3df6b147"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="6" isBold="true" isItalic="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[AUTHORISED SIGNATURE & CHOP]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-21" x="0" y="114" width="169" height="14" uuid="9f96b317-746e-4791-bd05-d14f4f1ef3a6"/>
+					<box leftPadding="2" rightPadding="2">
+						<topPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="6" isBold="true" isItalic="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[AUTHORISED SIGNATURE & CHOP]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-21" x="442" y="43" width="185" height="25" uuid="7a477d80-2a4c-4fc9-a29f-55f6ad06b6d0"/>
+					<box leftPadding="2" rightPadding="2"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="10" isBold="true" isItalic="false" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[RECEIVED BY]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="dummyInvId" isStartNewPage="true" isResetPageNumber="true" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{inv_id}]]></groupExpression>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Prevent">
+			<textField isStretchWithOverflow="true" pattern="#,##0" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="308" y="0" width="70" height="15" isPrintWhenDetailOverflows="true" uuid="f2e52d35-83c3-4a20-ad63-cb8b9aae93b6"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lot_code}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="60" y="0" width="60" height="15" isPrintWhenDetailOverflows="true" uuid="c46208f3-cfde-477e-9085-777bafcf7b93"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{customer_bag_no}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="168" y="0" width="60" height="15" isPrintWhenDetailOverflows="true" uuid="bfbb55ff-864e-4024-84b4-c2a02c531381"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sku_no}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="60" height="15" isPrintWhenDetailOverflows="true" uuid="aed6f110-b480-4960-8713-5d2e41b6fb22"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bag_type_no}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="228" y="0" width="80" height="15" isPrintWhenDetailOverflows="true" uuid="b20f90dd-f170-48bd-bd66-3d5806cf9945"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{commodity_name}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="438" y="0" width="60" height="15" isPrintWhenDetailOverflows="true" uuid="74246fc3-4233-4432-9572-65d403740df4"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{rm}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="498" y="0" width="60" height="15" isPrintWhenDetailOverflows="true" uuid="319f0171-31bf-4283-b420-b06073008e04"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{loss}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="558" y="0" width="60" height="15" isPrintWhenDetailOverflows="true" uuid="cc6edfea-c14b-4183-9d03-8c214c5901ab"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{total}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="618" y="0" width="57" height="15" isPrintWhenDetailOverflows="true" uuid="0b53c552-2602-44c9-82e3-925343523971"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{pure_wt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.000" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="378" y="0" width="60" height="15" isPrintWhenDetailOverflows="true" uuid="3b27c9ff-f971-4b17-a9d5-00880bab0b45"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{mounting}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="120" y="0" width="48" height="15" isPrintWhenDetailOverflows="true" uuid="f9a7e4a0-469c-4a37-951d-507f608f2e63"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sales_order_no}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+</jasperReport>

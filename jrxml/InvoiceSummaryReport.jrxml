@@ -1,0 +1,931 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="InvoiceSummaryReport" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="7dceb035-974d-45e9-becb-4256f064a838">
+	<property name="ireport.zoom" value="1.4641000000000008"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<parameter name="invId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[with v_master_data as (
+select
+	im.inv_id,
+	im.inv_no,
+	im.inv_dt,
+	im.currency,
+	im.exchange_rate,
+	im.gold_rate,
+	im.pt_rate,
+	im.silver_rate,
+	im.customer_name,
+	isum.style_no,
+	isum.job_no,
+	isum.cref,
+	isum.items,
+	isum.metal,
+	isum.total_gross_wt,
+	isum.cust_metal_wt,
+	isum.our_metal_wt,
+	isum.non_metal_wt,
+	isum.summary_id,
+	isum.total_setting_amount,
+	isum.total_handling_amount,
+	isum.total_metal_amount,
+	isum.total_metal_labour_amount,
+          isum.total_amount,
+          sum(isum.total_amount) over() grand_total,
+	row_number() over(order by isum.style_no) sr_no
+from
+	tbl_invoice_main im
+	inner join tbl_invoice_summary isum on im.inv_id = isum.inv_id
+		and isum.is_deleted = 0
+where
+	im.is_deleted = 0
+	and im.inv_id = $P!{invId}
+)
+select
+	abc.*,
+	concat(abc.mainseq, abc.seq,'',abc.cgrp) cgrp_new
+from
+(
+	select
+		md.*,
+		concat('Cust Dia ',shape_name, ' Wt') cgrp,
+		wt	cvalue,
+		'A'   mainseq,
+		'A'   seq
+	from
+		v_master_data md
+		inner join tbl_invoice_summary_stone cust_dia on md.summary_id = cust_dia.summary_id
+			and stone_belongs = 'CUST_DIAMOND'
+	union all
+	select
+		md.*,
+		concat('Cust Dia ',shape_name, ' PCS') cgrp,
+		pcs	cvalue,
+		'A'	mainseq,
+		'AA'   seq
+	from
+		v_master_data md
+		inner join tbl_invoice_summary_stone cust_dia on md.summary_id = cust_dia.summary_id
+			and stone_belongs = 'CUST_DIAMOND'
+	union all
+	select
+		md.*,
+		concat('Cust CS ',shape_name, ' Wt') cgrp,
+		wt	cvalue,
+		'B'	mainseq,
+		'B'   seq
+	from
+		v_master_data md
+		inner join tbl_invoice_summary_stone cust_dia on md.summary_id = cust_dia.summary_id
+			and stone_belongs = 'CUST_CS'
+	union all
+	select
+		md.*,
+		concat('Cust CS ',shape_name,' PCS') cgrp,
+		pcs	cvalue,
+		'B'	mainseq,
+		'BB'   seq
+	from
+		v_master_data md
+		inner join tbl_invoice_summary_stone cust_dia on md.summary_id = cust_dia.summary_id
+			and stone_belongs = 'CUST_CS'
+	union all
+	select
+		md.*,
+		concat('U Dia ',shape_name, ' Wt') cgrp,
+		wt	cvalue,
+		'C'	mainseq,
+		'C'   seq
+	from
+		v_master_data md
+		inner join tbl_invoice_summary_stone cust_dia on md.summary_id = cust_dia.summary_id
+			and stone_belongs = 'OUR_DIAMOND'
+	union all
+	select
+		md.*,
+		concat('U Dia ',shape_name, ' PCS') cgrp,
+		pcs	cvalue,
+		'C'	mainseq,
+		'CC'   seq
+	from
+		v_master_data md
+		inner join tbl_invoice_summary_stone cust_dia on md.summary_id = cust_dia.summary_id
+			and stone_belongs = 'OUR_DIAMOND'
+	union all
+	select
+		md.*,
+		concat('U CS ',shape_name, ' Wt') cgrp,
+		wt	cvalue,
+		'D'	mainseq,
+		'D'   seq
+	from
+		v_master_data md
+		inner join tbl_invoice_summary_stone cust_dia on md.summary_id = cust_dia.summary_id
+			and stone_belongs = 'OUR_CS'
+	union all
+	select
+		md.*,
+		concat('U CS ',shape_name, ' PCS') cgrp,
+		pcs	cvalue,
+		'D'	mainseq,
+		'DD'   seq
+	from
+		v_master_data md
+		inner join tbl_invoice_summary_stone cust_dia on md.summary_id = cust_dia.summary_id
+			and stone_belongs = 'OUR_CS'
+	union all
+	select
+		md.*,
+		'Setting Labour' cgrp,
+		md.total_setting_amount  cvalue,
+		'E'	mainseq,
+		'E'   seq
+	from
+		v_master_data md
+	union all
+	select
+		md.*,
+		'Handling Labor' cgrp,
+		md.total_handling_amount  cvalue,
+		'F'	mainseq,
+		'F'   seq
+	from
+		v_master_data md
+	union all
+	select
+		md.*,
+		'Metal Labor' cgrp,
+		md.total_metal_labour_amount  cvalue,
+		'G'	mainseq,
+		'G'   seq
+	from
+		v_master_data md
+	union all
+	select
+		md.*,
+		chgs.charge_name cgrp,
+		chgs.amount  cvalue,
+		'H'	mainseq,
+		'H'   seq
+	from
+		v_master_data md
+		inner join tbl_invoice_summary_charges chgs on md.summary_id = chgs.summary_id
+			and chgs.is_deleted = 0
+			and chgs.amount > 0
+	union all
+	select
+		md.*,
+		'GoldCost' cgrp,
+		md.total_metal_amount  cvalue,
+		'I'		mainseq,
+		'I'   seq
+	from
+		v_master_data md
+) abc order by abc.sr_no,abc.mainseq, abc.seq]]>
+	</queryString>
+	<field name="inv_id" class="java.lang.Integer"/>
+	<field name="inv_no" class="java.lang.String"/>
+	<field name="inv_dt" class="java.sql.Date"/>
+	<field name="currency" class="java.lang.String"/>
+	<field name="exchange_rate" class="java.math.BigDecimal"/>
+	<field name="gold_rate" class="java.math.BigDecimal"/>
+	<field name="pt_rate" class="java.math.BigDecimal"/>
+	<field name="silver_rate" class="java.math.BigDecimal"/>
+	<field name="customer_name" class="java.lang.String"/>
+	<field name="style_no" class="java.lang.String"/>
+	<field name="job_no" class="java.lang.String"/>
+	<field name="cref" class="java.lang.String"/>
+	<field name="items" class="java.lang.String"/>
+	<field name="metal" class="java.lang.String"/>
+	<field name="total_gross_wt" class="java.math.BigDecimal"/>
+	<field name="cust_metal_wt" class="java.math.BigDecimal"/>
+	<field name="our_metal_wt" class="java.math.BigDecimal"/>
+	<field name="non_metal_wt" class="java.math.BigDecimal"/>
+	<field name="summary_id" class="java.lang.Integer"/>
+	<field name="total_setting_amount" class="java.math.BigDecimal"/>
+	<field name="total_handling_amount" class="java.math.BigDecimal"/>
+	<field name="total_metal_amount" class="java.math.BigDecimal"/>
+	<field name="total_metal_labour_amount" class="java.math.BigDecimal"/>
+	<field name="total_amount" class="java.math.BigDecimal"/>
+	<field name="grand_total" class="java.math.BigDecimal"/>
+	<field name="sr_no" class="java.lang.Long"/>
+	<field name="cgrp" class="java.lang.String"/>
+	<field name="cvalue" class="java.math.BigDecimal"/>
+	<field name="mainseq" class="java.lang.String"/>
+	<field name="seq" class="java.lang.String"/>
+	<field name="cgrp_new" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="102" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="59" height="18" uuid="cc01ebd0-e976-4f2a-9359-0e50513bd851"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Trebuchet MS" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TO:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="59" y="0" width="159" height="18" uuid="6e9383bc-6f39-4be4-95af-fe2bc3e85815"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Trebuchet MS" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Zeghani Jewelry Inc]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="59" y="18" width="159" height="18" uuid="fc5ad89f-9716-440d-9956-b16a9f4f67fa"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Trebuchet MS" isBold="true"/>
+				</textElement>
+				<text><![CDATA[528 State St]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="59" y="36" width="159" height="18" uuid="d639163f-d8eb-47af-8871-f32837c71a07"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Trebuchet MS" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Glendale Ca 91203 USA]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="59" y="54" width="159" height="18" uuid="9f4da35f-b2a4-4aef-bd50-0d934165b3f9"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Trebuchet MS" isBold="true"/>
+				</textElement>
+				<text><![CDATA[California]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="59" y="72" width="159" height="18" uuid="9247ff5d-61e4-44c0-8ac7-05fedd372808"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Trebuchet MS" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Phone : 8185008595.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="18" width="59" height="18" uuid="49ea283e-30bd-4a64-8f62-79b0a36d04e3"/>
+				<textElement>
+					<font fontName="Trebuchet MS" isBold="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="36" width="59" height="18" uuid="665af6e0-a53a-4163-aff9-6e4321d765c4"/>
+				<textElement>
+					<font fontName="Trebuchet MS" isBold="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="54" width="59" height="18" uuid="983f5e7b-52e9-4e19-b98a-89e5b201caa2"/>
+				<textElement>
+					<font fontName="Trebuchet MS" isBold="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="72" width="59" height="18" uuid="3319746b-41da-4ec1-b7e1-17b6c326623c"/>
+				<textElement>
+					<font fontName="Trebuchet MS" isBold="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="358" y="18" width="80" height="18" uuid="ad69842c-5911-43d2-b631-6f16dc241bea"/>
+				<box leftPadding="5"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Trebuchet MS" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{inv_no}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="358" y="36" width="80" height="18" uuid="280dc3af-1a58-482a-b4df-db1fbb129dec"/>
+				<box leftPadding="5"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Trebuchet MS" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{inv_dt}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="358" y="54" width="80" height="18" uuid="116a03d7-3e62-4175-be88-d6f172e554f6"/>
+				<box leftPadding="5"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Trebuchet MS" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["30 Days"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="358" y="72" width="80" height="18" uuid="0edcdf4d-d118-4c1a-9457-63cf61970e6d"/>
+				<box leftPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Trebuchet MS" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="218" y="72" width="140" height="18" uuid="3d987779-d2a1-400d-afc0-af840542f679"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Trebuchet MS" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["HAWB:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="218" y="54" width="140" height="18" uuid="b481e55f-affc-40a4-bf15-e577e5baf987"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Trebuchet MS" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["TERMS:"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="218" y="18" width="140" height="18" uuid="71ee2596-7a68-466f-b361-d8be4645104a"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Trebuchet MS" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["INVOICE NO :"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="218" y="36" width="140" height="18" uuid="c49443ea-c080-4e09-94c3-fea85f53ba08"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Trebuchet MS" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["DATE :"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="90" width="438" height="12" uuid="5c3a2290-323b-442b-bdd1-288af7a3df94"/>
+				<textElement>
+					<font fontName="Trebuchet MS" isBold="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</title>
+	<summary>
+		<band height="74" splitType="Stretch">
+			<crosstab isRepeatColumnHeaders="false" isRepeatRowHeaders="false" columnBreakOffset="100" ignoreWidth="true">
+				<reportElement x="0" y="0" width="802" height="74" isPrintWhenDetailOverflows="true" uuid="c254f2e4-2944-43bf-acb8-68815f5d89a8"/>
+				<crosstabHeaderCell>
+					<cellContents mode="Transparent">
+						<staticText>
+							<reportElement style="Crosstab Data Text" mode="Opaque" x="398" y="0" width="40" height="30" backcolor="#F2F2F2" uuid="acaa42e3-0f6a-4cd4-85f0-897475dab2a8"/>
+							<box leftPadding="2" rightPadding="2">
+								<topPen lineWidth="0.5"/>
+								<leftPen lineWidth="0.5"/>
+								<bottomPen lineWidth="0.5"/>
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<textElement verticalAlignment="Top">
+								<font fontName="Calibri" size="10" isBold="true"/>
+							</textElement>
+							<text><![CDATA[Nett Wts]]></text>
+						</staticText>
+						<staticText>
+							<reportElement style="Crosstab Data Text" x="358" y="0" width="40" height="30" uuid="d0f7d6d5-2dc4-4555-8806-8467320c8c5c"/>
+							<box leftPadding="2" rightPadding="2">
+								<topPen lineWidth="0.5"/>
+								<leftPen lineWidth="0.5"/>
+								<bottomPen lineWidth="0.5"/>
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<textElement verticalAlignment="Top">
+								<font fontName="Calibri" size="10" isBold="true"/>
+							</textElement>
+							<text><![CDATA[CUST Gold Wts]]></text>
+						</staticText>
+						<staticText>
+							<reportElement style="Crosstab Data Text" x="318" y="0" width="40" height="30" uuid="8298ccb0-3669-4dd1-a55c-6a6baf690561"/>
+							<box leftPadding="2" rightPadding="2">
+								<topPen lineWidth="0.5"/>
+								<leftPen lineWidth="0.5"/>
+								<bottomPen lineWidth="0.5"/>
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<textElement verticalAlignment="Top">
+								<font fontName="Calibri" size="10" isBold="true"/>
+							</textElement>
+							<text><![CDATA[Gross Wt]]></text>
+						</staticText>
+						<staticText>
+							<reportElement style="Crosstab Data Text" x="278" y="0" width="40" height="30" uuid="66452852-5103-4144-89c4-efa1f00f0e56"/>
+							<box leftPadding="2" rightPadding="2">
+								<topPen lineWidth="0.5"/>
+								<leftPen lineWidth="0.5"/>
+								<bottomPen lineWidth="0.5"/>
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<textElement verticalAlignment="Top">
+								<font fontName="Calibri" size="10" isBold="true"/>
+							</textElement>
+							<text><![CDATA[Gold]]></text>
+						</staticText>
+						<staticText>
+							<reportElement style="Crosstab Data Text" x="218" y="0" width="60" height="30" uuid="e0668baf-6b4b-46cc-8c2c-923530e66de4"/>
+							<box leftPadding="2" rightPadding="2">
+								<topPen lineWidth="0.5"/>
+								<leftPen lineWidth="0.5"/>
+								<bottomPen lineWidth="0.5"/>
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<textElement verticalAlignment="Top">
+								<font fontName="Calibri" size="10" isBold="true"/>
+							</textElement>
+							<text><![CDATA[Items]]></text>
+						</staticText>
+						<staticText>
+							<reportElement style="Crosstab Data Text" x="158" y="0" width="60" height="30" uuid="0dfa78a2-8b24-4d7f-9806-84e1171fe8fe"/>
+							<box leftPadding="2" rightPadding="2">
+								<topPen lineWidth="0.5"/>
+								<leftPen lineWidth="0.5"/>
+								<bottomPen lineWidth="0.5"/>
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<textElement verticalAlignment="Top">
+								<font fontName="Calibri" size="10" isBold="true"/>
+							</textElement>
+							<text><![CDATA[Cref]]></text>
+						</staticText>
+						<staticText>
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="25" height="30" uuid="cc27d036-11d1-450b-a36d-f203658d37e6"/>
+							<box leftPadding="2" rightPadding="2">
+								<topPen lineWidth="0.5"/>
+								<leftPen lineWidth="0.5"/>
+								<bottomPen lineWidth="0.5"/>
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<textElement verticalAlignment="Top">
+								<font fontName="Calibri" size="10" isBold="true"/>
+							</textElement>
+							<text><![CDATA[Sno]]></text>
+						</staticText>
+						<staticText>
+							<reportElement style="Crosstab Data Text" x="98" y="0" width="60" height="30" uuid="8505fd2c-93a6-41b4-993d-fb57792ca6a5"/>
+							<box leftPadding="2" rightPadding="2">
+								<topPen lineWidth="0.5"/>
+								<leftPen lineWidth="0.5"/>
+								<bottomPen lineWidth="0.5"/>
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<textElement verticalAlignment="Top">
+								<font fontName="Calibri" size="10" isBold="true"/>
+							</textElement>
+							<text><![CDATA[Job No]]></text>
+						</staticText>
+						<staticText>
+							<reportElement style="Crosstab Data Text" x="25" y="0" width="73" height="30" uuid="eac261a2-d19d-474e-81aa-3f443bae1760"/>
+							<box leftPadding="2" rightPadding="2">
+								<topPen lineWidth="0.5"/>
+								<leftPen lineWidth="0.5"/>
+								<bottomPen lineWidth="0.5"/>
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<textElement verticalAlignment="Top">
+								<font fontName="Calibri" size="10" isBold="true"/>
+							</textElement>
+							<text><![CDATA[Style No]]></text>
+						</staticText>
+					</cellContents>
+				</crosstabHeaderCell>
+				<rowGroup name="sr_no" width="25" totalPosition="End">
+					<bucket class="java.lang.Long">
+						<bucketExpression><![CDATA[$F{sr_no}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents backcolor="#F0F8FF" mode="Transparent">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="25" height="16" uuid="c90facdb-f901-47c5-a65f-f544cc7fe075"/>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Calibri" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{sr_no}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents backcolor="#005FB3" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<staticText>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="438" height="12" forecolor="#FFFFFF" uuid="78ed3546-73f6-4f01-86ba-874f09bea3d1"/>
+								<box leftPadding="2" rightPadding="2"/>
+								<textElement textAlignment="Right">
+									<font fontName="Calibri" size="9"/>
+								</textElement>
+								<text><![CDATA[TOTAL]]></text>
+							</staticText>
+						</cellContents>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<rowGroup name="style_no" width="73">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{style_no}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents backcolor="#F0F8FF" mode="Transparent">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<textField isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="73" height="16" uuid="8cfabc42-ad39-459b-8b0c-b9bbd29534b3"/>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Calibri" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{style_no}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+						</cellContents>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<rowGroup name="group1" width="60">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{job_no}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="60" height="16" uuid="d68e9c81-75b9-4aa4-aef1-7189fa3a5f23"/>
+								<box leftPadding="2" rightPadding="2">
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Calibri" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{group1}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents/>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<rowGroup name="group2" width="60">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{cref}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="60" height="16" uuid="04f8618c-0f71-4e79-ba14-ca2a407c447e"/>
+								<box leftPadding="2" rightPadding="2">
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Calibri" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{group2}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents/>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<rowGroup name="group3" width="60">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{items}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="60" height="16" uuid="572bec7f-6536-4416-a287-5765158a8af1"/>
+								<box leftPadding="2" rightPadding="2">
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Calibri" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{group3}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents/>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<rowGroup name="group4" width="40">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{metal}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents>
+							<textField pattern="#,##0.00;(#,##0.00)">
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="40" height="16" uuid="dc868055-1a25-4a98-abb9-9b91d6d1a988"/>
+								<box leftPadding="2" rightPadding="2">
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Calibri" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{group4}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents/>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<rowGroup name="group5" width="40">
+					<bucket class="java.math.BigDecimal">
+						<bucketExpression><![CDATA[$F{total_gross_wt}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents>
+							<textField pattern="#,##0.00;(#,##0.00)">
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="40" height="16" uuid="4cd97460-3e48-40d1-828d-619a9146698e"/>
+								<box leftPadding="2" rightPadding="2">
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Calibri" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{group5}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents/>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<rowGroup name="group6" width="40">
+					<bucket class="java.math.BigDecimal">
+						<bucketExpression><![CDATA[$F{cust_metal_wt}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents>
+							<textField pattern="#,##0.00;(#,##0.00)">
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="40" height="16" uuid="5846f52c-3369-4074-8e32-8bd3d00e3a86"/>
+								<box leftPadding="2" rightPadding="2">
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Calibri" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{group6}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents/>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<rowGroup name="group7" width="40">
+					<bucket class="java.math.BigDecimal">
+						<bucketExpression><![CDATA[$F{our_metal_wt}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents>
+							<textField pattern="#,##0.00;(#,##0.00)">
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="0" y="0" width="40" height="16" backcolor="#F2F2F2" uuid="5a79c88c-7763-4be9-ac13-5d1ba58f86e7"/>
+								<box leftPadding="2" rightPadding="2">
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Calibri" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{group7}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents/>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<rowGroup name="group8" width="0">
+					<bucket class="java.math.BigDecimal">
+						<bucketExpression><![CDATA[$F{total_amount}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents/>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents/>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<columnGroup name="cgrp" height="30" totalPosition="End">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{cgrp_new}]]></bucketExpression>
+					</bucket>
+					<crosstabColumnHeader>
+						<cellContents backcolor="#F0F8FF" mode="Transparent">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="60" height="30" uuid="ff9fb769-025f-4fa4-983d-794a28b69fed"/>
+								<textElement verticalAlignment="Top">
+									<font fontName="Calibri" size="8" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{cgrp}.substring(1)]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabColumnHeader>
+					<crosstabTotalColumnHeader>
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<staticText>
+								<reportElement x="0" y="0" width="50" height="30" uuid="0c39ecf9-5c2b-4613-8cda-b0cfa5b64e5f"/>
+								<textElement textAlignment="Center" verticalAlignment="Top">
+									<font fontName="Calibri" size="11"/>
+								</textElement>
+								<text><![CDATA[Total]]></text>
+							</staticText>
+						</cellContents>
+					</crosstabTotalColumnHeader>
+				</columnGroup>
+				<measure name="cvalueMeasure" class="java.math.BigDecimal" calculation="Sum">
+					<measureExpression><![CDATA[$F{cvalue}]]></measureExpression>
+				</measure>
+				<measure name="measure1" class="java.math.BigDecimal">
+					<measureExpression><![CDATA[$F{grand_total}]]></measureExpression>
+				</measure>
+				<measure name="measure3" class="java.math.BigDecimal" calculation="Sum">
+					<measureExpression><![CDATA[$F{total_gross_wt}]]></measureExpression>
+				</measure>
+				<measure name="measure2" class="java.math.BigDecimal" calculation="Sum">
+					<measureExpression><![CDATA[$F{our_metal_wt}]]></measureExpression>
+				</measure>
+				<measure name="measure4" class="java.math.BigDecimal" calculation="Sum">
+					<measureExpression><![CDATA[$F{cust_metal_wt}]]></measureExpression>
+				</measure>
+				<measure name="measure5" class="java.math.BigDecimal" calculation="Sum">
+					<measureExpression><![CDATA[$F{our_metal_wt}]]></measureExpression>
+				</measure>
+				<crosstabCell width="60" height="16">
+					<cellContents>
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="60" height="16" uuid="a5337356-1be2-4da4-8bc0-06183697ad12"/>
+							<box leftPadding="2" rightPadding="2">
+								<topPen lineWidth="0.5"/>
+								<leftPen lineWidth="0.5"/>
+								<bottomPen lineWidth="0.5"/>
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<textElement textAlignment="Right" verticalAlignment="Middle">
+								<font fontName="Calibri" size="8"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$V{cvalueMeasure}.doubleValue() == 0 ? null : $V{cvalueMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="60" height="12" rowTotalGroup="sr_no">
+					<cellContents backcolor="#005FB3" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField pattern="#,##0.00;(#,##0.00)">
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="60" height="12" forecolor="#FFFFFF" uuid="eee380b5-8aa2-4d25-9010-c5ce67a74bb1"/>
+							<box leftPadding="2" rightPadding="2"/>
+							<textElement textAlignment="Right" verticalAlignment="Middle">
+								<font fontName="Calibri" size="8"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$V{cvalueMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="50" height="16" columnTotalGroup="cgrp">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField pattern="#,##0;(#,##0)">
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="16" uuid="f06e0584-44ed-4fdf-a2ff-94ec117f342b"/>
+							<box leftPadding="3" rightPadding="2">
+								<topPen lineWidth="0.5"/>
+								<leftPen lineWidth="0.5"/>
+								<bottomPen lineWidth="0.5"/>
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Calibri" size="8"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$V{group8}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell height="12" rowTotalGroup="sr_no" columnTotalGroup="cgrp">
+					<cellContents backcolor="#005FB3" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField pattern="#,##0;(#,##0)" isBlankWhenNull="false">
+							<reportElement style="Crosstab Data Text" mode="Transparent" x="0" y="0" width="50" height="12" forecolor="#FFFFFF" backcolor="#FFFFFF" uuid="7c8aa617-666b-453a-9a26-2c9b7ecca621"/>
+							<textElement verticalAlignment="Middle" rotation="None" markup="none">
+								<font fontName="Calibri" size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+								<paragraph lineSpacing="Single"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$V{measure1}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell height="25" rowTotalGroup="style_no">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell height="25" rowTotalGroup="style_no" columnTotalGroup="cgrp">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="group1">
+					<cellContents/>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="group1" columnTotalGroup="cgrp">
+					<cellContents/>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="group2">
+					<cellContents/>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="group2" columnTotalGroup="cgrp">
+					<cellContents/>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="group3">
+					<cellContents/>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="group3" columnTotalGroup="cgrp">
+					<cellContents/>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="group4">
+					<cellContents/>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="group4" columnTotalGroup="cgrp">
+					<cellContents/>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="group5">
+					<cellContents/>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="group5" columnTotalGroup="cgrp">
+					<cellContents/>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="group6">
+					<cellContents/>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="group6" columnTotalGroup="cgrp">
+					<cellContents/>
+				</crosstabCell>
+				<crosstabCell height="16" rowTotalGroup="group7">
+					<cellContents/>
+				</crosstabCell>
+				<crosstabCell height="16" rowTotalGroup="group7" columnTotalGroup="cgrp">
+					<cellContents/>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="group8">
+					<cellContents/>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="group8" columnTotalGroup="cgrp">
+					<cellContents/>
+				</crosstabCell>
+			</crosstab>
+		</band>
+	</summary>
+</jasperReport>

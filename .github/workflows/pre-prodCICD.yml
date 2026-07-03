@@ -1,0 +1,34 @@
+name: Auto Deploy Jasper Reports to Pre-prod
+
+on:
+  push:
+    branches:
+      - main  # Change this to the branch you want to monitor
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Deploy .jasper files to EC2
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.PRE_PROD_SSH_HOST }}
+          username: ${{ secrets.PRE_PROD_SSH_USER }}
+          password: ${{ secrets.PRE_PROD_SSH_PASSWORD }}
+          source: "jasper/*"
+          target: "/home/ubuntu/tekfilo/jewtrade/reports/jasper/"
+          strip_components: 1
+
+      - name: Deploy .jrxml files to EC2
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.PRE_PROD_SSH_HOST }}
+          username: ${{ secrets.PRE_PROD_SSH_USER }}
+          password: ${{ secrets.PRE_PROD_SSH_PASSWORD }}
+          source: "jrxml/*"
+          target: "/home/ubuntu/tekfilo/jewtrade/reports/jrxml/"
+          strip_components: 1

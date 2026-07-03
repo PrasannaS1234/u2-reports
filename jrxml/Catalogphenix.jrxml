@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Catalogue" columnCount="4" printOrder="Horizontal" pageWidth="830" pageHeight="1600" whenNoDataType="AllSectionsNoDetail" columnWidth="205" leftMargin="5" rightMargin="5" topMargin="5" bottomMargin="5" uuid="90d7bbd5-3499-46a4-b0c2-874ad68be181">
+	<property name="ireport.scriptlethandling" value="2"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="1.0514816984441773"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Sample DB"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="375"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="614"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="style1" vAlign="Top"/>
+	<parameter name="companyName" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["'TEKFILO'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="reportTitle" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["'Style Catalogue'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="catalogName" class="java.lang.String">
+		<defaultValueExpression><![CDATA["''"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="catalogDescription" class="java.lang.String">
+		<defaultValueExpression><![CDATA["''"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="id" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="tenant" class="java.lang.String">
+		<defaultValueExpression><![CDATA["public"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="product_type" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="prod_size" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="diamond_weight" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="color_stone_weight" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="metal" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="karatage" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="metal_weight" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+	cm.catalog_name,
+	cm.description,
+	v.product_name,
+	case when $P{product_type} = 1 then v.product_type_name end as product_type_name,
+	coalesce(v.product_desc,'') product_desc,
+	case when $P{diamond_weight} =1 then coalesce(v.dia_qty1,0.000) end as dia_qty1,
+	coalesce(v.dia_qty2,0.000) dia_qty2,
+	case when $P{color_stone_weight} =1 then coalesce(v.cs_qty1,0.000) end as cs_qty1,
+	coalesce(v.cs_qty2,0.000) cs_qty2,
+          case when $P{product_type} = 1 then 'Product Type' else null end as product_type_lable,
+          case when $P{prod_size} = 1 then 'Product Size' end as product_size_lable,
+          case when $P{diamond_weight} = 1 then 'Diamond Weight' end as diamon_wt_lable,
+          case when  $P{color_stone_weight} = 1 then 'Colour Stone Weight' end as cs_wt_lable,
+          case when $P{metal} = 1 then 'Metal' end as metal_lable,
+          case when $P{karatage} = 1 then 'Karatage' end as karatage_lable,
+          case when $P{metal_weight} = 1 then 'Metal Weight' end metal_wt_lable,
+          case when $P{metal_weight} = 1 then coalesce(v.metal_wt,null) end metal_wt,
+	v.is_center_stone,
+	case when $P{karatage} = 1 then coalesce(v.karatage,'-') end karatage,
+	case when $P{metal}  = 1 then coalesce(v.metal_code,'-') end metal_code,
+	case when $P{prod_size} = 1 then coalesce(v.product_size, '-') end product_size,
+case when v.picture_url is not null
+then concat('/home/ubuntu/tekfilo/jewtrade/uploads/',$P{tenant},'comp',v.company_id,'/',lower(cd.category),'/',cd.product_id,v.picture_url)
+when cd.category = 'JEWELLERY' and sku.image_url is not null
+then concat('/home/ubuntu/tekfilo/jewtrade/uploads/',$P{tenant},'comp',sku.company_id,'/sku','/',sku.sku_id,sku.image_url)
+end as image_url,
+          concat('/home/ubuntu/tekfilo/jewtrade/uploads/',$P{tenant},'comp',v.company_id,'/','company','/',c.company_id,c.log_url) logo_url
+from
+	tbl_catalog  cm
+	left join tbl_catalog_det cd on cm.catalog_id = cd.catalog_id
+		and cd.is_deleted = 0
+	left join v_catalog_summary v on cd.category = v.category
+		and cd.product_id = v.product_id
+          left join tbl_company c on c.company_id = cm.company_id
+          left join tbl_jewellery j on cd.product_id = j.jew_id and cd.category = 'JEWELLERY'
+	left join tbl_sku sku on j.sku_id = sku.sku_id
+where
+	cm.is_deleted = 0
+	and cm.catalog_id = $P!{id}
+order by cd.catalog_det_id asc]]>
+	</queryString>
+	<field name="catalog_name" class="java.lang.String"/>
+	<field name="description" class="java.lang.String"/>
+	<field name="product_name" class="java.lang.String"/>
+	<field name="product_type_name" class="java.lang.String"/>
+	<field name="product_desc" class="java.lang.String"/>
+	<field name="dia_qty1" class="java.math.BigDecimal"/>
+	<field name="dia_qty2" class="java.math.BigDecimal"/>
+	<field name="cs_qty1" class="java.math.BigDecimal"/>
+	<field name="cs_qty2" class="java.math.BigDecimal"/>
+	<field name="product_type_lable" class="java.lang.String"/>
+	<field name="product_size_lable" class="java.lang.String"/>
+	<field name="diamon_wt_lable" class="java.lang.String"/>
+	<field name="cs_wt_lable" class="java.lang.String"/>
+	<field name="metal_lable" class="java.lang.String"/>
+	<field name="karatage_lable" class="java.lang.String"/>
+	<field name="metal_wt_lable" class="java.lang.String"/>
+	<field name="metal_wt" class="java.math.BigDecimal"/>
+	<field name="is_center_stone" class="java.lang.Integer"/>
+	<field name="karatage" class="java.lang.String"/>
+	<field name="metal_code" class="java.lang.String"/>
+	<field name="product_size" class="java.lang.String"/>
+	<field name="image_url" class="java.lang.String"/>
+	<field name="logo_url" class="java.lang.String"/>
+	<variable name="companyName" class="java.lang.String">
+		<variableExpression><![CDATA[$P{companyName}.replace( "'", "" )]]></variableExpression>
+		<initialValueExpression><![CDATA[$P{companyName}.replace("'", "")]]></initialValueExpression>
+	</variable>
+	<background>
+		<band height="1590">
+			<rectangle>
+				<reportElement mode="Opaque" x="10" y="-15" width="820" height="1590" forecolor="#FAF6F4" backcolor="#FAF6F4" uuid="3fd9c5e3-c45b-4606-b301-9656bd1a447e"/>
+			</rectangle>
+		</band>
+	</background>
+	<title>
+		<band height="141" splitType="Stretch">
+			<image hAlign="Center" vAlign="Middle" onErrorType="Icon">
+				<reportElement x="299" y="9" width="200" height="65" uuid="f3ab195f-242f-461c-9e81-f49edc837c1d"/>
+				<imageExpression><![CDATA[$F{logo_url}]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement x="0" y="90" width="820" height="51" uuid="012c8d83-e77e-4ecb-a843-59f1354ef867"/>
+				<box leftPadding="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Cormorant Garamond" size="25" pdfFontName="/usr/share/fonts/TTF/CormorantGaramond-Regular.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{catalog_name}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="300" splitType="Stretch">
+			<rectangle radius="10">
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="0" y="270" width="200" height="25" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" forecolor="#F1E4D9" backcolor="#F1E4D9" uuid="33d5a371-2e1d-42fe-92d8-1b1dd0120baf"/>
+			</rectangle>
+			<rectangle radius="0">
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="0" y="270" width="200" height="15" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" forecolor="#F1E4D9" backcolor="#F1E4D9" uuid="a0aadd8b-adcf-40ab-8fcf-a319b3a4a5b1">
+					<printWhenExpression><![CDATA[$F{metal_wt_lable} !=  null]]></printWhenExpression>
+				</reportElement>
+			</rectangle>
+			<rectangle radius="0">
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="0" y="180" width="200" height="15" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" forecolor="#F1E4D9" backcolor="#F1E4D9" uuid="d6adc796-cbb5-4121-870a-9b61f7dc005d"/>
+			</rectangle>
+			<rectangle radius="0">
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="0" y="195" width="200" height="15" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" forecolor="#F1E4D9" backcolor="#F1E4D9" uuid="334ce5bc-075a-4b7e-b3df-05483615c3e3">
+					<printWhenExpression><![CDATA[$F{product_size_lable} != null ]]></printWhenExpression>
+				</reportElement>
+			</rectangle>
+			<rectangle radius="0">
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="0" y="210" width="200" height="15" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" forecolor="#F1E4D9" backcolor="#F1E4D9" uuid="04e6e954-ac4b-4d77-82d7-bc5fdccda0b6">
+					<printWhenExpression><![CDATA[$F{diamon_wt_lable} != null]]></printWhenExpression>
+				</reportElement>
+			</rectangle>
+			<rectangle radius="0">
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="0" y="225" width="200" height="15" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" forecolor="#F1E4D9" backcolor="#F1E4D9" uuid="44dc73f2-8a0e-4f34-b95d-45dbcde47b1f">
+					<printWhenExpression><![CDATA[$F{cs_wt_lable} != null]]></printWhenExpression>
+				</reportElement>
+			</rectangle>
+			<rectangle radius="0">
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="0" y="240" width="200" height="15" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" forecolor="#F1E4D9" backcolor="#F1E4D9" uuid="f88a0f3e-caa5-47c6-91db-b30e6c5aef8d">
+					<printWhenExpression><![CDATA[$F{metal_lable} != null]]></printWhenExpression>
+				</reportElement>
+			</rectangle>
+			<rectangle radius="0">
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="0" y="255" width="200" height="30" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" forecolor="#F1E4D9" backcolor="#F1E4D9" uuid="deeee740-ef25-4504-87c8-0fe0b8755f99">
+					<printWhenExpression><![CDATA[$F{karatage_lable} != null]]></printWhenExpression>
+				</reportElement>
+			</rectangle>
+			<textField pattern="#,##0.0000;(#,##0.0000)" isBlankWhenNull="true">
+				<reportElement key="textField-3" positionType="Float" x="102" y="210" width="91" height="15" isRemoveLineWhenBlank="true" uuid="2c390b16-42f0-4f59-b0de-b0ecf1bf7d5e"/>
+				<box leftPadding="3">
+					<pen lineColor="#FFFFFF"/>
+					<topPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<leftPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#FFFFFF"/>
+					<rightPen lineWidth="0.5" lineColor="#FFFFFF"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Outfit Thin" size="8" pdfFontName="/usr/share/fonts/TTF/OutfitLight1.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dia_qty1}]]></textFieldExpression>
+			</textField>
+			<rectangle radius="10">
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="0" y="0" width="200" height="195" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" forecolor="#F1E4D9" backcolor="#F1E4D9" uuid="baa0feb7-42cf-4e05-ae5d-625ce69fafe9"/>
+			</rectangle>
+			<textField pattern="#,##0.0000;(#,##0.0000)" isBlankWhenNull="true">
+				<reportElement key="textField-3" positionType="Float" x="102" y="225" width="91" height="15" isRemoveLineWhenBlank="true" uuid="b633561b-b725-4518-be31-c8ef8c46b5b5"/>
+				<box leftPadding="3">
+					<pen lineColor="#FFFFFF"/>
+					<topPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<leftPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#FFFFFF"/>
+					<rightPen lineWidth="0.5" lineColor="#FFFFFF"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Outfit Thin" size="8" pdfFontName="/usr/share/fonts/TTF/OutfitLight1.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cs_qty1}]]></textFieldExpression>
+			</textField>
+			<textField pattern="##0.00" isBlankWhenNull="true">
+				<reportElement key="textField-3" positionType="Float" x="102" y="240" width="91" height="15" isRemoveLineWhenBlank="true" uuid="ef5c2b0c-2964-498d-a0e4-fafa60e373e3"/>
+				<box leftPadding="3">
+					<pen lineColor="#FFFFFF"/>
+					<topPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<leftPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#FFFFFF"/>
+					<rightPen lineWidth="0.5" lineColor="#FFFFFF"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Outfit Thin" size="8" pdfFontName="/usr/share/fonts/TTF/OutfitLight1.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{metal_code}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.0000;(#,##0.0000)" isBlankWhenNull="true">
+				<reportElement key="textField-3" positionType="Float" x="102" y="270" width="91" height="15" isRemoveLineWhenBlank="true" uuid="bc1a6d1d-b57e-488a-b871-26e2329b011e"/>
+				<box leftPadding="3">
+					<pen lineColor="#FFFFFF"/>
+					<topPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<leftPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#FFFFFF"/>
+					<rightPen lineWidth="0.5" lineColor="#FFFFFF"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Outfit Thin" size="8" pdfFontName="/usr/share/fonts/TTF/OutfitLight1.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{metal_wt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="##0.00" isBlankWhenNull="true">
+				<reportElement key="textField-3" positionType="Float" x="102" y="255" width="91" height="15" isRemoveLineWhenBlank="true" uuid="bcf8e89e-bce0-467b-bdae-bc44fe2206ee"/>
+				<box leftPadding="3">
+					<pen lineColor="#FFFFFF"/>
+					<topPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<leftPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#FFFFFF"/>
+					<rightPen lineWidth="0.5" lineColor="#FFFFFF"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Outfit Thin" size="8" pdfFontName="/usr/share/fonts/TTF/OutfitLight1.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{karatage}]]></textFieldExpression>
+			</textField>
+			<textField pattern="##0.00" isBlankWhenNull="true">
+				<reportElement key="textField-3" positionType="Float" x="102" y="180" width="91" height="15" isRemoveLineWhenBlank="true" uuid="aab0c112-537e-4e28-838e-cf0da66edcac"/>
+				<box leftPadding="3">
+					<pen lineColor="#FFFFFF"/>
+					<topPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<leftPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#FFFFFF"/>
+					<rightPen lineWidth="0.5" lineColor="#FFFFFF"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Outfit Thin" size="8" pdfFontName="/usr/share/fonts/TTF/OutfitLight1.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{product_type_name}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00" isBlankWhenNull="true">
+				<reportElement key="textField-3" positionType="Float" x="102" y="195" width="91" height="15" isRemoveLineWhenBlank="true" uuid="59f10663-f1e7-4777-b0e9-855893ac1646"/>
+				<box leftPadding="3">
+					<pen lineColor="#FFFFFF"/>
+					<topPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<leftPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#FFFFFF"/>
+					<rightPen lineWidth="0.5" lineColor="#FFFFFF"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Outfit Thin" size="8" pdfFontName="/usr/share/fonts/TTF/OutfitLight1.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{product_size}]]></textFieldExpression>
+			</textField>
+			<textField pattern="##0.00" isBlankWhenNull="true">
+				<reportElement key="textField-3" positionType="Float" mode="Transparent" x="10" y="180" width="92" height="15" isRemoveLineWhenBlank="true" forecolor="#404040" uuid="bbb89547-babb-4ca2-b73d-a92f156d15bf"/>
+				<box leftPadding="2">
+					<pen lineColor="#FFFFFF"/>
+					<topPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<leftPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#FFFFFF"/>
+					<rightPen lineWidth="0.5" lineColor="#FFFFFF"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Outfit" size="8" isBold="false" pdfFontName="/usr/share/fonts/TTF/OutfitRegular.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{product_type_lable}]]></textFieldExpression>
+			</textField>
+			<textField pattern="##0.00" isBlankWhenNull="true">
+				<reportElement key="textField-3" positionType="Float" x="10" y="195" width="92" height="15" isRemoveLineWhenBlank="true" forecolor="#404040" uuid="3e15802f-7f52-48c3-ac96-9deecb4eb0f3"/>
+				<box leftPadding="2">
+					<pen lineColor="#FFFFFF"/>
+					<topPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<leftPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#FFFFFF"/>
+					<rightPen lineWidth="0.5" lineColor="#FFFFFF"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Outfit" size="8" isBold="false" pdfFontName="/usr/share/fonts/TTF/OutfitRegular.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{product_size_lable}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.0000;(#,##0.0000)" isBlankWhenNull="true">
+				<reportElement key="textField-3" positionType="Float" x="10" y="210" width="92" height="15" isRemoveLineWhenBlank="true" forecolor="#404040" uuid="23785085-98e7-4b44-ad76-c1698a81b0cc"/>
+				<box leftPadding="2">
+					<pen lineColor="#FFFFFF"/>
+					<topPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<leftPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#FFFFFF"/>
+					<rightPen lineWidth="0.5" lineColor="#FFFFFF"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Outfit" size="8" isBold="false" pdfFontName="/usr/share/fonts/TTF/OutfitRegular.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{diamon_wt_lable}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.0000;(#,##0.0000)" isBlankWhenNull="true">
+				<reportElement key="textField-3" positionType="Float" x="10" y="225" width="92" height="15" isRemoveLineWhenBlank="true" forecolor="#404040" uuid="b016e056-cad4-4d0f-885c-67fe9472e933"/>
+				<box leftPadding="2">
+					<pen lineColor="#FFFFFF"/>
+					<topPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<leftPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#FFFFFF"/>
+					<rightPen lineWidth="0.5" lineColor="#FFFFFF"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Outfit" size="8" isBold="false" pdfFontName="/usr/share/fonts/TTF/OutfitRegular.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cs_wt_lable}]]></textFieldExpression>
+			</textField>
+			<textField pattern="##0.00" isBlankWhenNull="true">
+				<reportElement key="textField-3" positionType="Float" x="10" y="240" width="92" height="15" isRemoveLineWhenBlank="true" forecolor="#404040" uuid="40a114be-4ab9-4a82-84c6-dcefdb995163"/>
+				<box leftPadding="2">
+					<pen lineColor="#FFFFFF"/>
+					<topPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<leftPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#FFFFFF"/>
+					<rightPen lineWidth="0.5" lineColor="#FFFFFF"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Outfit" size="8" isBold="false" pdfFontName="/usr/share/fonts/TTF/OutfitRegular.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{metal_lable}]]></textFieldExpression>
+			</textField>
+			<textField pattern="##0.00" isBlankWhenNull="true">
+				<reportElement key="textField-3" positionType="Float" x="10" y="255" width="92" height="15" isRemoveLineWhenBlank="true" forecolor="#404040" uuid="7142a95d-9d4e-4076-ab3d-7df4f34c76d0"/>
+				<box leftPadding="2">
+					<pen lineColor="#FFFFFF"/>
+					<topPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<leftPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#FFFFFF"/>
+					<rightPen lineWidth="0.5" lineColor="#FFFFFF"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Outfit" size="8" isBold="false" pdfFontName="/usr/share/fonts/TTF/OutfitRegular.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{karatage_lable}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.0000;(#,##0.0000)" isBlankWhenNull="true">
+				<reportElement key="textField-3" positionType="Float" x="10" y="270" width="92" height="15" isRemoveLineWhenBlank="true" forecolor="#404040" uuid="7a60e7a5-2d1e-4aa6-90e0-77bae84befc1"/>
+				<box leftPadding="2">
+					<pen lineColor="#FFFFFF"/>
+					<topPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<leftPen lineWidth="0.5" lineColor="#FFFFFF"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#FFFFFF"/>
+					<rightPen lineWidth="0.5" lineColor="#FFFFFF"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Outfit" size="8" isBold="false" pdfFontName="/usr/share/fonts/TTF/OutfitRegular.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{metal_wt_lable}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="RetainShape" hAlign="Center" vAlign="Middle" isLazy="true" onErrorType="Icon">
+				<reportElement key="image-1" stretchType="RelativeToTallestObject" x="32" y="12" width="137" height="137" uuid="47218223-c365-4007-b865-c34714ffe885"/>
+				<box topPadding="5" leftPadding="5" bottomPadding="5" rightPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid"/>
+				</box>
+				<imageExpression><![CDATA[$F{image_url}]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement x="32" y="156" width="137" height="18" forecolor="#9F6247" uuid="6601479a-59ec-456b-836c-2ab0a3ccd2af"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Outfit" size="10" pdfFontName="/usr/share/fonts/TTF/OutfitRegular.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{product_name}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

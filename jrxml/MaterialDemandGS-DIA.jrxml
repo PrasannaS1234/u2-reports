@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MaterialDemand" pageWidth="439" pageHeight="840" whenNoDataType="AllSectionsNoDetail" columnWidth="439" leftMargin="0" rightMargin="0" topMargin="5" bottomMargin="5" isIgnorePagination="true" uuid="c77f7cdd-f3a0-446c-9002-ab96fc3ebcf4">
+	<property name="ireport.zoom" value="1.5026296018031553"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="i_inv_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="tenant" class="java.lang.String">
+		<defaultValueExpression><![CDATA["'NA'"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dateFormat" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new String("dd-Mon-yyyy")]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+		m.inv_id inv_id,
+		max(concat(m.inv_type,'-',m.inv_no)) demand_no,
+		max(COALESCE(sup.supplier_name,dc.company_name)) demand_supplier,
+		max(concat(sm.sales_order_type,'-',sm.sales_order_no)) so_no,
+		max(sm.reference_no) reference_no,
+		max(sku.sku_no) as sku_no,
+		max(sd.qty) sales_qty,
+		max(l.lot_code) lot_code,
+		max(com.commodity_name) commodity_name,
+		max(sh.shape_name) shape_name,
+		max(
+		case when upper(shape_name) = 'ROUND' THEN 'ROUND'
+		else 'NON-ROUND' end
+		) as shape_group,
+		max(d.mm_size) as mm_size,
+		max(d.sieve) as sieve,
+		sum(sc.tot_qty) pc_qty1,
+		sum(sc.qty2) pc_qty2,
+		sum(d.qty1) qty1,
+		sum(d.qty2) qty2
+	FROM
+		tbl_material_demand_main m
+		inner join tbl_material_demand_det d
+			on m.inv_id = d.inv_id
+			and d.is_deleted = 0
+
+		inner join tbl_commodity com
+			on d.commodity_id = com.commodity_id
+
+		left join tbl_sales_order_main sm
+			on d.so_id = sm.sales_order_id
+
+		left join tbl_sales_order_component sc
+			on d.sales_order_component_id = sc.component_id
+			and sc.is_deleted = 0
+			and sm.sales_order_id = sc.sales_order_id
+
+		left join tbl_sales_order_det sd
+			on sc.sales_order_det_id = sd.sales_order_det_id
+			and sd.is_deleted = 0
+			and sm.sales_order_id = sd.sales_order_id
+
+		left join tbl_sku sku
+			on sd.sku_id = sku.sku_id
+
+		left join tbl_lot l
+			on sc.lot_id = l.lot_id
+
+		left join tbl_shape sh
+			on sc.shape_id = sh.shape_id
+
+		left join tbl_supplier sup
+			on m.supplier_id = sup.supplier_id
+
+		left join tbl_company dc
+			on m.dest_branch_id = dc.company_id
+
+		left join tbl_clarity cla
+			on d.clarity_id = cla.clarity_id
+
+	WHERE
+		m.is_deleted = 0
+		and m.inv_id in ($P!{i_inv_id})
+                     and upper(com.metal_type) = 'DIAMOND'
+                     and upper(l.lot_type) = 'STONE'
+
+	GROUP BY
+		com.commodity_id,
+		sku.sku_id,
+		sh.shape_id,
+		d.mm_size,
+		d.sieve,
+		m.inv_id
+           order by shape_group desc]]>
+	</queryString>
+	<field name="inv_id" class="java.lang.Integer"/>
+	<field name="demand_no" class="java.lang.String"/>
+	<field name="demand_supplier" class="java.lang.String"/>
+	<field name="so_no" class="java.lang.String"/>
+	<field name="reference_no" class="java.lang.String"/>
+	<field name="sku_no" class="java.lang.String"/>
+	<field name="sales_qty" class="java.math.BigDecimal"/>
+	<field name="lot_code" class="java.lang.String"/>
+	<field name="commodity_name" class="java.lang.String"/>
+	<field name="shape_name" class="java.lang.String"/>
+	<field name="shape_group" class="java.lang.String"/>
+	<field name="mm_size" class="java.lang.String"/>
+	<field name="sieve" class="java.lang.String"/>
+	<field name="pc_qty1" class="java.math.BigDecimal"/>
+	<field name="pc_qty2" class="java.math.BigDecimal"/>
+	<field name="qty1" class="java.math.BigDecimal"/>
+	<field name="qty2" class="java.math.BigDecimal"/>
+	<variable name="qty1_1" class="java.math.BigDecimal" resetType="Group" resetGroup="commodity" calculation="Sum">
+		<variableExpression><![CDATA[$F{qty1}]]></variableExpression>
+	</variable>
+	<variable name="qty2_1" class="java.math.BigDecimal" resetType="Group" resetGroup="commodity" calculation="Sum">
+		<variableExpression><![CDATA[$F{qty2}]]></variableExpression>
+	</variable>
+	<variable name="previousSku" class="java.lang.String">
+		<variableExpression><![CDATA[$F{sku_no}]]></variableExpression>
+	</variable>
+	<group name="commodity" keepTogether="true">
+		<groupExpression><![CDATA[$F{shape_group}]]></groupExpression>
+		<groupHeader>
+			<band height="39">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="438" height="19" isPrintWhenDetailOverflows="true" uuid="2511549f-9be1-4000-9a26-636630f2a6cc"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="SansSerif" isBold="true" isUnderline="true" pdfEncoding="Cp1252"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{shape_group}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="100" y="19" width="93" height="20" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="8b8946f4-22b2-41e4-8d90-6e058b22d5ee"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="SansSerif" isBold="true" pdfEncoding="Cp1252" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Shape]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="193" y="19" width="90" height="20" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="92d75f71-eeb3-4400-875e-6b6390a94958"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="SansSerif" isBold="true" pdfEncoding="Cp1252" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Seive]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="283" y="19" width="83" height="20" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="439f5d95-5d17-46c8-b4ed-0c893dd78f75"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="SansSerif" isBold="true" pdfEncoding="Cp1252" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[MM Size]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="366" y="19" width="72" height="20" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="afb6e4d3-166c-4a15-8448-2bfb09a3ad7e"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="SansSerif" isBold="true" pdfEncoding="Cp1252" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[PCS]]></text>
+				</staticText>
+				<staticText>
+					<reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="19" width="100" height="20" isPrintWhenDetailOverflows="true" backcolor="#F7F7F7" uuid="65c43540-4b47-45d3-b3b9-ba18c6094450"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="SansSerif" isBold="true" pdfEncoding="Cp1252" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Lot Code]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="15">
+				<staticText>
+					<reportElement x="340" y="0" width="99" height="15" uuid="260ce620-dcb5-4770-9d94-ede265edf520"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+					</box>
+					<text><![CDATA[]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="Sku">
+		<groupExpression><![CDATA[$F{sku_no}]]></groupExpression>
+	</group>
+	<pageHeader>
+		<band height="20">
+			<staticText>
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="439" height="20" isPrintWhenDetailOverflows="true" uuid="ff847f98-04ae-4154-9422-486817ed51f5"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" isBold="true" isUnderline="true" pdfEncoding="Cp1252" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Diamond Stone Request]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="19">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="100" y="0" width="93" height="19" isPrintWhenDetailOverflows="true" uuid="804a73cc-8023-4d08-8180-65bfa33ba56d"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" pdfEncoding="Cp1252"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{shape_name}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="193" y="0" width="90" height="19" isPrintWhenDetailOverflows="true" uuid="1546e9ad-1106-40c8-9bef-dea032dc084d"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfEncoding="Cp1252"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sieve}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="283" y="0" width="83" height="19" isPrintWhenDetailOverflows="true" uuid="9c4737af-0263-4351-baed-e830edd173d7"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfEncoding="Cp1252"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{mm_size}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="366" y="0" width="72" height="19" isPrintWhenDetailOverflows="true" uuid="daba97b5-a14c-47a9-8cbd-18d488187c37"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" pdfEncoding="Cp1252"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qty2}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="100" height="19" isPrintWhenDetailOverflows="true" uuid="8c45eff3-c462-48fb-baa6-9a9691340589"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" pdfEncoding="Cp1252"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lot_code}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band splitType="Immediate"/>
+	</pageFooter>
+</jasperReport>
