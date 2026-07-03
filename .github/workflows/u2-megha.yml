@@ -96,7 +96,7 @@ jobs:
         run: sleep 60
 
       - name: Deploy .jasper files to EBS mount
-        uses: appleboy/scp-action@v0.1.4
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ needs.terraform.outputs.ec2_public_ip }}
           username: ec2-user
@@ -106,7 +106,7 @@ jobs:
           strip_components: 1
 
       - name: Deploy .jrxml files to EBS mount
-        uses: appleboy/scp-action@v0.1.4
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ needs.terraform.outputs.ec2_public_ip }}
           username: ec2-user
