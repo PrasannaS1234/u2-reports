@@ -45,7 +45,7 @@ resource "aws_security_group" "jewtrade_app" {
 resource "aws_iam_role" "ec2_jasper" {
   count = (var.create_ec2 && var.ec2_instance_id == "") ? 1 : 0
 
-  name = "${local.name_prefix}-jasper-ec2-role"
+  name = "${local.name_prefix}-jasper-report-ec2-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -71,7 +71,7 @@ resource "aws_iam_role_policy_attachment" "ec2_ssm" {
 resource "aws_iam_instance_profile" "ec2_jasper" {
   count = (var.create_ec2 && var.ec2_instance_id == "") ? 1 : 0
 
-  name = "${local.name_prefix}-jasper-ec2-profile"
+  name = "${local.name_prefix}-jasper-report-ec2-profile"
   role = aws_iam_role.ec2_jasper[0].name
 }
 

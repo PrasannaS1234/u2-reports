@@ -12,7 +12,11 @@ terraform {
     }
   }
 
-  # backend "s3" { ... }  # recommended for team use
+  backend "s3" {
+    region  = "ap-south-1"
+    bucket  = "u2-megha-backend-infra"
+    key     = "ec2/dev/jasper-report/terraform.tfstate"
+  } 
 }
 
 provider "aws" {
