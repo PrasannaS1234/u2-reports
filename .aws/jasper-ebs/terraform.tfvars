@@ -14,7 +14,7 @@ key_name  = "mg-prod-runner"
 
 instance_type           = "t3.medium"
 associate_public_ip     = true
-allowed_ssh_cidr_blocks = ["YOUR.PUBLIC.IP/32"]
+allowed_ssh_cidr_blocks = ["0.0.0.0/0"]
 
 ebs_size_gb = 30
 ebs_type    = "gp3"
