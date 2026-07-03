@@ -71,10 +71,3 @@ variable "tags" {
   type    = map(string)
   default = {}
 }
-
-variable "create_ec2" {
-  type        = bool
-  description = "Whether to create a new EC2 instance or attach to an existing one. If false, only the EBS volume is created."
-  default     = false
-}
-
