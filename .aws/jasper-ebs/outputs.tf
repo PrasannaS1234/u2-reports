@@ -16,5 +16,5 @@ output "report_path_for_spring" {
 }
 
 output "ec2_instance_id" {
-  value = var.create_ec2 ? (var.ec2_instance_id != "" ? var.ec2_instance_id : try(aws_instance.jewtrade_app[0].id, null)) : null
+  value = var.create_ec2 ? (var.ec2_instance_id != "" ? var.ec2_instance_id : try(aws_instance.jewtrade_app[0].id, "")) : ""
 }
